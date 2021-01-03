@@ -18,3 +18,5 @@ endif (NOT DEFINED RESTLIB_GEANT4 OR NOT ${RESTLIB_GEANT4} MATCHES "ON" OR NOT D
 set(contents)
 
 COMPILEDIR(RestConnectors)
+
+target_link_libraries(RestConnectors ${rest_libs_index})
