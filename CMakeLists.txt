@@ -4,7 +4,7 @@ add_definitions(-DLIBRARY_VERSION="${LibraryVersion}")
 set (excludes)
 
 if (NOT DEFINED RESTLIB_RAW OR NOT ${RESTLIB_RAW} MATCHES "ON" OR NOT DEFINED RESTLIB_DETECTOR OR NOT ${RESTLIB_DETECTOR} MATCHES "ON")
-    set(excludes ${excludes} TRestDetectorSignalToRawSignalProcess TRestRawReadoutAnalysisProcess TRestRawSignalRecoverChannelsProcess TRestRawZeroSuppresionProcess )
+	set(excludes ${excludes} TRestDetectorSignalToRawSignalProcess TRestRawReadoutAnalysisProcess TRestRawSignalRecoverChannelsProcess TRestRawZeroSuppresionProcess TRestRawSignalToSignalProcess )
 endif (NOT DEFINED RESTLIB_RAW OR NOT ${RESTLIB_RAW} MATCHES "ON" OR NOT DEFINED RESTLIB_DETECTOR OR NOT ${RESTLIB_DETECTOR} MATCHES "ON")
 
 if (NOT DEFINED RESTLIB_TRACK OR NOT ${RESTLIB_TRACK} MATCHES "ON" OR NOT DEFINED RESTLIB_DETECTOR OR NOT ${RESTLIB_DETECTOR} MATCHES "ON")
