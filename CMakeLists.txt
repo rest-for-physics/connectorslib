@@ -3,20 +3,23 @@ add_definitions(-DLIBRARY_VERSION="${LibraryVersion}")
 
 set (excludes)
 
-if (NOT DEFINED RESTLIB_RAW OR NOT ${RESTLIB_RAW} MATCHES "ON" OR NOT DEFINED RESTLIB_DETECTOR OR NOT ${RESTLIB_DETECTOR} MATCHES "ON")
-	set(excludes ${excludes} TRestDetectorSignalToRawSignalProcess TRestRawReadoutAnalysisProcess TRestRawSignalRecoverChannelsProcess TRestRawZeroSuppresionProcess TRestRawSignalToSignalProcess )
-endif (NOT DEFINED RESTLIB_RAW OR NOT ${RESTLIB_RAW} MATCHES "ON" OR NOT DEFINED RESTLIB_DETECTOR OR NOT ${RESTLIB_DETECTOR} MATCHES "ON")
-
-if (NOT DEFINED RESTLIB_TRACK OR NOT ${RESTLIB_TRACK} MATCHES "ON" OR NOT DEFINED RESTLIB_DETECTOR OR NOT ${RESTLIB_DETECTOR} MATCHES "ON")
+set(deps detector geant4 track raw)
+if(NOT ${RESTLIB_RAW} MATCHES "ON")
+    list(REMOVE_ITEM deps raw)
+    set(excludes ${excludes} TRestDetectorSignalToRawSignalProcess TRestRawReadoutAnalysisProcess TRestRawSignalRecoverChannelsProcess TRestRawZeroSuppresionProcess )
+endif()
+if(NOT ${RESTLIB_TRACK} MATCHES "ON")
+    list(REMOVE_ITEM deps track)
     set(excludes ${excludes} TRestDetectorHitsToTrackProcess TRestDetectorHitsToTrackFastProcess TRestTrackToDetectorHitsProcess )
-endif (NOT DEFINED RESTLIB_TRACK OR NOT ${RESTLIB_TRACK} MATCHES "ON" OR NOT DEFINED RESTLIB_DETECTOR OR NOT ${RESTLIB_DETECTOR} MATCHES "ON")
-
-if (NOT DEFINED RESTLIB_GEANT4 OR NOT ${RESTLIB_GEANT4} MATCHES "ON" OR NOT DEFINED RESTLIB_DETECTOR OR NOT ${RESTLIB_DETECTOR} MATCHES "ON")
+endif()
+if(NOT ${RESTLIB_GEANT4} MATCHES "ON")
+    list(REMOVE_ITEM deps geant4)
     set(excludes ${excludes} TRestGeant4ToDetectorHitsProcess )
-endif (NOT DEFINED RESTLIB_GEANT4 OR NOT ${RESTLIB_GEANT4} MATCHES "ON" OR NOT DEFINED RESTLIB_DETECTOR OR NOT ${RESTLIB_DETECTOR} MATCHES "ON")
+endif()
 
-set(contents)
-
-COMPILEDIR(RestConnectors)
-
-target_link_libraries(RestConnectors ${rest_libs_index})
+list(LENGTH deps ndeps)
+if(NOT ${ndeps} MATCHES 1)
+    COMPILELIB(deps)
+else()
+    message(WARNING "Library RESTConnectors requires at least one active library(raw, track, geant4)")
+endif()
