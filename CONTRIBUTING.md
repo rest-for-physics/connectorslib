@@ -21,7 +21,7 @@ As soon as any issues remain open (and commits connected to this issue have been
 Authors pushing new processes or metadata classes to this library will be encouraged to prompty include at least:
 
 1. Doxygen in-code documentation describing the process pourpose and scope, including examples, and if possible, a figure ilustrating the effect of the process on event data.
-2. A validation test with a minimal running test to be included at the pipeline file `.gitlab-ci.yml`. Tests will be running at https://lfna.unizar.es/rest-for-physics/rawlib.
+2. A validation test with a minimal running test to be included at the pipeline file `.gitlab-ci.yml`. Tests will be running at https://lfna.unizar.es/rest-for-physics/connectorslib.
 
 ### Fixing a new library release
 
@@ -50,8 +50,8 @@ As soon as the new release is ready, the most natural is to update the submodule
 If we are the main framework directory this would be achieved by doing
 
 ```
-git add source/libraries/raw
-git commit -m "Updating raw library submodule to version 1.1"
+git add source/libraries/connectorslib
+git commit -m "Updating connectors library submodule to version 1.1"
 git push
 ```
 
