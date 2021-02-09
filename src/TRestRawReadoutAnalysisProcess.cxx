@@ -32,6 +32,7 @@ TRestRawReadoutAnalysisProcess::~TRestRawReadoutAnalysisProcess() {}
 //______________________________________________________________________________
 void TRestRawReadoutAnalysisProcess::Initialize() {
     SetSectionName(this->ClassName());
+    SetLibraryVersion(LIBRARY_VERSION);
 
     fSignalEvent = NULL;
 

@@ -133,6 +133,7 @@ void TRestRawSignalToSignalProcess::LoadDefaultConfig() {
 ///
 void TRestRawSignalToSignalProcess::Initialize() {
     SetSectionName(this->ClassName());
+    SetLibraryVersion(LIBRARY_VERSION);
 
     fInputSignalEvent = NULL;
     fOutputSignalEvent = new TRestDetectorSignalEvent();

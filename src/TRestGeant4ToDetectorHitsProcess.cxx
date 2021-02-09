@@ -107,6 +107,7 @@ void TRestGeant4ToDetectorHitsProcess::LoadDefaultConfig() {
 ///
 void TRestGeant4ToDetectorHitsProcess::Initialize() {
     SetSectionName(this->ClassName());
+    SetLibraryVersion(LIBRARY_VERSION);
 
     fG4Event = NULL;
     fHitsEvent = new TRestDetectorHitsEvent();

@@ -46,6 +46,7 @@ void TRestDetectorHitsToTrackProcess::LoadDefaultConfig() {
 //______________________________________________________________________________
 void TRestDetectorHitsToTrackProcess::Initialize() {
     SetSectionName(this->ClassName());
+    SetLibraryVersion(LIBRARY_VERSION);
 
     fClusterDistance = 1.;
 

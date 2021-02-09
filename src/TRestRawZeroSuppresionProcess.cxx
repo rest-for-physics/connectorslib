@@ -86,8 +86,8 @@
 /// <hr>
 ///
 
-#include <numeric>
 #include "TRestRawZeroSuppresionProcess.h"
+#include <numeric>
 using namespace std;
 
 const double cmTomm = 10.;
@@ -160,6 +160,7 @@ void TRestRawZeroSuppresionProcess::LoadConfig(std::string cfgFilename, std::str
 ///
 void TRestRawZeroSuppresionProcess::Initialize() {
     SetSectionName(this->ClassName());
+    SetLibraryVersion(LIBRARY_VERSION);
 
     fRawSignalEvent = NULL;
     fSignalEvent = new TRestDetectorSignalEvent();

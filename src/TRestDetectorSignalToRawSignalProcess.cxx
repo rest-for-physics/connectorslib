@@ -143,7 +143,9 @@ TRestDetectorSignalToRawSignalProcess::TRestDetectorSignalToRawSignalProcess(cha
 ///////////////////////////////////////////////
 /// \brief Default destructor
 ///
-TRestDetectorSignalToRawSignalProcess::~TRestDetectorSignalToRawSignalProcess() { delete fOutputRawSignalEvent; }
+TRestDetectorSignalToRawSignalProcess::~TRestDetectorSignalToRawSignalProcess() {
+    delete fOutputRawSignalEvent;
+}
 
 ///////////////////////////////////////////////
 /// \brief Function to load the default config in absence of RML input
@@ -182,6 +184,7 @@ void TRestDetectorSignalToRawSignalProcess::LoadConfig(std::string cfgFilename, 
 ///
 void TRestDetectorSignalToRawSignalProcess::Initialize() {
     SetSectionName(this->ClassName());
+    SetLibraryVersion(LIBRARY_VERSION);
 
     fInputSignalEvent = NULL;
     fOutputRawSignalEvent = new TRestRawSignalEvent();

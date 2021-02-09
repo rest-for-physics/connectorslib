@@ -35,6 +35,7 @@ void TRestTrackToDetectorHitsProcess::LoadDefaultConfig() {
 //______________________________________________________________________________
 void TRestTrackToDetectorHitsProcess::Initialize() {
     SetSectionName(this->ClassName());
+    SetLibraryVersion(LIBRARY_VERSION);
 
     fInputTrackEvent = NULL;
     fOutputHitsEvent = new TRestDetectorHitsEvent();

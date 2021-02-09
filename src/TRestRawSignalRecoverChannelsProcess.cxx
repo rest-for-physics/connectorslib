@@ -114,6 +114,7 @@ void TRestRawSignalRecoverChannelsProcess::LoadDefaultConfig() {
 ///
 void TRestRawSignalRecoverChannelsProcess::Initialize() {
     SetSectionName(this->ClassName());
+    SetLibraryVersion(LIBRARY_VERSION);
 
     fInputSignalEvent = NULL;
     fOutputSignalEvent = new TRestRawSignalEvent();

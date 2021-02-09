@@ -48,6 +48,7 @@ void TRestDetectorHitsToTrackFastProcess::LoadDefaultConfig() {
 //______________________________________________________________________________
 void TRestDetectorHitsToTrackFastProcess::Initialize() {
     SetSectionName(this->ClassName());
+    SetLibraryVersion(LIBRARY_VERSION);
 
     fCellResolution = 10.;
     fNetSize = 1000.;
