@@ -183,6 +183,7 @@ void TRestRawZeroSuppresionProcess::InitProcess() {
     // parameters from other processes as it is done here is ok. However, I would recommend
     // to define a globals.xml file where we define parameters that are then used by any process inside the
     // RML itself.
+    /*
     fBaseLineCorrection = false;
     for (int i = 0; i < fFriendlyProcesses.size(); i++) {
         if ((string)fFriendlyProcesses[i]->ClassName() == "TRestRawSignalAnalysisProcess") {
@@ -198,6 +199,7 @@ void TRestRawZeroSuppresionProcess::InitProcess() {
             fSignalThreshold = StringToDouble(fFriendlyProcesses[i]->GetParameter("signalThreshold", "5"));
         }
     }
+    */
 }
 
 ///////////////////////////////////////////////
