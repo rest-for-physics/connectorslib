@@ -43,10 +43,18 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
 
     /// The volume ids from the volumes selected for transfer to TRestDetectorHitsEvent
     std::set<TString> fVolumeNames;
+
+    // Parameters related to vetos
+
     std::set<TString> fVetoVolumeNames;
 
     std::set<TString> fVolumeUserSelection;      //!
-    std::set<TString> fVetoVolumeUserSelection;  //!
+
+    std::set<TString> fScintillatorLogicalNames;                              //!
+    std::map<TString, TString> fScintillatorLogicalToLightGuideLogicalMap;    //!
+    std::map<TString, Double_t> fScintillatorLogicalToAttenuationMap;         //!
+    std::map<TString, Double_t> fScintillatorLogicalToLightGuideDistanceMap;  //!
+    std::map<TString, TString> fScintillatorPhysicalToLightGuidePhysicalMap;  //!
 
     void InitFromConfigFile();
 

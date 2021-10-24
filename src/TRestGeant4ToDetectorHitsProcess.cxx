@@ -62,6 +62,9 @@
 
 #include "TRestGeant4ToDetectorHitsProcess.h"
 
+#include "TObjString.h"
+#include "TPRegexp.h"
+
 using namespace std;
 
 ClassImp(TRestGeant4ToDetectorHitsProcess);
@@ -136,44 +139,6 @@ void TRestGeant4ToDetectorHitsProcess::LoadConfig(std::string cfgFilename, std::
 /// TRestGeant4Metadata to identify the geometry volume ids associated to the hits.
 ///
 void TRestGeant4ToDetectorHitsProcess::InitProcess() {
-    fGeant4Metadata = GetMetadata<TRestGeant4Metadata>();
-
-    for (const auto& volumeName : fVolumeUserSelection) {
-        if (fGeant4Metadata->IsValidVolumeName(volumeName))
-            fVolumeNames.insert(volumeName);
-        else {
-            // maybe the user specified the logical volume name as unique id
-            auto volumeNameFromLogical = fGeant4Metadata->GetUniquePhysicalVolumeFromLogical(volumeName);
-            if (!fGeant4Metadata->IsValidVolumeName(volumeNameFromLogical)) {
-                cout << "TRestGeant4ToDetectorHitsProcess - Volume name: " << volumeName
-                     << " not found and will not be added." << endl;
-                // exit(1);
-            } else {
-                cout << "Added physical volume '" << volumeNameFromLogical << "' from logical '" << volumeName
-                     << "'" << endl;
-                fVolumeNames.insert(volumeNameFromLogical);
-            }
-        }
-    }
-
-    for (const auto& volumeName : fVetoVolumeUserSelection) {
-        if (fGeant4Metadata->IsValidVolumeName(volumeName))
-            fVetoVolumeNames.insert(volumeName);
-        else {
-            // maybe the user specified the logical volume name ID (not required to be unique!)
-            auto volumeNamesFromLogical = fGeant4Metadata->GetAllPhysicalVolumeFromLogical(volumeName);
-            if (volumeNamesFromLogical.empty()) {
-                cout << "TRestGeant4ToDetectorHitsProcess - Volume name: " << volumeName
-                     << " not found and will not be added." << endl;
-            }
-            for (const auto& volumeNameFromLogical : volumeNamesFromLogical) {
-                cout << "Added physical volume '" << volumeNameFromLogical << "' from logical '" << volumeName
-                     << "'" << endl;
-                fVetoVolumeNames.insert(volumeNameFromLogical);
-            }
-        }
-    }
-
     debug << "Active volumes available in TRestGeant4Metadata" << endl;
     debug << "-------------------------------------------" << endl;
     for (int n = 0; n < fGeant4Metadata->GetNumberOfActiveVolumes(); n++)
@@ -277,19 +242,136 @@ TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* evInput) 
     return fHitsEvent;
 }
 
+tuple<TString, TString, TString> GetAssemblyInfoFromPhysicalVolume(const TString& physicalVolume,
+                                                                   const TString& logicalVolume) {
+    // parse input such as av_24_impr_11_scintillatorLightGuideVolume-1500.0mm_pv_4
+    std::tuple<TString, TString, TString> assemblyInfo;
+
+    TString aux = TString::Format(R"(\bav_(\d+)_impr_(\d+)_%s_pv_(\d+)\b)", logicalVolume.Data());
+    TPRegexp regex(aux);  // https://root.cern.ch/doc/v608/regexp_8C.html
+    TObjArray* subStrL = regex.MatchS(physicalVolume);
+    if (subStrL->GetLast() != 3) {
+        cout << "error matching regex! check input parameters" << endl;
+        exit(1);
+    }
+
+    const TString av = ((TObjString*)subStrL->At(1))->GetString();
+    const TString impr = ((TObjString*)subStrL->At(2))->GetString();
+    const TString pv = ((TObjString*)subStrL->At(3))->GetString();
+
+    std::get<0>(assemblyInfo) = av;
+    std::get<1>(assemblyInfo) = impr;
+    std::get<2>(assemblyInfo) = pv;
+
+    return assemblyInfo;
+}
+
 ///////////////////////////////////////////////
 /// \brief Function to read input parameters from the RML
 /// TRestGeant4ToDetectorHitsProcess metadata section
 ///
 void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
     size_t position = 0;
-    string addVolumeDefinition;
+    string definition;
 
-    while (!(addVolumeDefinition = GetKEYDefinition("addVolume", position)).empty())
-        fVolumeUserSelection.insert(GetFieldValue("name", addVolumeDefinition));
+    while (!(definition = GetKEYDefinition("addVolume", position)).empty()) {
+        fVolumeUserSelection.insert(GetFieldValue("name", definition));
+    }
 
-    while (!(addVolumeDefinition = GetKEYDefinition("addVeto", position)).empty())
-        fVetoVolumeUserSelection.insert(GetFieldValue("name", addVolumeDefinition));
+    while (!(definition = GetKEYDefinition("addVeto", position)).empty()) {
+        TString scintillatorLogical = GetFieldValue("scintillatorLogical", definition);
+        TString lightGuideLogical = GetFieldValue("lightGuideLogical", definition);
+        Double_t distanceToLightGuide = StringToDouble(GetFieldValue("distance", definition));
+        Double_t attenuationDistance = StringToDouble(GetFieldValue("attenuation", definition));
+
+        fScintillatorLogicalNames.insert(scintillatorLogical);
+        fScintillatorLogicalToLightGuideLogicalMap[scintillatorLogical] = lightGuideLogical;
+        fScintillatorLogicalToLightGuideDistanceMap[scintillatorLogical] = distanceToLightGuide;
+        fScintillatorLogicalToAttenuationMap[scintillatorLogical] = attenuationDistance;
+    }
+
+    fGeant4Metadata = GetMetadata<TRestGeant4Metadata>();
+
+    for (const auto& volumeName : fVolumeUserSelection) {
+        if (fGeant4Metadata->IsValidVolumeName(volumeName))
+            fVolumeNames.insert(volumeName);
+        else {
+            // maybe the user specified the logical volume name as unique id
+            auto volumeNameFromLogical = fGeant4Metadata->GetUniquePhysicalVolumeFromLogical(volumeName);
+            if (!fGeant4Metadata->IsValidVolumeName(volumeNameFromLogical)) {
+                cout << "TRestGeant4ToDetectorHitsProcess - Volume name: " << volumeName
+                     << " not found and will not be added." << endl;
+                exit(1);
+            } else {
+                cout << "Added physical volume '" << volumeNameFromLogical << "' from logical '" << volumeName
+                     << "'" << endl;
+                fVolumeNames.insert(volumeNameFromLogical);
+            }
+        }
+    }
+
+    for (const auto& scintillatorLogicalName : fScintillatorLogicalNames) {
+        // maybe the user specified the logical volume name ID (not required to be unique!)
+        cout << "- Processing logical: " << scintillatorLogicalName << endl;
+        auto volumeNamesFromLogical =
+            fGeant4Metadata->GetAllPhysicalVolumeFromLogical(scintillatorLogicalName);
+        if (volumeNamesFromLogical.empty()) {
+            cout << "TRestGeant4ToDetectorHitsProcess - Volume name: " << scintillatorLogicalName
+                 << " not found and will not be added." << endl;
+            exit(1);
+        }
+        for (const auto& volumeNameFromLogical : volumeNamesFromLogical) {
+            cout << "Added physical volume '" << volumeNameFromLogical << "' from logical '"
+                 << scintillatorLogicalName << "'" << endl;
+            fVetoVolumeNames.insert(volumeNameFromLogical);
+        }
+
+        auto lightGuideLogical = fScintillatorLogicalToLightGuideLogicalMap.at(scintillatorLogicalName);
+        cout << "Light guide logical: " << lightGuideLogical << endl;
+        // there has to be one light guide per scintillator
+        auto lightGuideVolumeNamesFromLogical =
+            fGeant4Metadata->GetAllPhysicalVolumeFromLogical(lightGuideLogical);
+        if (lightGuideVolumeNamesFromLogical.size() != volumeNamesFromLogical.size()) {
+            cout << "light guide volumes do not match scintillator volumes! ("
+                 << lightGuideVolumeNamesFromLogical.size() << " to " << volumeNamesFromLogical.size() << ")"
+                 << endl;
+            cout << "Probably some logical volume name is misspelled, please check with all logical volume "
+                    "names below:"
+                 << endl;
+            for (const auto& name : fGeant4Metadata->GetLogicalVolumes()) {
+                cout << "---> " << name << endl;
+            }
+            exit(1);
+        }
+        // We need to match each scintillator physical volume to a light guide physical
+
+        for (const auto& scintillatorPhysical : volumeNamesFromLogical) {
+            size_t matches = 0;
+
+            auto assemblyInfo =
+                GetAssemblyInfoFromPhysicalVolume(scintillatorPhysical, scintillatorLogicalName);
+            TString av = get<0>(assemblyInfo);
+            TString impr = get<1>(assemblyInfo);
+
+            for (const auto& lightGuidePhysical : lightGuideVolumeNamesFromLogical) {
+                auto _assemblyInfo = GetAssemblyInfoFromPhysicalVolume(lightGuidePhysical, lightGuideLogical);
+                TString _av = get<0>(_assemblyInfo);
+                TString _impr = get<1>(_assemblyInfo);
+
+                if (av == _av && impr == _impr) {
+                    matches += 1;
+
+                    // cout << scintillatorPhysical << " to " << lightGuidePhysical << endl;
+                    fScintillatorPhysicalToLightGuidePhysicalMap[scintillatorPhysical] = lightGuidePhysical;
+                }
+            }
+
+            if (matches != 1) {
+                cout << "error matching scintillator to light guide" << endl;
+                exit(1);
+            }
+        }
+    }
 }
 
 ///////////////////////////////////////////////
@@ -302,6 +384,7 @@ void TRestGeant4ToDetectorHitsProcess::PrintMetadata() {
         metadata << "Volume added: " << volume << endl;
     }
     metadata << endl;
+
     for (auto& volume : fVetoVolumeNames) {
         metadata << "Veto Volume added: " << volume << endl;
     }
