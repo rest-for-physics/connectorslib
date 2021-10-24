@@ -33,19 +33,20 @@
 class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
    private:
     /// A pointer to the input TRestGeant4Event
-    TRestGeant4Event* fG4Event;  //!
+    TRestGeant4Event* fGeant4Event;  //!
 
     /// A pointer to the Geant4 simulation conditions stored in TRestGeant4Metadata
-    TRestGeant4Metadata* fG4Metadata;  //!
+    TRestGeant4Metadata* fGeant4Metadata;  //!
 
     /// A pointer to the output TRestDetectorHitsEvent
     TRestDetectorHitsEvent* fHitsEvent;  //!
 
     /// The volume ids from the volumes selected for transfer to TRestDetectorHitsEvent
-    vector<Int_t> fVolumeId;  //!
+    std::set<TString> fVolumeNames;
+    std::set<TString> fVetoVolumeNames;
 
-    /// The geometry volume names to be transferred to TRestDetectorHitsEvent
-    vector<TString> fVolumeSelection;
+    std::set<TString> fVolumeUserSelection;      //!
+    std::set<TString> fVetoVolumeUserSelection;  //!
 
     void InitFromConfigFile();
 
@@ -57,10 +58,11 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
     // add here the members of your event process
 
    public:
-    any GetInputEvent() { return fG4Event; }
+    any GetInputEvent() { return fGeant4Event; }
     any GetOutputEvent() { return fHitsEvent; }
 
     void InitProcess();
+    void EndProcess() override;
 
     TRestEvent* ProcessEvent(TRestEvent* eventInput);
 
@@ -73,7 +75,7 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
 
     // Constructor
     TRestGeant4ToDetectorHitsProcess();
-    TRestGeant4ToDetectorHitsProcess(char* cfgFileName);
+    TRestGeant4ToDetectorHitsProcess(const char* cfgFileName);
     // Destructor
     ~TRestGeant4ToDetectorHitsProcess();
 
