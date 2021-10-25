@@ -194,8 +194,8 @@ void TRestGeant4ToDetectorHitsProcess::EndProcess() {
 ///////////////////////////////////////////////
 /// \brief The main processing event function
 ///
-TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* evInput) {
-    fGeant4Event = (TRestGeant4Event*)evInput;
+TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* inputEvent) {
+    fGeant4Event = (TRestGeant4Event*)inputEvent;
 
     if (this->GetVerboseLevel() >= REST_Extreme) {
         cout << "------ TRestGeant4ToDetectorHitsProcess --- Printing Input Event --- START ----" << endl;
@@ -229,7 +229,35 @@ TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* evInput) 
                 fHitsEvent->AddHit(position, energy);
             }
             if (fVetoVolumeNames.count(volumeName) > 0) {
-                fHitsEvent->AddVetoHit(volumeName, position, energy, time);
+                /*
+                cout << TString::Format("Hit at {%.2f, %.2f, %.2f} mm with %.2f keV", position.x(),
+                                        position.y(), position.z(), energy)
+                     << endl;
+                */
+                TVector3 interface = fLightGuideInterfacePosition[volumeName];
+                TVector3 direction = fScintillatorToLightGuideDirection[volumeName];
+                /*
+                cout << TString::Format("Interface at {%.2f, %.2f, %.2f} mm", interface.x(), interface.y(),
+                                        interface.z())
+                     << endl;
+
+                cout << TString::Format("Direction {%.2f, %.2f, %.2f}", direction.x(), direction.y(),
+                                        direction.z())
+                     << endl;
+                */
+                Double_t distance = TMath::Abs(position.Dot(direction) - interface.Dot(direction));
+                Double_t attenuationLength =
+                    fScintillatorLogicalToAttenuationMap.at(fGeant4Metadata->GetLogicalVolume(volumeName));
+
+                Double_t attenuationFactor = TMath::Exp(-1.0 * distance / attenuationLength);
+                /*
+                cout << TString::Format("Distance of %.2f mm, attenuation length of %.2f, factor of %10.10f",
+                                        distance, attenuationLength, attenuationFactor)
+                     << endl;
+                cout << endl;
+                */
+                // We move the hit to the interface position and adjust its energy for attenuation
+                fHitsEvent->AddVetoHit(volumeName, interface, energy * attenuationFactor, time);
             }
         }
     }
@@ -281,12 +309,13 @@ void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
     while (!(definition = GetKEYDefinition("addVeto", position)).empty()) {
         TString scintillatorLogical = GetFieldValue("scintillatorLogical", definition);
         TString lightGuideLogical = GetFieldValue("lightGuideLogical", definition);
-        Double_t distanceToLightGuide = StringToDouble(GetFieldValue("distance", definition));
-        Double_t attenuationDistance = StringToDouble(GetFieldValue("attenuation", definition));
+        Double_t distanceToLightGuide = StringToDouble(GetFieldValue("length", definition));  // In mm
+        Double_t attenuationDistance = StringToDouble(
+            GetFieldValue("attenuation", definition));  // Attenuation length in mm (decrease 1/e)
 
         fScintillatorLogicalNames.insert(scintillatorLogical);
         fScintillatorLogicalToLightGuideLogicalMap[scintillatorLogical] = lightGuideLogical;
-        fScintillatorLogicalToLightGuideDistanceMap[scintillatorLogical] = distanceToLightGuide;
+        fScintillatorLengthMap[scintillatorLogical] = distanceToLightGuide;
         fScintillatorLogicalToAttenuationMap[scintillatorLogical] = attenuationDistance;
     }
 
@@ -370,6 +399,24 @@ void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
                 cout << "error matching scintillator to light guide" << endl;
                 exit(1);
             }
+
+            // Compute distance:
+            auto lightGuidePhysical = fScintillatorPhysicalToLightGuidePhysicalMap.at(scintillatorPhysical);
+            auto distance = fGeant4Metadata->GetPhysicalVolumePosition(lightGuidePhysical) -
+                            fGeant4Metadata->GetPhysicalVolumePosition(scintillatorPhysical);
+
+            fScintillatorToLightGuideDirection[scintillatorPhysical] = distance.Unit();
+            fLightGuideInterfacePosition[scintillatorPhysical] =
+                fGeant4Metadata->GetPhysicalVolumePosition(scintillatorPhysical) +
+                fScintillatorToLightGuideDirection[scintillatorPhysical] *
+                    fScintillatorLengthMap[scintillatorPhysical] * 0.5;
+
+            /*
+            cout << TString::Format("Distance from '%s' to '%s' is {%.2f, %.2f, %.2f} mm",
+                                    scintillatorPhysical.Data(), lightGuidePhysical.Data(), distance.x(),
+                                    distance.y(), distance.z())
+                 << endl;
+            */
         }
     }
 }
@@ -383,6 +430,7 @@ void TRestGeant4ToDetectorHitsProcess::PrintMetadata() {
     for (auto& volume : fVolumeNames) {
         metadata << "Volume added: " << volume << endl;
     }
+
     metadata << endl;
 
     for (auto& volume : fVetoVolumeNames) {

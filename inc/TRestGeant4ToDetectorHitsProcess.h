@@ -48,13 +48,16 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
 
     std::set<TString> fVetoVolumeNames;
 
-    std::set<TString> fVolumeUserSelection;      //!
+    std::set<TString> fVolumeUserSelection;  //!
 
     std::set<TString> fScintillatorLogicalNames;                              //!
     std::map<TString, TString> fScintillatorLogicalToLightGuideLogicalMap;    //!
     std::map<TString, Double_t> fScintillatorLogicalToAttenuationMap;         //!
-    std::map<TString, Double_t> fScintillatorLogicalToLightGuideDistanceMap;  //!
+    std::map<TString, Double_t> fScintillatorLengthMap;  //!
     std::map<TString, TString> fScintillatorPhysicalToLightGuidePhysicalMap;  //!
+
+    std::map<TString, TVector3> fLightGuideInterfacePosition;        //!
+    std::map<TString, TVector3> fScintillatorToLightGuideDirection;  //!
 
     void InitFromConfigFile();
 
@@ -72,7 +75,7 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
     void InitProcess();
     void EndProcess() override;
 
-    TRestEvent* ProcessEvent(TRestEvent* eventInput);
+    TRestEvent* ProcessEvent(TRestEvent* inputEvent);
 
     void LoadConfig(std::string cfgFilename, std::string name = "");
 
