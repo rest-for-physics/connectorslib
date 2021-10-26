@@ -50,14 +50,17 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
 
     std::set<TString> fVolumeUserSelection;  //!
 
-    std::set<TString> fScintillatorLogicalNames;                              //!
-    std::map<TString, TString> fScintillatorLogicalToLightGuideLogicalMap;    //!
-    std::map<TString, Double_t> fScintillatorLogicalToAttenuationMap;         //!
-    std::map<TString, Double_t> fScintillatorLengthMap;  //!
+    std::set<TString> fScintillatorLogicalNames;  //!
+
+    std::map<TString, TString> fScintillatorLogicalToLightGuideLogical;  //!
+    std::map<TString, Double_t> fScintillatorLogicalToAttenuation;       //!
+    std::map<TString, Double_t> fScintillatorLogicalLength;
+
     std::map<TString, TString> fScintillatorPhysicalToLightGuidePhysicalMap;  //!
 
-    std::map<TString, TVector3> fLightGuideInterfacePosition;        //!
-    std::map<TString, TVector3> fScintillatorToLightGuideDirection;  //!
+    std::map<TString, TVector3> fScintillatorPosition;
+    std::map<TString, TVector3> fLightGuideInterfacePosition;
+    std::map<TString, TVector3> fScintillatorToLightGuideDirection;
 
     void InitFromConfigFile();
 
@@ -83,6 +86,8 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
 
     /// Returns the name of this process
     TString GetProcessName() { return (TString) "g4toHitsEvent"; }
+
+    void DrawGeometryVetoPosition();
 
     // Constructor
     TRestGeant4ToDetectorHitsProcess();

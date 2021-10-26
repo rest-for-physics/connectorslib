@@ -245,9 +245,18 @@ TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* inputEven
                                         direction.z())
                      << endl;
                 */
-                Double_t distance = TMath::Abs(position.Dot(direction) - interface.Dot(direction));
+                Double_t distance = interface.Dot(direction) - position.Dot(direction);
+                Double_t length =
+                    fScintillatorLogicalLength.at(fGeant4Metadata->GetLogicalVolume(volumeName));
+                if (distance < 0 || distance > length) {
+                    cout << "distance out of bounds, please check! "
+                         << fGeant4Metadata->GetLogicalVolume(volumeName) << " - " << volumeName << " - "
+                         << distance << " - " << length << endl;
+                    exit(1);
+                }
+
                 Double_t attenuationLength =
-                    fScintillatorLogicalToAttenuationMap.at(fGeant4Metadata->GetLogicalVolume(volumeName));
+                    fScintillatorLogicalToAttenuation.at(fGeant4Metadata->GetLogicalVolume(volumeName));
 
                 Double_t attenuationFactor = TMath::Exp(-1.0 * distance / attenuationLength);
                 /*
@@ -314,9 +323,9 @@ void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
             GetFieldValue("attenuation", definition));  // Attenuation length in mm (decrease 1/e)
 
         fScintillatorLogicalNames.insert(scintillatorLogical);
-        fScintillatorLogicalToLightGuideLogicalMap[scintillatorLogical] = lightGuideLogical;
-        fScintillatorLengthMap[scintillatorLogical] = distanceToLightGuide;
-        fScintillatorLogicalToAttenuationMap[scintillatorLogical] = attenuationDistance;
+        fScintillatorLogicalToLightGuideLogical[scintillatorLogical] = lightGuideLogical;
+        fScintillatorLogicalLength[scintillatorLogical] = distanceToLightGuide;
+        fScintillatorLogicalToAttenuation[scintillatorLogical] = attenuationDistance;
     }
 
     fGeant4Metadata = GetMetadata<TRestGeant4Metadata>();
@@ -355,7 +364,7 @@ void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
             fVetoVolumeNames.insert(volumeNameFromLogical);
         }
 
-        auto lightGuideLogical = fScintillatorLogicalToLightGuideLogicalMap.at(scintillatorLogicalName);
+        auto lightGuideLogical = fScintillatorLogicalToLightGuideLogical.at(scintillatorLogicalName);
         cout << "Light guide logical: " << lightGuideLogical << endl;
         // there has to be one light guide per scintillator
         auto lightGuideVolumeNamesFromLogical =
@@ -406,10 +415,13 @@ void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
                             fGeant4Metadata->GetPhysicalVolumePosition(scintillatorPhysical);
 
             fScintillatorToLightGuideDirection[scintillatorPhysical] = distance.Unit();
+            fScintillatorPosition[scintillatorPhysical] =
+                fGeant4Metadata->GetPhysicalVolumePosition(scintillatorPhysical);
             fLightGuideInterfacePosition[scintillatorPhysical] =
-                fGeant4Metadata->GetPhysicalVolumePosition(scintillatorPhysical) +
-                fScintillatorToLightGuideDirection[scintillatorPhysical] *
-                    fScintillatorLengthMap[scintillatorPhysical] * 0.5;
+                fScintillatorPosition.at(scintillatorPhysical) +
+                fScintillatorToLightGuideDirection.at(scintillatorPhysical) *
+                    fScintillatorLogicalLength.at(fGeant4Metadata->GetLogicalVolume(scintillatorPhysical)) *
+                    0.5;
 
             /*
             cout << TString::Format("Distance from '%s' to '%s' is {%.2f, %.2f, %.2f} mm",
@@ -438,4 +450,76 @@ void TRestGeant4ToDetectorHitsProcess::PrintMetadata() {
     }
 
     EndPrintProcess();
+}
+
+#include <TEveGeoNode.h>
+#include <TEveManager.h>
+#include <TEvePointSet.h>
+#include <TGLViewer.h>
+#include <TGeoManager.h>
+
+void TRestGeant4ToDetectorHitsProcess::DrawGeometryVetoPosition() {
+    // this should be run from the root prompt
+    auto geo = gGeoManager;
+    if (!geo) {
+        metadata << "No TGeoManager global object, maybe geometry is not saved to file? Please, load it from "
+                    "TRestGeant4Metadata first with 'TRestGeant4Metadata::LoadGeometry()' method"
+                 << endl;
+        auto geant4Metadata = GetMetadata<TRestGeant4Metadata>();
+        if (geant4Metadata) {
+            geant4Metadata->LoadGeometry();
+            return;
+        } else {
+            cout << "Could not load Geant4 metadata" << endl;
+        }
+    }
+
+    if (!geo) {
+        metadata << "TGeoManager could not be loaded" << endl;
+        return;
+    }
+
+    auto eve = TEveManager::Create();
+
+    auto topNode = new TEveGeoTopNode(gGeoManager, gGeoManager->GetTopNode());
+    topNode->SetVisLevel(5);
+
+    eve->AddGlobalElement(topNode);
+
+    // Transparency
+    const int transparency = 75;
+    for (int i = 0; i < gGeoManager->GetListOfVolumes()->GetEntries(); i++) {
+        auto volume = gGeoManager->GetVolume(i);
+        auto material = volume->GetMaterial();
+        if (material->GetDensity() <= 0.01) {
+            volume->SetTransparency(95);
+            if (material->GetDensity() <= 0.001) {
+                // We consider this vacuum for display purposes
+                volume->SetVisibility(kFALSE);
+            }
+        } else {
+            volume->SetTransparency(transparency);
+        }
+    }
+
+    std::map<TString, TEvePointSet*> pointSetMap;
+    for (const auto& [name, position] : fLightGuideInterfacePosition) {
+        auto ps = new TEvePointSet(name);
+        pointSetMap[name] = ps;
+        ps->SetNextPoint(position.x(), position.y(), position.z());
+        ps->SetMarkerStyle(10);
+        ps->SetMarkerColor(kYellow);
+        eve->AddElement(ps);
+    }
+
+    // Draw interfaces as points
+
+    eve->FullRedraw3D(kTRUE);
+
+    auto viewer = eve->GetDefaultGLViewer();
+    // viewer->GetClipSet()->SetClipType(TGLClip::EType(2));
+    viewer->CurrentCamera().Reset();
+    // viewer->SetCurrentCamera(TGLViewer::kCameraOrthoZOY);
+    //  viewer->SetCurrentCamera(TGLViewer::kCameraPerspXOZ);
+    viewer->DoDraw();
 }
