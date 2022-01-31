@@ -33,10 +33,12 @@
 /// used in this process.
 /// * **sampling**: It is the sampling time of input raw signal data.
 /// Time units must be specified (ns, us, ms).
-/// * **triggerStarts**: It defines the absolute time value for the first
-/// raw data bin.
+/// * **triggerStarts**: It defines the physical time value for the first
+/// bin for the input raw signal data.
 /// * **gain**: Each data point from the resulting output signal will be
 /// multiplied by this factor.
+/// * **threshold**: Minimum threshold required to add the raw signal data
+/// into de the detector data.
 ///
 /// The following lines of code show how the process metadata should be
 /// defined.
@@ -74,6 +76,7 @@
 ///             Javier Gracia
 ///
 /// 2017-November: Class documented and re-furbished
+/// 2022-January: Added threshold parameter
 ///             Javier Galan
 ///
 /// \class      TRestRawToDetectorSignalProcess
@@ -85,47 +88,17 @@
 #include "TRestRawToDetectorSignalProcess.h"
 using namespace std;
 
-ClassImp(TRestRawToDetectorSignalProcess)
-
-    ///////////////////////////////////////////////
-    /// \brief Default constructor
-    ///
-    TRestRawToDetectorSignalProcess::TRestRawToDetectorSignalProcess() {
-    Initialize();
-}
+ClassImp(TRestRawToDetectorSignalProcess);
 
 ///////////////////////////////////////////////
-/// \brief Constructor loading data from a config file
+/// \brief Default constructor
 ///
-/// If no configuration path is defined using TRestMetadata::SetConfigFilePath
-/// the path to the config file must be specified using full path, absolute or
-/// relative.
-///
-/// The default behaviour is that the config file must be specified with
-/// full path, absolute or relative.
-///
-/// \param cfgFileName A const char* giving the path to an RML file.
-///
-TRestRawToDetectorSignalProcess::TRestRawToDetectorSignalProcess(char* cfgFileName) {
-    Initialize();
-
-    if (LoadConfigFromFile(cfgFileName) == -1) LoadDefaultConfig();
-
-    PrintMetadata();
-}
+TRestRawToDetectorSignalProcess::TRestRawToDetectorSignalProcess() { Initialize(); }
 
 ///////////////////////////////////////////////
 /// \brief Default destructor
 ///
 TRestRawToDetectorSignalProcess::~TRestRawToDetectorSignalProcess() { delete fOutputSignalEvent; }
-
-///////////////////////////////////////////////
-/// \brief Function to load the default config in absence of RML input
-///
-void TRestRawToDetectorSignalProcess::LoadDefaultConfig() {
-    SetName("rawSignalToSignal-Default");
-    SetTitle("Default config");
-}
 
 ///////////////////////////////////////////////
 /// \brief Function to initialize input/output event members and define the
@@ -140,22 +113,6 @@ void TRestRawToDetectorSignalProcess::Initialize() {
 }
 
 ///////////////////////////////////////////////
-/// \brief Function to load the configuration from an external configuration
-/// file.
-///
-/// If no configuration path is defined in TRestMetadata::SetConfigFilePath
-/// the path to the config file must be specified using full path, absolute or
-/// relative.
-///
-/// \param cfgFileName A const char* giving the path to an RML file.
-/// \param name The name of the specific metadata. It will be used to find the
-/// correspondig TRestGeant4AnalysisProcess section inside the RML.
-///
-void TRestRawToDetectorSignalProcess::LoadConfig(string cfgFilename, string name) {
-    if (LoadConfigFromFile(cfgFilename, name) == -1) LoadDefaultConfig();
-}
-
-///////////////////////////////////////////////
 /// \brief The main processing event function
 ///
 TRestEvent* TRestRawToDetectorSignalProcess::ProcessEvent(TRestEvent* evInput) {
@@ -167,20 +124,11 @@ TRestEvent* TRestRawToDetectorSignalProcess::ProcessEvent(TRestEvent* evInput) {
         TRestRawSignal* rawSgnl = fInputSignalEvent->GetSignal(n);
         sgnl.SetID(rawSgnl->GetID());
         for (int p = 0; p < rawSgnl->GetNumberOfPoints(); p++)
-            sgnl.NewPoint(fTriggerStarts + fSampling * p, fGain * rawSgnl->GetData(p));
+            if (rawSgnl->GetData(p) > fThreshold)
+                sgnl.NewPoint(fTriggerStarts + fSampling * p, fGain * rawSgnl->GetData(p));
 
-        fOutputSignalEvent->AddSignal(sgnl);
+        if (sgnl.GetNumberOfPoints() > 0) fOutputSignalEvent->AddSignal(sgnl);
     }
 
     return fOutputSignalEvent;
-}
-
-///////////////////////////////////////////////
-/// \brief Function reading input parameters from the RML
-/// TRestRawToDetectorSignalProcess metadata section
-///
-void TRestRawToDetectorSignalProcess::InitFromConfigFile() {
-    fSampling = GetDblParameterWithUnits("sampling");
-    fTriggerStarts = GetDblParameterWithUnits("triggerStarts");
-    fGain = StringToDouble(GetParameter("gain", "1"));
 }

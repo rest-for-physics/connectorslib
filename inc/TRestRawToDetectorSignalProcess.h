@@ -31,37 +31,32 @@
 //! A process to convert a TRestRawSignalEvent into a TRestDetectorSignalEvent
 class TRestRawToDetectorSignalProcess : public TRestEventProcess {
    private:
-#ifndef __CINT__
     /// A pointer to the specific TRestRawSignalEvent input
     TRestRawSignalEvent* fInputSignalEvent;  //!
 
     /// A pointer to the specific TRestDetectorSignalEvent input
     TRestDetectorSignalEvent* fOutputSignalEvent;  //!
-#endif
-
-    void InitFromConfigFile();
 
     void Initialize();
 
-    void LoadDefaultConfig();
-
    protected:
     /// The sampling time used to transform the binned data to time information
-    Double_t fSampling;
+    Double_t fSampling = 0.1;
 
     /// The corresponding time of the first bin inside the raw signal
-    Int_t fTriggerStarts;
+    Double_t fTriggerStarts = 0;
 
     /// A factor the data values will be multiplied by at the output signal.
-    Double_t fGain;
+    Double_t fGain = 1;
+
+    /// A factor the data values will be multiplied by at the output signal.
+    Double_t fThreshold = 0.1;
 
    public:
     any GetInputEvent() { return fInputSignalEvent; }
     any GetOutputEvent() { return fOutputSignalEvent; }
 
     TRestEvent* ProcessEvent(TRestEvent* eventInput);
-
-    void LoadConfig(std::string cfgFilename, string name = "");
 
     /// It prints out the process parameters stored in the metadata structure
     void PrintMetadata() {
@@ -82,11 +77,10 @@ class TRestRawToDetectorSignalProcess : public TRestEventProcess {
 
     // Constructor
     TRestRawToDetectorSignalProcess();
-    TRestRawToDetectorSignalProcess(char* cfgFileName);
 
     // Destructor
     ~TRestRawToDetectorSignalProcess();
 
-    ClassDef(TRestRawToDetectorSignalProcess, 1);
+    ClassDef(TRestRawToDetectorSignalProcess, 2);
 };
 #endif
