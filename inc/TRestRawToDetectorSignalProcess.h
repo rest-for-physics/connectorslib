@@ -20,16 +20,16 @@
  * For the list of contributors see $REST_PATH/CREDITS.                  *
  *************************************************************************/
 
-#ifndef RestCore_TRestRawSignalToSignalProcess
-#define RestCore_TRestRawSignalToSignalProcess
+#ifndef RestCore_TRestRawToDetectorSignalProcess
+#define RestCore_TRestRawToDetectorSignalProcess
 
-#include <TRestRawSignalEvent.h>
 #include <TRestDetectorSignalEvent.h>
+#include <TRestRawSignalEvent.h>
 
 #include "TRestEventProcess.h"
 
 //! A process to convert a TRestRawSignalEvent into a TRestDetectorSignalEvent
-class TRestRawSignalToSignalProcess : public TRestEventProcess {
+class TRestRawToDetectorSignalProcess : public TRestEventProcess {
    private:
 #ifndef __CINT__
     /// A pointer to the specific TRestRawSignalEvent input
@@ -75,18 +75,18 @@ class TRestRawSignalToSignalProcess : public TRestEventProcess {
     }
 
     /// Returns a new instance of this class
-    TRestEventProcess* Maker() { return new TRestRawSignalToSignalProcess; }
+    TRestEventProcess* Maker() { return new TRestRawToDetectorSignalProcess; }
 
     /// Returns the name of this process
     TString GetProcessName() { return (TString) "rawSignalToSignal"; }
 
     // Constructor
-    TRestRawSignalToSignalProcess();
-    TRestRawSignalToSignalProcess(char* cfgFileName);
+    TRestRawToDetectorSignalProcess();
+    TRestRawToDetectorSignalProcess(char* cfgFileName);
 
     // Destructor
-    ~TRestRawSignalToSignalProcess();
+    ~TRestRawToDetectorSignalProcess();
 
-    ClassDef(TRestRawSignalToSignalProcess, 1);
+    ClassDef(TRestRawToDetectorSignalProcess, 1);
 };
 #endif

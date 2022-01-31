@@ -21,7 +21,7 @@
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
-/// The TRestRawSignalToSignalProcess transforms a TRestRawSignalEvent into
+/// The TRestRawToDetectorSignalProcess transforms a TRestRawSignalEvent into
 /// a TRestDetectorSignalEvent. It applies a direct transform between both data
 /// types. The data points inside the raw signal are transformed to time
 /// information using the input sampling time and time start provided
@@ -47,11 +47,11 @@
 /// // TRestDetectorSignalEvent. The new signal will start at time=20us, and its
 /// // amplitude will be reduced a factor 50.
 ///
-/// <TRestRawSignalToSignalProcess name="rsTos" title"Raw signal to signal">
+/// <TRestRawToDetectorSignalProcess name="rsTos" title"Raw signal to signal">
 ///     <parameter name="sampling" value="0.2" units="us" />
 ///     <parameter name="triggerStarts" value="20" units="us" />
 ///     <parameter name="gain" value="1/50." />
-/// </TRestRawSignalToSignalProcess>
+/// </TRestRawToDetectorSignalProcess>
 /// \endcode
 ///
 /// <hr>
@@ -76,21 +76,21 @@
 /// 2017-November: Class documented and re-furbished
 ///             Javier Galan
 ///
-/// \class      TRestRawSignalToSignalProcess
+/// \class      TRestRawToDetectorSignalProcess
 /// \author     Javier Gracia
 /// \author     Javier Galan
 ///
 /// <hr>
 ///
-#include "TRestRawSignalToSignalProcess.h"
+#include "TRestRawToDetectorSignalProcess.h"
 using namespace std;
 
-ClassImp(TRestRawSignalToSignalProcess)
+ClassImp(TRestRawToDetectorSignalProcess)
 
     ///////////////////////////////////////////////
     /// \brief Default constructor
     ///
-    TRestRawSignalToSignalProcess::TRestRawSignalToSignalProcess() {
+    TRestRawToDetectorSignalProcess::TRestRawToDetectorSignalProcess() {
     Initialize();
 }
 
@@ -106,7 +106,7 @@ ClassImp(TRestRawSignalToSignalProcess)
 ///
 /// \param cfgFileName A const char* giving the path to an RML file.
 ///
-TRestRawSignalToSignalProcess::TRestRawSignalToSignalProcess(char* cfgFileName) {
+TRestRawToDetectorSignalProcess::TRestRawToDetectorSignalProcess(char* cfgFileName) {
     Initialize();
 
     if (LoadConfigFromFile(cfgFileName) == -1) LoadDefaultConfig();
@@ -117,12 +117,12 @@ TRestRawSignalToSignalProcess::TRestRawSignalToSignalProcess(char* cfgFileName) 
 ///////////////////////////////////////////////
 /// \brief Default destructor
 ///
-TRestRawSignalToSignalProcess::~TRestRawSignalToSignalProcess() { delete fOutputSignalEvent; }
+TRestRawToDetectorSignalProcess::~TRestRawToDetectorSignalProcess() { delete fOutputSignalEvent; }
 
 ///////////////////////////////////////////////
 /// \brief Function to load the default config in absence of RML input
 ///
-void TRestRawSignalToSignalProcess::LoadDefaultConfig() {
+void TRestRawToDetectorSignalProcess::LoadDefaultConfig() {
     SetName("rawSignalToSignal-Default");
     SetTitle("Default config");
 }
@@ -131,7 +131,7 @@ void TRestRawSignalToSignalProcess::LoadDefaultConfig() {
 /// \brief Function to initialize input/output event members and define the
 /// section name
 ///
-void TRestRawSignalToSignalProcess::Initialize() {
+void TRestRawToDetectorSignalProcess::Initialize() {
     SetSectionName(this->ClassName());
     SetLibraryVersion(LIBRARY_VERSION);
 
@@ -151,14 +151,14 @@ void TRestRawSignalToSignalProcess::Initialize() {
 /// \param name The name of the specific metadata. It will be used to find the
 /// correspondig TRestGeant4AnalysisProcess section inside the RML.
 ///
-void TRestRawSignalToSignalProcess::LoadConfig(string cfgFilename, string name) {
+void TRestRawToDetectorSignalProcess::LoadConfig(string cfgFilename, string name) {
     if (LoadConfigFromFile(cfgFilename, name) == -1) LoadDefaultConfig();
 }
 
 ///////////////////////////////////////////////
 /// \brief The main processing event function
 ///
-TRestEvent* TRestRawSignalToSignalProcess::ProcessEvent(TRestEvent* evInput) {
+TRestEvent* TRestRawToDetectorSignalProcess::ProcessEvent(TRestEvent* evInput) {
     fInputSignalEvent = (TRestRawSignalEvent*)evInput;
 
     for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
@@ -177,9 +177,9 @@ TRestEvent* TRestRawSignalToSignalProcess::ProcessEvent(TRestEvent* evInput) {
 
 ///////////////////////////////////////////////
 /// \brief Function reading input parameters from the RML
-/// TRestRawSignalToSignalProcess metadata section
+/// TRestRawToDetectorSignalProcess metadata section
 ///
-void TRestRawSignalToSignalProcess::InitFromConfigFile() {
+void TRestRawToDetectorSignalProcess::InitFromConfigFile() {
     fSampling = GetDblParameterWithUnits("sampling");
     fTriggerStarts = GetDblParameterWithUnits("triggerStarts");
     fGain = StringToDouble(GetParameter("gain", "1"));
