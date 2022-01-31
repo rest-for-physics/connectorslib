@@ -1,13 +1,24 @@
-///______________________________________________________________________________
-///______________________________________________________________________________
-///______________________________________________________________________________
-///
-///
-///             RESTSoft : Software for Rare Event Searches with TPCs
-///
-///             TRestDetectorHitsToTrackProcess.h
-///
-///_______________________________________________________________________________
+/*************************************************************************
+ * This file is part of the REST software framework.                     *
+ *                                                                       *
+ * Copyright (C) 2016 GIFNA/TREX (University of Zaragoza)                *
+ * For more information see http://gifna.unizar.es/trex                  *
+ *                                                                       *
+ * REST is free software: you can redistribute it and/or modify          *
+ * it under the terms of the GNU General Public License as published by  *
+ * the Free Software Foundation, either version 3 of the License, or     *
+ * (at your option) any later version.                                   *
+ *                                                                       *
+ * REST is distributed in the hope that it will be useful,               *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          *
+ * GNU General Public License for more details.                          *
+ *                                                                       *
+ * You should have a copy of the GNU General Public License along with   *
+ * REST in $REST_PATH/LICENSE.                                           *
+ * If not, see http://www.gnu.org/licenses/.                             *
+ * For the list of contributors see $REST_PATH/CREDITS.                  *
+ *************************************************************************/
 
 #ifndef RestCore_TRestDetectorHitsToTrackProcess
 #define RestCore_TRestDetectorHitsToTrackProcess
@@ -17,33 +28,26 @@
 #include "TMatrixD.h"
 #include "TRestEventProcess.h"
 
+//! A process to convert a TRestDetectorHitsEvent into a TRestTrackEvent
 class TRestDetectorHitsToTrackProcess : public TRestEventProcess {
    private:
-#ifndef __CINT__
-    TRestDetectorHitsEvent* fHitsEvent;    //!
-    TRestTrackEvent* fTrackEvent;  //!
-#endif
-
-    void InitFromConfigFile();
+    TRestDetectorHitsEvent* fHitsEvent;  //!
+    TRestTrackEvent* fTrackEvent;        //!
 
     void Initialize();
     Int_t FindTracks(TRestHits* hits);
 
    protected:
-    // add here the members of your event process
-    Double_t fClusterDistance;
+    /// The hits distance used to define a cluster of hits
+    Double_t fClusterDistance = 2.5;
 
    public:
     any GetInputEvent() { return fHitsEvent; }
     any GetOutputEvent() { return fTrackEvent; }
 
-    void InitProcess();
     TRestEvent* ProcessEvent(TRestEvent* eventInput);
-    void EndProcess();
-    void LoadDefaultConfig();
 
-    void LoadConfig(std::string cfgFilename, std::string name = "");
-
+    /// It prints out the process parameters stored in the metadata structure
     void PrintMetadata() {
         BeginPrintProcess();
 
@@ -52,12 +56,10 @@ class TRestDetectorHitsToTrackProcess : public TRestEventProcess {
         EndPrintProcess();
     }
 
+    /// Returns the name of this process
     TString GetProcessName() { return (TString) "hitsToTrack"; }
 
-    // Constructor
     TRestDetectorHitsToTrackProcess();
-    TRestDetectorHitsToTrackProcess(char* cfgFileName);
-    // Destructor
     ~TRestDetectorHitsToTrackProcess();
 
     ClassDef(TRestDetectorHitsToTrackProcess, 1);  // Template for a REST "event process" class inherited from

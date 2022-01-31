@@ -1,27 +1,97 @@
-///______________________________________________________________________________
-///______________________________________________________________________________
-///______________________________________________________________________________
+/*************************************************************************
+ * This file is part of the REST software framework.                     *
+ *                                                                       *
+ * Copyright (C) 2016 GIFNA/TREX (University of Zaragoza)                *
+ * For more information see http://gifna.unizar.es/trex                  *
+ *                                                                       *
+ * REST is free software: you can redistribute it and/or modify          *
+ * it under the terms of the GNU General Public License as published by  *
+ * the Free Software Foundation, either version 3 of the License, or     *
+ * (at your option) any later version.                                   *
+ *                                                                       *
+ * REST is distributed in the hope that it will be useful,               *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          *
+ * GNU General Public License for more details.                          *
+ *                                                                       *
+ * You should have a copy of the GNU General Public License along with   *
+ * REST in $REST_PATH/LICENSE.                                           *
+ * If not, see http://www.gnu.org/licenses/.                             *
+ * For the list of contributors see $REST_PATH/CREDITS.                  *
+ *************************************************************************/
+
+//////////////////////////////////////////////////////////////////////////
+/// The TRestDetectorHitsToTrackProcess transforms a TRestDetectorHitsEvent
+/// into a TRestTrackEvent. It creates tracks or clusters (groups of hits)
+/// that have a relation of proximity. If a group of hits distance to another
+/// group of hits is larger than the `clusterDistance` parameter, then the
+/// groups, or tracks, will be considered independent inside the
+/// TRestTrackEvent.
 ///
+/// This process evaluates all hit interdistances using the `clusterDistance`
+/// parameter. Therefore, for many hits events the process might slow down.
+/// An approximate method for hit to track clustering is implemented at
+/// the TRestDetectorHitsToTrackFastProcess.
 ///
-///             RESTSoft : Software for Rare Event Searches with TPCs
+/// The following list describes the different parameters that can be
+/// used in this process.
 ///
-///             TRestDetectorHitsToTrackProcess.cxx
+/// * **clusterDistance**: It is the distance at which two hits are
+/// considered to belong to the same group of hits.
 ///
-///             Dec 2015:   First concept (Javier Gracia Garza)
-//
-//              History :
-//              Jan 2016: Readapted to obtain tracks in bi-dimensional hits
-//              (Javier Galan)
-///_______________________________________________________________________________
+/// The following lines of code show how the process metadata should be
+/// defined.
+///
+/// Basic definition inside a processing chain construction at
+/// TRestProcessRunner
+///
+/// \code
+///
+/// <addProcess type="TRestDetectorHitsToTrackProcess name="hitsToTrack"
+///				clusterDistance="2.5mm" />
+///
+/// \endcode
+///
+/// <hr>
+///
+/// \warning **⚠ WARNING: REST is under continous development.** This documentation
+/// is offered to you by the REST community. Your HELP is needed to keep this code
+/// up to date. Your feedback will be worth to support this software, please report
+/// any problems/suggestions you may find while using it at [The REST Framework
+/// forum](http://ezpc10.unizar.es). You are welcome to contribute fixing typos, updating
+/// information or adding/proposing new contributions. See also our [Contribution
+/// Guide](https://github.com/rest-for-physics/framework/blob/master/CONTRIBUTING.md)
+///
+///--------------------------------------------------------------------------
+///
+/// RESTsoft - Software for Rare Event Searches with TPCs
+///
+/// History of developments:
+///
+/// 2015-December: First implementation of hits to track process
+///                Javier Gracia
+///
+/// 2016-January: Adapted to get tracks in bi-dimensional hits
+/// 2022-January: Documented and added official headers
+///             Javier Galan
+///
+/// \class      TRestDetectorHitsToTrackProcess
+/// \author     Javier Gracia
+/// \author     Javier Galan
+///
+/// <hr>
+///
 
 #include "TRestDetectorHitsToTrackProcess.h"
 using namespace std;
 
 ClassImp(TRestDetectorHitsToTrackProcess);
-//______________________________________________________________________________
+
+///////////////////////////////////////////////
+/// \brief Default constructor
+///
 TRestDetectorHitsToTrackProcess::TRestDetectorHitsToTrackProcess() { Initialize(); }
 
-//______________________________________________________________________________
 TRestDetectorHitsToTrackProcess::TRestDetectorHitsToTrackProcess(char* cfgFileName) {
     Initialize();
 
@@ -30,20 +100,18 @@ TRestDetectorHitsToTrackProcess::TRestDetectorHitsToTrackProcess(char* cfgFileNa
     // TRestDetectorHitsToTrackProcess default constructor
 }
 
-//______________________________________________________________________________
+///////////////////////////////////////////////
+/// \brief Default destructor
+///
 TRestDetectorHitsToTrackProcess::~TRestDetectorHitsToTrackProcess() {
     delete fTrackEvent;
     // TRestDetectorHitsToTrackProcess destructor
 }
 
-void TRestDetectorHitsToTrackProcess::LoadDefaultConfig() {
-    SetName("hitsToTrackProcess");
-    SetTitle("Default config");
-
-    fClusterDistance = 1.0;
-}
-
-//______________________________________________________________________________
+///////////////////////////////////////////////
+/// \brief Function to initialize input/output event members and define the
+/// section name
+///
 void TRestDetectorHitsToTrackProcess::Initialize() {
     SetSectionName(this->ClassName());
     SetLibraryVersion(LIBRARY_VERSION);
@@ -54,22 +122,9 @@ void TRestDetectorHitsToTrackProcess::Initialize() {
     fTrackEvent = new TRestTrackEvent();
 }
 
-//______________________________________________________________________________
-void TRestDetectorHitsToTrackProcess::LoadConfig(string cfgFilename, std::string name) {
-    if (LoadConfigFromFile(cfgFilename, name) == -1) LoadDefaultConfig();
-}
-
-//______________________________________________________________________________
-void TRestDetectorHitsToTrackProcess::InitProcess() {
-    // Function to be executed once at the beginning of process
-    // (before starting the process of the events)
-
-    // Start by calling the InitProcess function of the abstract class.
-    // Comment this if you don't want it.
-    // TRestEventProcess::InitProcess();
-}
-
-//______________________________________________________________________________
+///////////////////////////////////////////////
+/// \brief The main processing event function
+///
 TRestEvent* TRestDetectorHitsToTrackProcess::ProcessEvent(TRestEvent* evInput) {
     /* Time measurement
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
@@ -119,6 +174,12 @@ TRestEvent* TRestDetectorHitsToTrackProcess::ProcessEvent(TRestEvent* evInput) {
     return fTrackEvent;
 }
 
+///////////////////////////////////////////////
+/// \brief The main algorithm. It idetifies the hits that belong to
+/// each track and adds them already to the output TRestTrackEvent.
+///
+/// \return It returns the number of tracks found
+///
 Int_t TRestDetectorHitsToTrackProcess::FindTracks(TRestHits* hits) {
     if (GetVerboseLevel() >= REST_Extreme) hits->PrintHits();
     Int_t nTracksFound = 0;
@@ -195,8 +256,7 @@ Int_t TRestDetectorHitsToTrackProcess::FindTracks(TRestHits* hits) {
         track->SetVolumeHits(volHit);
         volHit.RemoveHits();
 
-        //      cout << "Adding track : id=" << track->GetTrackID() << " parent : "
-        //      << track->GetParentID() << endl;
+        debug << "Adding track : id=" << track->GetTrackID() << " parent : " << track->GetParentID() << endl;
         fTrackEvent->AddTrack(track);
         nTracksFound++;
 
@@ -208,17 +268,3 @@ Int_t TRestDetectorHitsToTrackProcess::FindTracks(TRestHits* hits) {
     return nTracksFound;
 }
 
-//______________________________________________________________________________
-void TRestDetectorHitsToTrackProcess::EndProcess() {
-    // Function to be executed once at the end of the process
-    // (after all events have been processed)
-
-    // Start by calling the EndProcess function of the abstract class.
-    // Comment this if you don't want it.
-    // TRestEventProcess::EndProcess();
-}
-
-//______________________________________________________________________________
-void TRestDetectorHitsToTrackProcess::InitFromConfigFile() {
-    fClusterDistance = GetDblParameterWithUnits("clusterDistance");
-}
