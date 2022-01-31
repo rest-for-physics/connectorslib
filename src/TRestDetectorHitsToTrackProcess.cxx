@@ -92,14 +92,6 @@ ClassImp(TRestDetectorHitsToTrackProcess);
 ///
 TRestDetectorHitsToTrackProcess::TRestDetectorHitsToTrackProcess() { Initialize(); }
 
-TRestDetectorHitsToTrackProcess::TRestDetectorHitsToTrackProcess(char* cfgFileName) {
-    Initialize();
-
-    if (LoadConfigFromFile(cfgFileName) == -1) LoadDefaultConfig();
-
-    // TRestDetectorHitsToTrackProcess default constructor
-}
-
 ///////////////////////////////////////////////
 /// \brief Default destructor
 ///
