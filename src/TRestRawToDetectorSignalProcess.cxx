@@ -126,6 +126,7 @@ TRestEvent* TRestRawToDetectorSignalProcess::ProcessEvent(TRestEvent* evInput) {
         for (int p = 0; p < rawSgnl->GetNumberOfPoints(); p++)
             if (rawSgnl->GetData(p) > fThreshold)
                 sgnl.NewPoint(fTriggerStarts + fSampling * p, fGain * rawSgnl->GetData(p));
+            else sgnl.NewPoint(fTriggerStarts + fSampling * p, 0);
 
         if (sgnl.GetNumberOfPoints() > 0) fOutputSignalEvent->AddSignal(sgnl);
     }
