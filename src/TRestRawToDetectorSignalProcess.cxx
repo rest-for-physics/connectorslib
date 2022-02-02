@@ -25,7 +25,11 @@
 /// a TRestDetectorSignalEvent. It applies a direct transform between both data
 /// types. The data points inside the raw signal are transformed to time
 /// information using the input sampling time and time start provided
-/// through the process RML section.
+/// through the process RML section. A new method for zero suppression has been
+/// implemented, now it is capable to perform zero suppression as it was implemented
+/// int the TRestRawZeroSuppresionProcess, which identifies the points that are over
+/// threshold from the input TRestRawSignalEvent. The resulting points remains as a
+/// TRestRawSignalEvent.
 ///
 /// All the data points will be transferred to the output signal event.
 ///
@@ -39,6 +43,23 @@
 /// multiplied by this factor.
 /// * **threshold**: Minimum threshold required to add the raw signal data
 /// into de the detector data.
+/// * **zeroSuppression**: If true, performs zero suppression of the data
+/// * **baselineRange**: A 2D-vector definning the range, in number of bins,
+/// where the baseline properties will be calculated.
+/// * **integralRange**: A 2D-vector definning the time window, in number of bins,
+/// where the signal will be considered.
+/// * **pointThreshold**: The number of sigmas over the baseline flunctuations to
+/// consider a point is over the threshold.
+/// * **pointsOverThreshold**: The number of consecutive points over threshold
+/// required to consider them as a physical signal.
+/// * **signalThreshold**: The number of sigmas a set of consecutive points
+/// identified over threshold must be over the baseline fluctuations to be
+/// finally considered a physical signal.
+///
+/// List of observables:
+///
+/// * NSignalsRejected: Number of rejected signals inside a event, due to 
+/// zero suppression or just because it is below the desired threshold.
 ///
 /// The following lines of code show how the process metadata should be
 /// defined.
@@ -47,12 +68,21 @@
 ///
 /// // A raw signal with 200ns binning will be translated to a
 /// // TRestDetectorSignalEvent. The new signal will start at time=20us, and its
-/// // amplitude will be reduced a factor 50.
+/// // amplitude will be reduced a factor 50. If zeroSuppression is true it will
+/// // perform 
 ///
 /// <TRestRawToDetectorSignalProcess name="rsTos" title"Raw signal to signal">
 ///     <parameter name="sampling" value="0.2" units="us" />
 ///     <parameter name="triggerStarts" value="20" units="us" />
 ///     <parameter name="gain" value="1/50." />
+///     <parameter name="zeroSuppression" value="true"/>
+///     <parameter name="baseLineRange" value="(20,140)"/>
+///     <parameter name="integralRange" value="(150,450)"/>
+///     <parameter name="pointThreshold" value="3"/>
+///     <parameter name="signalThreshold" value="7"/>
+///     <parameter name="nPointsOverThreshold" value="7"/>
+///     <observable name="NSignalsRejected" value="ON"/>
+///     
 /// </TRestRawToDetectorSignalProcess>
 /// \endcode
 ///
@@ -78,10 +108,13 @@
 /// 2017-November: Class documented and re-furbished
 /// 2022-January: Added threshold parameter
 ///             Javier Galan
+/// 2022-January: Adding ZeroSuppression method
+///             JuanAn Garcia
 ///
 /// \class      TRestRawToDetectorSignalProcess
 /// \author     Javier Gracia
 /// \author     Javier Galan
+///
 ///
 /// <hr>
 ///
@@ -116,20 +149,49 @@ void TRestRawToDetectorSignalProcess::Initialize() {
 /// \brief The main processing event function
 ///
 TRestEvent* TRestRawToDetectorSignalProcess::ProcessEvent(TRestEvent* evInput) {
-    fInputSignalEvent = (TRestRawSignalEvent*)evInput;
+   fInputSignalEvent = (TRestRawSignalEvent*)evInput;
 
-    for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
+   Int_t rejectedSignal = 0;
+
+    if(fZeroSuppression){
+      fInputSignalEvent->SetBaseLineRange(fBaseLineRange);
+      fInputSignalEvent->SetRange(fIntegralRange);
+    }
+
+      for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
         TRestDetectorSignal sgnl;
         sgnl.Initialize();
         TRestRawSignal* rawSgnl = fInputSignalEvent->GetSignal(n);
         sgnl.SetID(rawSgnl->GetID());
-        for (int p = 0; p < rawSgnl->GetNumberOfPoints(); p++)
-            if (rawSgnl->GetData(p) > fThreshold)
+
+          if(fZeroSuppression){
+            ZeroSuppresion(rawSgnl, sgnl);
+          } else {
+            for (int p = 0; p < rawSgnl->GetNumberOfPoints(); p++)
+              if (rawSgnl->GetData(p) > fThreshold)
                 sgnl.NewPoint(fTriggerStarts + fSampling * p, fGain * rawSgnl->GetData(p));
-            else sgnl.NewPoint(fTriggerStarts + fSampling * p, 0);
+          }
 
         if (sgnl.GetNumberOfPoints() > 0) fOutputSignalEvent->AddSignal(sgnl);
-    }
+        else rejectedSignal++;
+      }
+
+    SetObservableValue("NSignalsRejected", rejectedSignal);
 
     return fOutputSignalEvent;
 }
+
+void TRestRawToDetectorSignalProcess::ZeroSuppresion(TRestRawSignal* rawSignal, TRestDetectorSignal &sgnl){
+
+  rawSignal->InitializePointsOverThreshold(TVector2(fPointThreshold, fSignalThreshold),
+                                           fNPointsOverThreshold, 512);
+
+  std::vector<Int_t> pOver = rawSignal->GetPointsOverThreshold();
+    for (int n = 0; n < pOver.size(); n++) {
+      int j = pOver[n];
+      sgnl.NewPoint(fTriggerStarts + fSampling * j, fGain *rawSignal->GetData(j));
+    }
+
+}
+
+
