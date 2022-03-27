@@ -61,7 +61,7 @@ class TRestRawSignalToSignalProcess : public TRestEventProcess {
 
     TRestEvent* ProcessEvent(TRestEvent* eventInput);
 
-    void LoadConfig(std::string cfgFilename, string name = "");
+    void LoadConfig(std::string cfgFilename, std::string name = "");
 
     /// It prints out the process parameters stored in the metadata structure
     void PrintMetadata() {

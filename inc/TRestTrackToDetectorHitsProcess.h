@@ -44,7 +44,7 @@ class TRestTrackToDetectorHitsProcess : public TRestEventProcess {
     void PrintMetadata() {
         BeginPrintProcess();
 
-        cout << "Track level : " << fTrackLevel << endl;
+        std::cout << "Track level : " << fTrackLevel << endl;
 
         EndPrintProcess();
     }
