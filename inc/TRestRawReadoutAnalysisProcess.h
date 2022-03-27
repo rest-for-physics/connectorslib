@@ -16,9 +16,9 @@
 
 //#include <TCanvas.h>
 
-#include <TRestDetectorReadout.h>
 #include <TRestDetectorGas.h>
 #include <TRestDetectorHitsEvent.h>
+#include <TRestDetectorReadout.h>
 #include <TRestRawSignalEvent.h>
 
 #include "TRestEventProcess.h"
@@ -44,7 +44,7 @@ class TRestRawReadoutAnalysisProcess : public TRestEventProcess {
     std::map<int, TH1D*> fModuleActivityY;  //! [MM id, channel activity]
     std::map<int, TH2D*> fModuleBSLSigmaX;  //! [MM id, channel activity]
     std::map<int, TH2D*> fModuleBSLSigmaY;  //! [MM id, channel activity]
-                                       //
+                                            //
 
    public:
     any GetInputEvent() { return fSignalEvent; }

@@ -26,8 +26,8 @@
 //#include <TRestDetectorGas.h>
 //#include <TRestDetectorReadout.h>
 
-#include <TRestRawSignalEvent.h>
 #include <TRestDetectorSignalEvent.h>
+#include <TRestRawSignalEvent.h>
 
 #include "TRestEventProcess.h"
 
@@ -60,8 +60,8 @@ class TRestRawZeroSuppresionProcess : public TRestEventProcess {
     /// A parameter to determine if baseline correction has been applied by a previous process
     bool fBaseLineCorrection;
 
-    /// The ADC sampling used to transform ADC units to physical time in the output TRestDetectorSignalEvent. Given in
-    /// us.
+    /// The ADC sampling used to transform ADC units to physical time in the output TRestDetectorSignalEvent.
+    /// Given in us.
     Double_t fSampling;
 
     void InitFromConfigFile();

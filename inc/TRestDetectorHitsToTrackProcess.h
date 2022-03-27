@@ -14,14 +14,15 @@
 
 #include <TRestDetectorHitsEvent.h>
 #include <TRestTrackEvent.h>
+
 #include "TMatrixD.h"
 #include "TRestEventProcess.h"
 
 class TRestDetectorHitsToTrackProcess : public TRestEventProcess {
    private:
 #ifndef __CINT__
-    TRestDetectorHitsEvent* fHitsEvent;    //!
-    TRestTrackEvent* fTrackEvent;  //!
+    TRestDetectorHitsEvent* fHitsEvent;  //!
+    TRestTrackEvent* fTrackEvent;        //!
 #endif
 
     void InitFromConfigFile();

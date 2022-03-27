@@ -23,8 +23,8 @@
 #ifndef RestCore_TRestDetectorSignalToRawSignalProcess
 #define RestCore_TRestDetectorSignalToRawSignalProcess
 
-#include <TRestRawSignalEvent.h>
 #include <TRestDetectorSignalEvent.h>
+#include <TRestRawSignalEvent.h>
 
 #include "TRestEventProcess.h"
 

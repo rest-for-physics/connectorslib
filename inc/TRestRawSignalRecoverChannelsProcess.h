@@ -24,9 +24,8 @@
 #define RestCore_TRestRawSignalRecoverChannelsProcess
 
 #include "TRestDetectorReadout.h"
-#include "TRestRawSignalEvent.h"
-
 #include "TRestEventProcess.h"
+#include "TRestRawSignalEvent.h"
 
 //! A process allowing to recover selected channels from a TRestRawSignalEvent
 class TRestRawSignalRecoverChannelsProcess : public TRestEventProcess {

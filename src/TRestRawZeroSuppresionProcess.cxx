@@ -87,6 +87,7 @@
 ///
 
 #include "TRestRawZeroSuppresionProcess.h"
+
 #include <numeric>
 using namespace std;
 
