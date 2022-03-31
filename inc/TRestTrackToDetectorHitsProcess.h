@@ -14,13 +14,14 @@
 
 #include <TRestDetectorHitsEvent.h>
 #include <TRestTrackEvent.h>
+
 #include "TRestEventProcess.h"
 
 class TRestTrackToDetectorHitsProcess : public TRestEventProcess {
    private:
 #ifndef __CINT__
-    TRestTrackEvent* fInputTrackEvent;  //!
-    TRestDetectorHitsEvent* fOutputHitsEvent;   //!
+    TRestTrackEvent* fInputTrackEvent;         //!
+    TRestDetectorHitsEvent* fOutputHitsEvent;  //!
 #endif
 
     void InitFromConfigFile();
@@ -44,7 +45,7 @@ class TRestTrackToDetectorHitsProcess : public TRestEventProcess {
     void PrintMetadata() {
         BeginPrintProcess();
 
-        cout << "Track level : " << fTrackLevel << endl;
+        std::cout << "Track level : " << fTrackLevel << endl;
 
         EndPrintProcess();
     }

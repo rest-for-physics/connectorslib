@@ -187,7 +187,7 @@ void TRestDetectorSignalToRawSignalProcess::Initialize() {
     SetSectionName(this->ClassName());
     SetLibraryVersion(LIBRARY_VERSION);
 
-    fInputSignalEvent = NULL;
+    fInputSignalEvent = nullptr;
     fOutputRawSignalEvent = new TRestRawSignalEvent();
 }
 
@@ -197,7 +197,7 @@ void TRestDetectorSignalToRawSignalProcess::Initialize() {
 TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* evInput) {
     fInputSignalEvent = (TRestDetectorSignalEvent*)evInput;
 
-    if (fInputSignalEvent->GetNumberOfSignals() <= 0) return NULL;
+    if (fInputSignalEvent->GetNumberOfSignals() <= 0) return nullptr;
 
     if (GetVerboseLevel() >= REST_Debug) fOutputRawSignalEvent->PrintEvent();
 

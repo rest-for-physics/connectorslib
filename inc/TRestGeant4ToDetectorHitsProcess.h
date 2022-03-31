@@ -42,10 +42,10 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
     TRestDetectorHitsEvent* fHitsEvent;  //!
 
     /// The volume ids from the volumes selected for transfer to TRestDetectorHitsEvent
-    vector<Int_t> fVolumeId;  //!
+    std::vector<Int_t> fVolumeId;  //!
 
     /// The geometry volume names to be transferred to TRestDetectorHitsEvent
-    vector<TString> fVolumeSelection;
+    std::vector<TString> fVolumeSelection;
 
     void InitFromConfigFile();
 

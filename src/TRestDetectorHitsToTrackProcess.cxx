@@ -110,7 +110,7 @@ void TRestDetectorHitsToTrackProcess::Initialize() {
 
     fClusterDistance = 1.;
 
-    fHitsEvent = NULL;
+    fHitsEvent = nullptr;
     fTrackEvent = new TRestTrackEvent();
 }
 
@@ -157,7 +157,7 @@ TRestEvent* TRestDetectorHitsToTrackProcess::ProcessEvent(TRestEvent* evInput) {
              << fTrackEvent->GetNumberOfTracks() << endl;
     }
 
-    if (fTrackEvent->GetNumberOfTracks() == 0) return NULL;
+    if (fTrackEvent->GetNumberOfTracks() == 0) return nullptr;
 
     if (GetVerboseLevel() >= REST_Debug) fTrackEvent->PrintOnlyTracks();
 
