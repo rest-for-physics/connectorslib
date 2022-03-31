@@ -89,6 +89,7 @@
 #include "TRestRawZeroSuppresionProcess.h"
 
 #include <numeric>
+
 using namespace std;
 
 const double cmTomm = 10.;
