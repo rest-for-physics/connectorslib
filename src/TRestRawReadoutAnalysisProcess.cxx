@@ -34,19 +34,19 @@ void TRestRawReadoutAnalysisProcess::Initialize() {
     SetSectionName(this->ClassName());
     SetLibraryVersion(LIBRARY_VERSION);
 
-    fSignalEvent = NULL;
+    fSignalEvent = nullptr;
 
-    fReadout = NULL;
+    fReadout = nullptr;
 }
 
 //______________________________________________________________________________
 void TRestRawReadoutAnalysisProcess::InitProcess() {
     fReadout = GetMetadata<TRestDetectorReadout>();
-    if (fReadout != NULL) {
+    if (fReadout != nullptr) {
         auto iter = fModuleHitMaps.begin();
         while (iter != fModuleHitMaps.end()) {
             TRestDetectorReadoutModule* mod = fReadout->GetReadoutModuleWithID(iter->first);
-            if (mod == NULL) {
+            if (mod == nullptr) {
                 warning << "REST Warning(TRestRawReadoutAnalysisProcess): readout "
                            "module with id "
                         << iter->first << " not found!" << endl;
@@ -88,7 +88,7 @@ void TRestRawReadoutAnalysisProcess::InitProcess() {
 //______________________________________________________________________________
 TRestEvent* TRestRawReadoutAnalysisProcess::ProcessEvent(TRestEvent* evInput) {
     fSignalEvent = (TRestRawSignalEvent*)evInput;
-    if (fReadout != NULL) {
+    if (fReadout != nullptr) {
         Double_t firstX_id = -1.;
         Double_t firstY_id = -1.;
         Double_t firstX_t = 512.0;
@@ -193,7 +193,7 @@ TRestEvent* TRestRawReadoutAnalysisProcess::ProcessEvent(TRestEvent* evInput) {
                 modulefirstxchannel[mod1] = x;
                 modulefirstychannel[mod1] = y;
                 if (fModuleHitMaps.count(mod1) > 0) {
-                    if (fModuleHitMaps[mod1] != NULL) fModuleHitMaps[mod1]->Fill(x, y);
+                    if (fModuleHitMaps[mod1] != nullptr) fModuleHitMaps[mod1]->Fill(x, y);
                 }
                 // cout << n<<" "<<channel1 <<" "<< channel2 << endl;
                 // cout << x << " " << y << endl;
@@ -252,11 +252,11 @@ TRestEvent* TRestRawReadoutAnalysisProcess::ProcessEvent(TRestEvent* evInput) {
 
 //______________________________________________________________________________
 void TRestRawReadoutAnalysisProcess::EndProcess() {
-    if (fReadout != NULL) {
+    if (fReadout != nullptr) {
         {
             auto iter = fModuleHitMaps.begin();
             while (iter != fModuleHitMaps.end()) {
-                if (fModuleHitMaps[iter->first] != NULL) {
+                if (fModuleHitMaps[iter->first] != nullptr) {
                     TH2D* histo = fModuleHitMaps[iter->first];
                     histo->GetXaxis()->SetTitle("X Channel");
                     histo->GetYaxis()->SetTitle("Y Channel");
@@ -264,7 +264,7 @@ void TRestRawReadoutAnalysisProcess::EndProcess() {
                 }
 
                 if (fModuleCanvasSave != "none") {
-                    if (fModuleHitMaps[iter->first] != NULL) {
+                    if (fModuleHitMaps[iter->first] != nullptr) {
                         TH2D* histo = fModuleHitMaps[iter->first];
                         TCanvas* c1 =
                             new TCanvas((TString) "Can_ModuleHitMap" + ToString(iter->first),
@@ -279,7 +279,7 @@ void TRestRawReadoutAnalysisProcess::EndProcess() {
                     h0->SetStats(false);
                     h0->Reset();
 
-                    if (fModuleActivityX[iter->first] != NULL && fModuleActivityY[iter->first] != NULL) {
+                    if (fModuleActivityX[iter->first] != nullptr && fModuleActivityY[iter->first] != nullptr) {
                         TH1D* h1 = fModuleActivityX[iter->first];
                         TH1D* h2 = fModuleActivityY[iter->first];
 
@@ -307,7 +307,7 @@ void TRestRawReadoutAnalysisProcess::EndProcess() {
                         delete c1;
                     }
 
-                    if (fModuleBSLSigmaX[iter->first] != NULL && fModuleBSLSigmaY[iter->first] != NULL) {
+                    if (fModuleBSLSigmaX[iter->first] != nullptr && fModuleBSLSigmaY[iter->first] != nullptr) {
                         TH2D* h1 = fModuleBSLSigmaX[iter->first];
                         TH2D* h2 = fModuleBSLSigmaY[iter->first];
 
@@ -355,10 +355,10 @@ void TRestRawReadoutAnalysisProcess::InitFromConfigFile() {
     string moduleHist = GetParameter("modulesHist", "");
     auto histdef = Split(moduleHist, ":");
     for (int i = 0; i < histdef.size(); i++) {
-        fModuleHitMaps[StringToInteger(histdef[i])] = NULL;
-        fModuleActivityX[StringToInteger(histdef[i])] = NULL;
-        fModuleActivityY[StringToInteger(histdef[i])] = NULL;
-        fModuleBSLSigmaX[StringToInteger(histdef[i])] = NULL;
-        fModuleBSLSigmaY[StringToInteger(histdef[i])] = NULL;
+        fModuleHitMaps[StringToInteger(histdef[i])] = nullptr;
+        fModuleActivityX[StringToInteger(histdef[i])] = nullptr;
+        fModuleActivityY[StringToInteger(histdef[i])] = nullptr;
+        fModuleBSLSigmaX[StringToInteger(histdef[i])] = nullptr;
+        fModuleBSLSigmaY[StringToInteger(histdef[i])] = nullptr;
     }
 }

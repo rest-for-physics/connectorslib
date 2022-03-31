@@ -24,9 +24,8 @@
 #define RestCore_TRestRawSignalRecoverChannelsProcess
 
 #include "TRestDetectorReadout.h"
-#include "TRestRawSignalEvent.h"
-
 #include "TRestEventProcess.h"
+#include "TRestRawSignalEvent.h"
 
 //! A process allowing to recover selected channels from a TRestRawSignalEvent
 class TRestRawSignalRecoverChannelsProcess : public TRestEventProcess {
@@ -60,7 +59,7 @@ class TRestRawSignalRecoverChannelsProcess : public TRestEventProcess {
     void InitProcess();
     TRestEvent* ProcessEvent(TRestEvent* eventInput);
 
-    void LoadConfig(std::string cfgFilename, string name = "");
+    void LoadConfig(std::string cfgFilename, std::string name = "");
 
     /// It prints out the process parameters stored in the metadata structure
     void PrintMetadata() {

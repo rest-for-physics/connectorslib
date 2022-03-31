@@ -87,7 +87,9 @@
 ///
 
 #include "TRestRawZeroSuppresionProcess.h"
+
 #include <numeric>
+
 using namespace std;
 
 const double cmTomm = 10.;
@@ -162,7 +164,7 @@ void TRestRawZeroSuppresionProcess::Initialize() {
     SetSectionName(this->ClassName());
     SetLibraryVersion(LIBRARY_VERSION);
 
-    fRawSignalEvent = NULL;
+    fRawSignalEvent = nullptr;
     fSignalEvent = new TRestDetectorSignalEvent();
 }
 
@@ -266,7 +268,7 @@ TRestEvent* TRestRawZeroSuppresionProcess::ProcessEvent(TRestEvent* evInput) {
     debug << "TRestRawZeroSuppresionProcess. Signals rejected : " << rejectedSignal << endl;
     debug << "TRestRawZeroSuppresionProcess. Threshold integral : " << totalIntegral << endl;
 
-    if (fSignalEvent->GetNumberOfSignals() <= 0) return NULL;
+    if (fSignalEvent->GetNumberOfSignals() <= 0) return nullptr;
 
     return fSignalEvent;
 }

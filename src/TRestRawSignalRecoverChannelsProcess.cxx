@@ -116,7 +116,7 @@ void TRestRawSignalRecoverChannelsProcess::Initialize() {
     SetSectionName(this->ClassName());
     SetLibraryVersion(LIBRARY_VERSION);
 
-    fInputSignalEvent = NULL;
+    fInputSignalEvent = nullptr;
     fOutputSignalEvent = new TRestRawSignalEvent();
 }
 
@@ -144,7 +144,7 @@ void TRestRawSignalRecoverChannelsProcess::LoadConfig(string cfgFilename, string
 void TRestRawSignalRecoverChannelsProcess::InitProcess() {
     fReadout = GetMetadata<TRestDetectorReadout>();
 
-    if (fReadout == NULL) {
+    if (fReadout == nullptr) {
         cout << "REST ERRORRRR : Readout has not been initialized" << endl;
         exit(-1);
     }
@@ -177,7 +177,7 @@ TRestEvent* TRestRawSignalRecoverChannelsProcess::ProcessEvent(TRestEvent* evInp
         TRestRawSignal* leftSgnl = fInputSignalEvent->GetSignalById(idL);
         TRestRawSignal* rightSgnl = fInputSignalEvent->GetSignalById(idR);
 
-        if (leftSgnl == NULL && rightSgnl == NULL) continue;
+        if (leftSgnl == nullptr && rightSgnl == nullptr) continue;
 
         TRestRawSignal* recoveredSignal = new TRestRawSignal();
         recoveredSignal->SetID(fChannelIds[x]);
@@ -185,11 +185,11 @@ TRestEvent* TRestRawSignalRecoverChannelsProcess::ProcessEvent(TRestEvent* evInp
         Short_t dataRecovered[nPoints];
         for (int n = 0; n < nPoints; n++) dataRecovered[n] = 0;
 
-        if (leftSgnl != NULL) {
+        if (leftSgnl != nullptr) {
             for (int n = 0; n < nPoints; n++) dataRecovered[n] = leftSgnl->GetData(n);
         }
 
-        if (rightSgnl != NULL) {
+        if (rightSgnl != nullptr) {
             for (int n = 0; n < nPoints; n++) dataRecovered[n] += rightSgnl->GetData(n);
         }
 
@@ -200,7 +200,7 @@ TRestEvent* TRestRawSignalRecoverChannelsProcess::ProcessEvent(TRestEvent* evInp
         delete recoveredSignal;
         /*
         cout << "Channel recovered!! " << endl;
-        if( leftSgnl != NULL && rightSgnl != NULL )
+        if( leftSgnl != nullptr && rightSgnl != nullptr )
             for( int n = 0; n < nPoints; n++ )
                 cout << "Sample " << n << " : " << leftSgnl->GetData(n) << " + " <<
         rightSgnl->GetData(n) << " = " << recoveredSignal->GetData(n) << endl;
