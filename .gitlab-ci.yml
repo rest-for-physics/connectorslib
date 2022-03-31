@@ -1,4 +1,4 @@
-image: lobis/root-geant4-garfieldpp:cxx14_ROOTv6-25-01_Geant4v10.4.3
+image: ghcr.io/lobis/root-geant4-garfield:rest-for-physics
 
 stages:
   - pre-build
@@ -21,7 +21,7 @@ clang-format:
         variables:
             - $CRONJOB
 
-validateLibrary:
+Validate Library:
     stage: pre-build
     script:
         - python pipeline/validateLibrary.py .
