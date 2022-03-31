@@ -55,7 +55,7 @@ void TRestDetectorHitsToTrackFastProcess::Initialize() {
     fNetOrigin = TVector3(-500, -500, -500);
     fNodes = (Int_t)(fNetSize / fCellResolution);
 
-    fHitsEvent = NULL;
+    fHitsEvent = nullptr;
     fTrackEvent = new TRestTrackEvent();
 }
 
@@ -126,7 +126,7 @@ TRestEvent* TRestDetectorHitsToTrackFastProcess::ProcessEvent(TRestEvent* evInpu
     getchar();
     */
 
-    if (fTrackEvent->GetNumberOfTracks() == 0) return NULL;
+    if (fTrackEvent->GetNumberOfTracks() == 0) return nullptr;
 
     fTrackEvent->SetLevels();
 

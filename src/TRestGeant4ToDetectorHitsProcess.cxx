@@ -109,7 +109,7 @@ void TRestGeant4ToDetectorHitsProcess::Initialize() {
     SetSectionName(this->ClassName());
     SetLibraryVersion(LIBRARY_VERSION);
 
-    fG4Event = NULL;
+    fG4Event = nullptr;
     fHitsEvent = new TRestDetectorHitsEvent();
 }
 
