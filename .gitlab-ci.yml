@@ -7,25 +7,25 @@ stages:
   - process
 
 before_script:
-    - export USER="connector"
+  - export USER="connector"
 
 clang-format:
-    stage: pre-build
-    script:
-        - echo "**$CRONJOB**"
-        - echo "**$CI_SERVER_HOST**"
-        - cd ${CI_PROJECT_DIR}/pipeline/clang-format/
-        - ./clangformattest.sh
-          # We execute only at a schedulled pipeline that defines CRONJOB variable
-    only:
-        variables:
-            - $CRONJOB
+  stage: pre-build
+  script:
+    - echo "**$CRONJOB**"
+    - echo "**$CI_SERVER_HOST**"
+    - cd ${CI_PROJECT_DIR}/pipeline/clang-format/
+    - ./clangformattest.sh
+    # We execute only at a scheduled pipeline that defines CRONJOB variable
+  only:
+    variables:
+      - $CRONJOB
 
 Validate Library:
-    stage: pre-build
-    script:
-        - python pipeline/validateLibrary.py .
-    except:
-        variables:
-            - $CRONJOB == "YES"
+  stage: pre-build
+  script:
+    - python pipeline/validateLibrary.py .
+  except:
+    variables:
+      - $CRONJOB == "YES"
 
