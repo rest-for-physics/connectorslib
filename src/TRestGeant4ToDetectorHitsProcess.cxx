@@ -188,7 +188,7 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
 TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* evInput) {
     fG4Event = (TRestGeant4Event*)evInput;
 
-    if (this->GetVerboseLevel() >= REST_Extreme) {
+    if (GetVerboseLevel() >= REST_Extreme) {
         cout << "------ TRestGeant4ToDetectorHitsProcess --- Printing Input Event --- START ----" << endl;
         fG4Event->PrintEvent();
         cout << "------ TRestGeant4ToDetectorHitsProcess --- Printing Input Event ---- END ----" << endl;
@@ -202,7 +202,7 @@ TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* evInput) 
     fHitsEvent->SetSubEventTag(fG4Event->GetSubEventTag());
     fHitsEvent->SetTimeStamp(fG4Event->GetTimeStamp());
     fHitsEvent->SetState(fG4Event->isOk());
-    
+
     for (int i = 0; i < fG4Event->GetNumberOfTracks(); i++) {
         const auto& track = fG4Event->GetTrack(i);
         const auto& hits = track.GetHits();
@@ -216,7 +216,7 @@ TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* evInput) 
         }
     }
 
-    if (this->GetVerboseLevel() >= REST_Debug) {
+    if (GetVerboseLevel() >= REST_Debug) {
         cout << "TRestGeant4ToDetectorHitsProcess. Hits added : " << fHitsEvent->GetNumberOfHits() << endl;
         cout << "TRestGeant4ToDetectorHitsProcess. Hits total energy : " << fHitsEvent->GetEnergy() << endl;
     }
