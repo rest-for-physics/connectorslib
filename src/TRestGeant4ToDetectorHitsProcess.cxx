@@ -206,22 +206,28 @@ TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* evInput) 
     Double_t x, y, z, E;
 
     for (i = 0; i < fG4Event->GetNumberOfTracks(); i++) {
-        for (j = 0; j < fG4Event->GetTrack(i)->GetNumberOfHits(); j++) {
+        const auto& track = fG4Event->GetTrack(i);
+        const auto& hits = track.GetHits();
+        for (j = 0; j < track.GetNumberOfHits(); j++) {
             // read x,y,z and E of every hit in the G4 event
-            x = fG4Event->GetTrack(i)->GetHits()->fX[j];
-            y = fG4Event->GetTrack(i)->GetHits()->fY[j];
-            z = fG4Event->GetTrack(i)->GetHits()->fZ[j];
-            E = fG4Event->GetTrack(i)->GetHits()->fEnergy[j];
+            x = hits.GetX(j);
+            y = hits.GetX(j);
+            z = hits.GetX(j);
+            E = hits.GetEnergy(j);
 
             Bool_t addHit = true;
             if (fVolumeId.size() > 0) {
                 addHit = false;
                 for (unsigned int n = 0; n < fVolumeId.size(); n++)
-                    if (fG4Event->GetTrack(i)->GetHits()->GetVolumeId(j) == fVolumeId[n]) addHit = true;
+                    if (hits.GetVolumeId(j) == fVolumeId[n]) {
+                        addHit = true;
+                    }
             }
 
             // and write them in the output hits event:
-            if (addHit && E > 0) fHitsEvent->AddHit(x, y, z, E);
+            if (addHit && E > 0) {
+                fHitsEvent->AddHit(x, y, z, E);
+            }
         }
     }
 
