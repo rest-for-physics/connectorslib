@@ -207,11 +207,14 @@ TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* evInput) 
         const auto& track = fG4Event->GetTrack(i);
         const auto& hits = track.GetHits();
         for (int j = 0; j < track.GetNumberOfHits(); j++) {
+            const auto energy = hits.GetEnergy(j);
             for (const auto& volumeID : fVolumeId) {
-                const auto energy = hits.GetEnergy(j);
-                if ((hits.GetVolumeId(j) == volumeID) && (energy > 0)) {
+                if (hits.GetVolumeId(j) == volumeID && energy > 0) {
                     fHitsEvent->AddHit(hits.GetX(j), hits.GetY(j), hits.GetZ(j), energy);
                 }
+            }
+            if (fVolumeId.empty() && energy > 0) {
+                fHitsEvent->AddHit(hits.GetX(j), hits.GetY(j), hits.GetZ(j), energy);
             }
         }
     }
