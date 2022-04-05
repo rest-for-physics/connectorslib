@@ -60,6 +60,7 @@
 /// <hr>
 ///
 #include "TRestGeant4ToDetectorHitsProcess.h"
+
 using namespace std;
 
 ClassImp(TRestGeant4ToDetectorHitsProcess);
@@ -187,7 +188,7 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
 TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* evInput) {
     fG4Event = (TRestGeant4Event*)evInput;
 
-    if (this->GetVerboseLevel() >= REST_Extreme) {
+    if (GetVerboseLevel() >= REST_Extreme) {
         cout << "------ TRestGeant4ToDetectorHitsProcess --- Printing Input Event --- START ----" << endl;
         fG4Event->PrintEvent();
         cout << "------ TRestGeant4ToDetectorHitsProcess --- Printing Input Event ---- END ----" << endl;
@@ -202,30 +203,23 @@ TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* evInput) 
     fHitsEvent->SetTimeStamp(fG4Event->GetTimeStamp());
     fHitsEvent->SetState(fG4Event->isOk());
 
-    Int_t i, j;
-    Double_t x, y, z, E;
-
-    for (i = 0; i < fG4Event->GetNumberOfTracks(); i++) {
-        for (j = 0; j < fG4Event->GetTrack(i)->GetNumberOfHits(); j++) {
-            // read x,y,z and E of every hit in the G4 event
-            x = fG4Event->GetTrack(i)->GetHits()->fX[j];
-            y = fG4Event->GetTrack(i)->GetHits()->fY[j];
-            z = fG4Event->GetTrack(i)->GetHits()->fZ[j];
-            E = fG4Event->GetTrack(i)->GetHits()->fEnergy[j];
-
-            Bool_t addHit = true;
-            if (fVolumeId.size() > 0) {
-                addHit = false;
-                for (unsigned int n = 0; n < fVolumeId.size(); n++)
-                    if (fG4Event->GetTrack(i)->GetHits()->GetVolumeId(j) == fVolumeId[n]) addHit = true;
+    for (int i = 0; i < fG4Event->GetNumberOfTracks(); i++) {
+        const auto& track = fG4Event->GetTrack(i);
+        const auto& hits = track.GetHits();
+        for (int j = 0; j < track.GetNumberOfHits(); j++) {
+            const auto energy = hits.GetEnergy(j);
+            for (const auto& volumeID : fVolumeId) {
+                if (hits.GetVolumeId(j) == volumeID && energy > 0) {
+                    fHitsEvent->AddHit(hits.GetX(j), hits.GetY(j), hits.GetZ(j), energy);
+                }
             }
-
-            // and write them in the output hits event:
-            if (addHit && E > 0) fHitsEvent->AddHit(x, y, z, E);
+            if (fVolumeId.empty() && energy > 0) {
+                fHitsEvent->AddHit(hits.GetX(j), hits.GetY(j), hits.GetZ(j), energy);
+            }
         }
     }
 
-    if (this->GetVerboseLevel() >= REST_Debug) {
+    if (GetVerboseLevel() >= REST_Debug) {
         cout << "TRestGeant4ToDetectorHitsProcess. Hits added : " << fHitsEvent->GetNumberOfHits() << endl;
         cout << "TRestGeant4ToDetectorHitsProcess. Hits total energy : " << fHitsEvent->GetEnergy() << endl;
     }
