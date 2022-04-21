@@ -176,9 +176,9 @@ TRestEvent* TRestRawToDetectorSignalProcess::ProcessEvent(TRestEvent* evInput) {
         else rejectedSignal++;
       }
 
-     if (fOutputSignalEvent->GetNumberOfSignals() <= 0) return nullptr;
-
     SetObservableValue("NSignalsRejected", rejectedSignal);
+
+    if (fOutputSignalEvent->GetNumberOfSignals() <= 0) return nullptr;
 
     return fOutputSignalEvent;
 }
