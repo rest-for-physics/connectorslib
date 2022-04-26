@@ -32,8 +32,8 @@ class TRestTrackToDetectorHitsProcess : public TRestEventProcess {
     Int_t fTrackLevel;
 
    public:
-    any GetInputEvent() { return fInputTrackEvent; }
-    any GetOutputEvent() { return fOutputHitsEvent; }
+    inline any GetInputEvent() const { return fInputTrackEvent; }
+    inline any GetOutputEvent() const { return fOutputHitsEvent; }
 
     void InitProcess();
     TRestEvent* ProcessEvent(TRestEvent* eventInput);

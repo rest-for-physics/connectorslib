@@ -47,8 +47,8 @@ class TRestRawReadoutAnalysisProcess : public TRestEventProcess {
                                             //
 
    public:
-    any GetInputEvent() { return fSignalEvent; }
-    any GetOutputEvent() { return fSignalEvent; }
+    inline any GetInputEvent() const { return fSignalEvent; }
+    inline any GetOutputEvent() const { return fSignalEvent; }
 
     void InitProcess();
     TRestEvent* ProcessEvent(TRestEvent* eventInput);
