@@ -16,10 +16,10 @@ ClassImp(TRestTrackToDetectorHitsProcess);
 TRestTrackToDetectorHitsProcess::TRestTrackToDetectorHitsProcess() { Initialize(); }
 
 //______________________________________________________________________________
-TRestTrackToDetectorHitsProcess::TRestTrackToDetectorHitsProcess(char* cfgFileName) {
+TRestTrackToDetectorHitsProcess::TRestTrackToDetectorHitsProcess(char* configFilename) {
     Initialize();
 
-    if (LoadConfigFromFile(cfgFileName) == -1) LoadDefaultConfig();
+    if (LoadConfigFromFile(configFilename) == -1) LoadDefaultConfig();
 }
 
 //______________________________________________________________________________
@@ -41,8 +41,8 @@ void TRestTrackToDetectorHitsProcess::Initialize() {
     fOutputHitsEvent = new TRestDetectorHitsEvent();
 }
 
-void TRestTrackToDetectorHitsProcess::LoadConfig(std::string cfgFilename, std::string name) {
-    if (LoadConfigFromFile(cfgFilename, name) == -1) LoadDefaultConfig();
+void TRestTrackToDetectorHitsProcess::LoadConfig(std::string configFilename, std::string name) {
+    if (LoadConfigFromFile(configFilename, name) == -1) LoadDefaultConfig();
 }
 
 //______________________________________________________________________________

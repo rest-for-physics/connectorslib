@@ -21,10 +21,10 @@ ClassImp(TRestDetectorHitsToTrackFastProcess);
 TRestDetectorHitsToTrackFastProcess::TRestDetectorHitsToTrackFastProcess() { Initialize(); }
 
 //______________________________________________________________________________
-TRestDetectorHitsToTrackFastProcess::TRestDetectorHitsToTrackFastProcess(char* cfgFileName) {
+TRestDetectorHitsToTrackFastProcess::TRestDetectorHitsToTrackFastProcess(char* configFilename) {
     Initialize();
 
-    if (LoadConfigFromFile(cfgFileName) == -1) LoadDefaultConfig();
+    if (LoadConfigFromFile(configFilename) == -1) LoadDefaultConfig();
 
     // TRestDetectorHitsToTrackFastProcess default constructor
 }
@@ -59,8 +59,8 @@ void TRestDetectorHitsToTrackFastProcess::Initialize() {
     fTrackEvent = new TRestTrackEvent();
 }
 
-void TRestDetectorHitsToTrackFastProcess::LoadConfig(std::string cfgFilename, std::string name) {
-    if (LoadConfigFromFile(cfgFilename, name) == -1) LoadDefaultConfig();
+void TRestDetectorHitsToTrackFastProcess::LoadConfig(std::string configFilename, std::string name) {
+    if (LoadConfigFromFile(configFilename, name) == -1) LoadDefaultConfig();
 }
 
 //______________________________________________________________________________

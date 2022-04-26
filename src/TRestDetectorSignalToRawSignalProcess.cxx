@@ -133,12 +133,12 @@ TRestDetectorSignalToRawSignalProcess::TRestDetectorSignalToRawSignalProcess() {
 /// The default behaviour is that the config file must be specified with
 /// full path, absolute or relative.
 ///
-/// \param cfgFileName A const char* giving the path to an RML file.
+/// \param configFilename A const char* giving the path to an RML file.
 ///
-TRestDetectorSignalToRawSignalProcess::TRestDetectorSignalToRawSignalProcess(char* cfgFileName) {
+TRestDetectorSignalToRawSignalProcess::TRestDetectorSignalToRawSignalProcess(char* configFilename) {
     Initialize();
 
-    LoadConfig(cfgFileName);
+    LoadConfig(configFilename);
 }
 
 ///////////////////////////////////////////////
@@ -171,12 +171,12 @@ void TRestDetectorSignalToRawSignalProcess::LoadDefaultConfig() {
 /// the path to the config file must be specified using full path, absolute or
 /// relative.
 ///
-/// \param cfgFileName A const char* giving the path to an RML file.
+/// \param configFilename A const char* giving the path to an RML file.
 /// \param name The name of the specific metadata. It will be used to find the
 /// correspondig TRestGeant4AnalysisProcess section inside the RML.
 ///
-void TRestDetectorSignalToRawSignalProcess::LoadConfig(std::string cfgFilename, std::string name) {
-    if (LoadConfigFromFile(cfgFilename, name)) LoadDefaultConfig();
+void TRestDetectorSignalToRawSignalProcess::LoadConfig(std::string configFilename, std::string name) {
+    if (LoadConfigFromFile(configFilename, name)) LoadDefaultConfig();
 }
 
 ///////////////////////////////////////////////

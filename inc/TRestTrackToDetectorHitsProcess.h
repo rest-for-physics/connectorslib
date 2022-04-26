@@ -40,7 +40,7 @@ class TRestTrackToDetectorHitsProcess : public TRestEventProcess {
     void EndProcess();
     void LoadDefaultConfig();
 
-    void LoadConfig(std::string cfgFilename, std::string name = "");
+    void LoadConfig(std::string configFilename, std::string name = "");
 
     void PrintMetadata() {
         BeginPrintProcess();
@@ -50,11 +50,11 @@ class TRestTrackToDetectorHitsProcess : public TRestEventProcess {
         EndPrintProcess();
     }
 
-    TString GetProcessName() { return (TString) "trackToDetectorHits"; }
+    inline TString GetProcessName() const { return (TString) "trackToDetectorHits"; }
 
     // Constructor
     TRestTrackToDetectorHitsProcess();
-    TRestTrackToDetectorHitsProcess(char* cfgFileName);
+    TRestTrackToDetectorHitsProcess(char* configFilename);
     // Destructor
     ~TRestTrackToDetectorHitsProcess();
 

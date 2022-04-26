@@ -70,11 +70,11 @@ class TRestRawReadoutAnalysisProcess : public TRestEventProcess {
         EndPrintProcess();
     }
 
-    TString GetProcessName() { return (TString) "readoutAnalysis"; }
+    inline TString GetProcessName() const { return (TString) "readoutAnalysis"; }
 
     // Constructor
     TRestRawReadoutAnalysisProcess();
-    TRestRawReadoutAnalysisProcess(char* cfgFileName);
+    TRestRawReadoutAnalysisProcess(char* configFilename);
     // Destructor
     ~TRestRawReadoutAnalysisProcess();
 

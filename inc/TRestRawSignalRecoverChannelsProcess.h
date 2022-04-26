@@ -59,7 +59,7 @@ class TRestRawSignalRecoverChannelsProcess : public TRestEventProcess {
     void InitProcess();
     TRestEvent* ProcessEvent(TRestEvent* eventInput);
 
-    void LoadConfig(std::string cfgFilename, std::string name = "");
+    void LoadConfig(std::string configFilename, std::string name = "");
 
     /// It prints out the process parameters stored in the metadata structure
     void PrintMetadata() {
@@ -75,11 +75,11 @@ class TRestRawSignalRecoverChannelsProcess : public TRestEventProcess {
     TRestEventProcess* Maker() { return new TRestRawSignalRecoverChannelsProcess; }
 
     /// Returns the name of this process
-    TString GetProcessName() { return (TString) "recoverChannels"; }
+    inline TString GetProcessName() const { return (TString) "recoverChannels"; }
 
     // Constructor
     TRestRawSignalRecoverChannelsProcess();
-    TRestRawSignalRecoverChannelsProcess(char* cfgFileName);
+    TRestRawSignalRecoverChannelsProcess(char* configFilename);
 
     // Destructor
     ~TRestRawSignalRecoverChannelsProcess();

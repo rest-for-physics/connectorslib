@@ -70,7 +70,7 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
 
     TRestEvent* ProcessEvent(TRestEvent* eventInput);
 
-    void LoadConfig(std::string cfgFilename, std::string name = "");
+    void LoadConfig(std::string configFilename, std::string name = "");
 
     /// It prints out the process parameters stored in the metadata structure
     void PrintMetadata() {
@@ -89,11 +89,11 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     TRestEventProcess* Maker() { return new TRestDetectorSignalToRawSignalProcess; }
 
     /// Returns the name of this process
-    TString GetProcessName() { return (TString) "signalToRawSignal"; }
+    inline TString GetProcessName() const { return (TString) "signalToRawSignal"; }
 
     // Constructor
     TRestDetectorSignalToRawSignalProcess();
-    TRestDetectorSignalToRawSignalProcess(char* cfgFileName);
+    TRestDetectorSignalToRawSignalProcess(char* configFilename);
 
     // Destructor
     ~TRestDetectorSignalToRawSignalProcess();

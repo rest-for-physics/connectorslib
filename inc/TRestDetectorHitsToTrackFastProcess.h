@@ -46,7 +46,7 @@ class TRestDetectorHitsToTrackFastProcess : public TRestEventProcess {
     void EndProcess();
     void LoadDefaultConfig();
 
-    void LoadConfig(std::string cfgFilename, std::string name = "");
+    void LoadConfig(std::string configFilename, std::string name = "");
 
     void PrintMetadata() {
         BeginPrintProcess();
@@ -60,11 +60,11 @@ class TRestDetectorHitsToTrackFastProcess : public TRestEventProcess {
         EndPrintProcess();
     }
 
-    TString GetProcessName() { return (TString) "fastHitsToTrack"; }
+    inline TString GetProcessName() const { return (TString) "fastHitsToTrack"; }
 
     // Constructor
     TRestDetectorHitsToTrackFastProcess();
-    TRestDetectorHitsToTrackFastProcess(char* cfgFileName);
+    TRestDetectorHitsToTrackFastProcess(char* configFilename);
     // Destructor
     ~TRestDetectorHitsToTrackFastProcess();
 

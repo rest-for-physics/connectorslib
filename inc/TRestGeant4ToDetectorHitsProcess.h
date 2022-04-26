@@ -64,16 +64,16 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
 
     TRestEvent* ProcessEvent(TRestEvent* eventInput);
 
-    void LoadConfig(std::string cfgFilename, std::string name = "");
+    void LoadConfig(std::string configFilename, std::string name = "");
 
     void PrintMetadata();
 
     /// Returns the name of this process
-    TString GetProcessName() { return (TString) "g4toHitsEvent"; }
+    inline TString GetProcessName() const { return (TString) "g4toHitsEvent"; }
 
     // Constructor
     TRestGeant4ToDetectorHitsProcess();
-    TRestGeant4ToDetectorHitsProcess(char* cfgFileName);
+    TRestGeant4ToDetectorHitsProcess(char* configFilename);
     // Destructor
     ~TRestGeant4ToDetectorHitsProcess();
 
