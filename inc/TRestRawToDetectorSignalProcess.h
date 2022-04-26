@@ -20,79 +20,84 @@
  * For the list of contributors see $REST_PATH/CREDITS.                  *
  *************************************************************************/
 
-#ifndef RestCore_TRestRawZeroSuppresionProcess
-#define RestCore_TRestRawZeroSuppresionProcess
-
-//#include <TRestDetectorGas.h>
-//#include <TRestDetectorReadout.h>
+#ifndef RestCore_TRestRawToDetectorSignalProcess
+#define RestCore_TRestRawToDetectorSignalProcess
 
 #include <TRestDetectorSignalEvent.h>
 #include <TRestRawSignalEvent.h>
 
 #include "TRestEventProcess.h"
 
-//! A process to identify signal and remove baseline noise from a TRestRawSignalEvent.
-class TRestRawZeroSuppresionProcess : public TRestEventProcess {
+//! A process to convert a TRestRawSignalEvent into a TRestDetectorSignalEvent
+class TRestRawToDetectorSignalProcess : public TRestEventProcess {
    private:
     /// A pointer to the specific TRestRawSignalEvent input
-    TRestRawSignalEvent* fRawSignalEvent;  //!
+    TRestRawSignalEvent* fInputSignalEvent;  //!
 
-    /// A pointer to the specific TRestDetectorSignalEvent output
-    TRestDetectorSignalEvent* fSignalEvent;  //!
-
-    /// The ADC range used for baseline offset definition
-    TVector2 fBaseLineRange;
-
-    /// The ADC range used for integral definition and signal identification
-    TVector2 fIntegralRange;
-
-    /// Number of sigmas over baseline fluctuation to accept a point is over threshold.
-    Double_t fPointThreshold;
-
-    /// A threshold parameter to accept or reject a pre-identified signal. See process description.
-    Double_t fSignalThreshold;
-
-    /// Number of consecutive points over threshold required to accept a signal.
-    Int_t fNPointsOverThreshold;
-
-    Int_t fNPointsFlatThreshold;
-
-    /// A parameter to determine if baseline correction has been applied by a previous process
-    bool fBaseLineCorrection;
-
-    /// The ADC sampling used to transform ADC units to physical time in the output TRestDetectorSignalEvent.
-    /// Given in us.
-    Double_t fSampling;
-
-    void InitFromConfigFile();
+    /// A pointer to the specific TRestDetectorSignalEvent input
+    TRestDetectorSignalEvent* fOutputSignalEvent;  //!
 
     void Initialize();
 
-    void LoadDefaultConfig();
+   protected:
+    /// The sampling time used to transform the binned data to time information
+    Double_t fSampling = 0.1;
+
+    /// The corresponding time of the first bin inside the raw signal
+    Double_t fTriggerStarts = 0;
+
+    /// A factor the data values will be multiplied by at the output signal.
+    Double_t fGain = 1;
+
+    /// A factor the data values will be multiplied by at the output signal.
+    Double_t fThreshold = 0.1;
+
+    // Perform Zero suppression to the data
+    Bool_t fZeroSuppression = false;
+
+    /// The ADC range used for baseline offset definition
+    TVector2 fBaseLineRange = TVector2(5,55);
+
+    /// The ADC range used for integral definition and signal identification
+    TVector2 fIntegralRange = TVector2(10,500);
+
+    /// Number of sigmas over baseline fluctuation to accept a point is over threshold.
+    Double_t fPointThreshold=3;
+
+    /// A threshold parameter to accept or reject a pre-identified signal. See process description.
+    Double_t fSignalThreshold=5;
+
+    /// Number of consecutive points over threshold required to accept a signal.
+    Int_t fNPointsOverThreshold=5;
+
+    /// A parameter to determine if baseline correction has been applied by a previous process
+    Bool_t fBaseLineCorrection = false;
 
    public:
-    any GetInputEvent() { return fRawSignalEvent; }
-    any GetOutputEvent() { return fSignalEvent; }
+    any GetInputEvent() { return fInputSignalEvent; }
+    any GetOutputEvent() { return fOutputSignalEvent; }
 
-    void InitProcess();
     TRestEvent* ProcessEvent(TRestEvent* eventInput);
-    void EndProcess();
 
-    void LoadConfig(std::string cfgFilename, std::string name = "");
+    void ZeroSuppresion(TRestRawSignal* rawSignal, TRestDetectorSignal &sgnl);
 
     /// It prints out the process parameters stored in the metadata structure
     void PrintMetadata() {
         BeginPrintProcess();
 
-        metadata << "Base line range definition : ( " << fBaseLineRange.X() << " , " << fBaseLineRange.Y()
+        metadata << "Sampling time : " << fSampling << " us" << endl;
+        metadata << "Trigger starts : " << fTriggerStarts << " us" << endl;
+        metadata << "Gain : " << fGain << endl;
+
+        if(fZeroSuppression){
+          metadata << "Base line range definition : ( " << fBaseLineRange.X() << " , " << fBaseLineRange.Y()
                  << " ) " << endl;
-        metadata << "Integral range : ( " << fIntegralRange.X() << " , " << fIntegralRange.Y() << " ) "
+          metadata << "Integral range : ( " << fIntegralRange.X() << " , " << fIntegralRange.Y() << " ) "
                  << endl;
-        metadata << "Point Threshold : " << fPointThreshold << " sigmas" << endl;
-        metadata << "Signal threshold : " << fSignalThreshold << " sigmas" << endl;
-        metadata << "Number of points over threshold : " << fNPointsOverThreshold << endl;
-        metadata << "Sampling rate : " << 1. / fSampling << " MHz" << endl;
-        metadata << "Max Number of points of flat signal tail : " << fNPointsFlatThreshold << endl;
+          metadata << "Point Threshold : " << fPointThreshold << " sigmas" << endl;
+          metadata << "Signal threshold : " << fSignalThreshold << " sigmas" << endl;
+          metadata << "Number of points over threshold : " << fNPointsOverThreshold << endl;
+        }
 
         if (fBaseLineCorrection)
             metadata << "BaseLine correction is enabled for TRestRawSignalAnalysisProcess" << endl;
@@ -101,15 +106,17 @@ class TRestRawZeroSuppresionProcess : public TRestEventProcess {
     }
 
     /// Returns a new instance of this class
-    TRestEventProcess* Maker() { return new TRestRawZeroSuppresionProcess; }
+    TRestEventProcess* Maker() { return new TRestRawToDetectorSignalProcess; }
 
     /// Returns the name of this process
-    TString GetProcessName() { return (TString) "rawZeroSuppresion"; }
+    TString GetProcessName() { return (TString) "rawSignalToSignal"; }
 
-    TRestRawZeroSuppresionProcess();
-    TRestRawZeroSuppresionProcess(char* cfgFileName);
-    ~TRestRawZeroSuppresionProcess();
+    // Constructor
+    TRestRawToDetectorSignalProcess();
 
-    ClassDef(TRestRawZeroSuppresionProcess, 2);
+    // Destructor
+    ~TRestRawToDetectorSignalProcess();
+
+    ClassDef(TRestRawToDetectorSignalProcess, 2);
 };
 #endif

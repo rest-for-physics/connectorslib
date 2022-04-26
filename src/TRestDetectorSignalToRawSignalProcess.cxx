@@ -21,6 +21,7 @@
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
+///
 /// TRestDetectorSignalToRawSignalProcess transforms a
 /// TRestDetectorSignalEvent into a TRestRawSignalEvent. The TRestDetectorSignalEvent
 /// contains signal data built with arbitrary times and their corresponding

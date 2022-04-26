@@ -21,11 +21,15 @@
  *************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
-/// The TRestRawSignalToSignalProcess transforms a TRestRawSignalEvent into
+/// The TRestRawToDetectorSignalProcess transforms a TRestRawSignalEvent into
 /// a TRestDetectorSignalEvent. It applies a direct transform between both data
 /// types. The data points inside the raw signal are transformed to time
 /// information using the input sampling time and time start provided
-/// through the process RML section.
+/// through the process RML section. A new method for zero suppression has been
+/// implemented, now it is capable to perform zero suppression as it was implemented
+/// int the TRestRawZeroSuppresionProcess, which identifies the points that are over
+/// threshold from the input TRestRawSignalEvent. The resulting points remains as a
+/// TRestRawSignalEvent.
 ///
 /// All the data points will be transferred to the output signal event.
 ///
@@ -33,10 +37,29 @@
 /// used in this process.
 /// * **sampling**: It is the sampling time of input raw signal data.
 /// Time units must be specified (ns, us, ms).
-/// * **triggerStarts**: It defines the absolute time value for the first
-/// raw data bin.
+/// * **triggerStarts**: It defines the physical time value for the first
+/// bin for the input raw signal data.
 /// * **gain**: Each data point from the resulting output signal will be
 /// multiplied by this factor.
+/// * **threshold**: Minimum threshold required to add the raw signal data
+/// into de the detector data.
+/// * **zeroSuppression**: If true, performs zero suppression of the data
+/// * **baselineRange**: A 2D-vector definning the range, in number of bins,
+/// where the baseline properties will be calculated.
+/// * **integralRange**: A 2D-vector definning the time window, in number of bins,
+/// where the signal will be considered.
+/// * **pointThreshold**: The number of sigmas over the baseline flunctuations to
+/// consider a point is over the threshold.
+/// * **pointsOverThreshold**: The number of consecutive points over threshold
+/// required to consider them as a physical signal.
+/// * **signalThreshold**: The number of sigmas a set of consecutive points
+/// identified over threshold must be over the baseline fluctuations to be
+/// finally considered a physical signal.
+///
+/// List of observables:
+///
+/// * NSignalsRejected: Number of rejected signals inside a event, due to 
+/// zero suppression or just because it is below the desired threshold.
 ///
 /// The following lines of code show how the process metadata should be
 /// defined.
@@ -45,13 +68,22 @@
 ///
 /// // A raw signal with 200ns binning will be translated to a
 /// // TRestDetectorSignalEvent. The new signal will start at time=20us, and its
-/// // amplitude will be reduced a factor 50.
+/// // amplitude will be reduced a factor 50. If zeroSuppression is true it will
+/// // perform 
 ///
-/// <TRestRawSignalToSignalProcess name="rsTos" title"Raw signal to signal">
+/// <TRestRawToDetectorSignalProcess name="rsTos" title"Raw signal to signal">
 ///     <parameter name="sampling" value="0.2" units="us" />
 ///     <parameter name="triggerStarts" value="20" units="us" />
 ///     <parameter name="gain" value="1/50." />
-/// </TRestRawSignalToSignalProcess>
+///     <parameter name="zeroSuppression" value="true"/>
+///     <parameter name="baseLineRange" value="(20,140)"/>
+///     <parameter name="integralRange" value="(150,450)"/>
+///     <parameter name="pointThreshold" value="3"/>
+///     <parameter name="signalThreshold" value="7"/>
+///     <parameter name="nPointsOverThreshold" value="7"/>
+///     <observable name="NSignalsRejected" value="ON"/>
+///     
+/// </TRestRawToDetectorSignalProcess>
 /// \endcode
 ///
 /// <hr>
@@ -74,64 +106,38 @@
 ///             Javier Gracia
 ///
 /// 2017-November: Class documented and re-furbished
+/// 2022-January: Added threshold parameter
 ///             Javier Galan
+/// 2022-January: Adding ZeroSuppression method
+///             JuanAn Garcia
 ///
-/// \class      TRestRawSignalToSignalProcess
+/// \class      TRestRawToDetectorSignalProcess
 /// \author     Javier Gracia
 /// \author     Javier Galan
 ///
+///
 /// <hr>
 ///
-#include "TRestRawSignalToSignalProcess.h"
+#include "TRestRawToDetectorSignalProcess.h"
 using namespace std;
 
-ClassImp(TRestRawSignalToSignalProcess)
-
-    ///////////////////////////////////////////////
-    /// \brief Default constructor
-    ///
-    TRestRawSignalToSignalProcess::TRestRawSignalToSignalProcess() {
-    Initialize();
-}
+ClassImp(TRestRawToDetectorSignalProcess);
 
 ///////////////////////////////////////////////
-/// \brief Constructor loading data from a config file
+/// \brief Default constructor
 ///
-/// If no configuration path is defined using TRestMetadata::SetConfigFilePath
-/// the path to the config file must be specified using full path, absolute or
-/// relative.
-///
-/// The default behaviour is that the config file must be specified with
-/// full path, absolute or relative.
-///
-/// \param cfgFileName A const char* giving the path to an RML file.
-///
-TRestRawSignalToSignalProcess::TRestRawSignalToSignalProcess(char* cfgFileName) {
-    Initialize();
-
-    if (LoadConfigFromFile(cfgFileName) == -1) LoadDefaultConfig();
-
-    PrintMetadata();
-}
+TRestRawToDetectorSignalProcess::TRestRawToDetectorSignalProcess() { Initialize(); }
 
 ///////////////////////////////////////////////
 /// \brief Default destructor
 ///
-TRestRawSignalToSignalProcess::~TRestRawSignalToSignalProcess() { delete fOutputSignalEvent; }
-
-///////////////////////////////////////////////
-/// \brief Function to load the default config in absence of RML input
-///
-void TRestRawSignalToSignalProcess::LoadDefaultConfig() {
-    SetName("rawSignalToSignal-Default");
-    SetTitle("Default config");
-}
+TRestRawToDetectorSignalProcess::~TRestRawToDetectorSignalProcess() { delete fOutputSignalEvent; }
 
 ///////////////////////////////////////////////
 /// \brief Function to initialize input/output event members and define the
 /// section name
 ///
-void TRestRawSignalToSignalProcess::Initialize() {
+void TRestRawToDetectorSignalProcess::Initialize() {
     SetSectionName(this->ClassName());
     SetLibraryVersion(LIBRARY_VERSION);
 
@@ -140,47 +146,54 @@ void TRestRawSignalToSignalProcess::Initialize() {
 }
 
 ///////////////////////////////////////////////
-/// \brief Function to load the configuration from an external configuration
-/// file.
-///
-/// If no configuration path is defined in TRestMetadata::SetConfigFilePath
-/// the path to the config file must be specified using full path, absolute or
-/// relative.
-///
-/// \param cfgFileName A const char* giving the path to an RML file.
-/// \param name The name of the specific metadata. It will be used to find the
-/// correspondig TRestGeant4AnalysisProcess section inside the RML.
-///
-void TRestRawSignalToSignalProcess::LoadConfig(string cfgFilename, string name) {
-    if (LoadConfigFromFile(cfgFilename, name) == -1) LoadDefaultConfig();
-}
-
-///////////////////////////////////////////////
 /// \brief The main processing event function
 ///
-TRestEvent* TRestRawSignalToSignalProcess::ProcessEvent(TRestEvent* evInput) {
-    fInputSignalEvent = (TRestRawSignalEvent*)evInput;
+TRestEvent* TRestRawToDetectorSignalProcess::ProcessEvent(TRestEvent* evInput) {
+   fInputSignalEvent = (TRestRawSignalEvent*)evInput;
 
-    for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
+   Int_t rejectedSignal = 0;
+
+    if(fZeroSuppression){
+      fInputSignalEvent->SetBaseLineRange(fBaseLineRange);
+      fInputSignalEvent->SetRange(fIntegralRange);
+    }
+
+      for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
         TRestDetectorSignal sgnl;
         sgnl.Initialize();
         TRestRawSignal* rawSgnl = fInputSignalEvent->GetSignal(n);
         sgnl.SetID(rawSgnl->GetID());
-        for (int p = 0; p < rawSgnl->GetNumberOfPoints(); p++)
-            sgnl.NewPoint(fTriggerStarts + fSampling * p, fGain * rawSgnl->GetData(p));
 
-        fOutputSignalEvent->AddSignal(sgnl);
-    }
+          if(fZeroSuppression){
+            ZeroSuppresion(rawSgnl, sgnl);
+          } else {
+            for (int p = 0; p < rawSgnl->GetNumberOfPoints(); p++)
+              if (rawSgnl->GetData(p) > fThreshold)
+                sgnl.NewPoint(fTriggerStarts + fSampling * p, fGain * rawSgnl->GetData(p));
+          }
+
+        if (sgnl.GetNumberOfPoints() > 0) fOutputSignalEvent->AddSignal(sgnl);
+        else rejectedSignal++;
+      }
+
+    SetObservableValue("NSignalsRejected", rejectedSignal);
+
+    if (fOutputSignalEvent->GetNumberOfSignals() <= 0) return nullptr;
 
     return fOutputSignalEvent;
 }
 
-///////////////////////////////////////////////
-/// \brief Function reading input parameters from the RML
-/// TRestRawSignalToSignalProcess metadata section
-///
-void TRestRawSignalToSignalProcess::InitFromConfigFile() {
-    fSampling = GetDblParameterWithUnits("sampling");
-    fTriggerStarts = GetDblParameterWithUnits("triggerStarts");
-    fGain = StringToDouble(GetParameter("gain", "1"));
+void TRestRawToDetectorSignalProcess::ZeroSuppresion(TRestRawSignal* rawSignal, TRestDetectorSignal &sgnl){
+
+  rawSignal->InitializePointsOverThreshold(TVector2(fPointThreshold, fSignalThreshold),
+                                           fNPointsOverThreshold, 512);
+
+  std::vector<Int_t> pOver = rawSignal->GetPointsOverThreshold();
+    for (int n = 0; n < pOver.size(); n++) {
+      int j = pOver[n];
+      sgnl.NewPoint(fTriggerStarts + fSampling * j, fGain *rawSignal->GetData(j));
+    }
+
 }
+
+
