@@ -259,4 +259,3 @@ Int_t TRestDetectorHitsToTrackProcess::FindTracks(TRestHits* hits) {
 
     return nTracksFound;
 }
-

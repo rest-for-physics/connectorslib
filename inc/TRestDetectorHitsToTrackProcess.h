@@ -32,7 +32,6 @@
 //! A process to convert a TRestDetectorHitsEvent into a TRestTrackEvent
 class TRestDetectorHitsToTrackProcess : public TRestEventProcess {
    private:
-
 #ifndef __CINT__
     TRestDetectorHitsEvent* fHitsEvent;  //!
     TRestTrackEvent* fTrackEvent;        //!

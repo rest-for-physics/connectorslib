@@ -56,19 +56,19 @@ class TRestRawToDetectorSignalProcess : public TRestEventProcess {
     Bool_t fZeroSuppression = false;
 
     /// The ADC range used for baseline offset definition
-    TVector2 fBaseLineRange = TVector2(5,55);
+    TVector2 fBaseLineRange = TVector2(5, 55);
 
     /// The ADC range used for integral definition and signal identification
-    TVector2 fIntegralRange = TVector2(10,500);
+    TVector2 fIntegralRange = TVector2(10, 500);
 
     /// Number of sigmas over baseline fluctuation to accept a point is over threshold.
-    Double_t fPointThreshold=3;
+    Double_t fPointThreshold = 3;
 
     /// A threshold parameter to accept or reject a pre-identified signal. See process description.
-    Double_t fSignalThreshold=5;
+    Double_t fSignalThreshold = 5;
 
     /// Number of consecutive points over threshold required to accept a signal.
-    Int_t fNPointsOverThreshold=5;
+    Int_t fNPointsOverThreshold = 5;
 
     /// A parameter to determine if baseline correction has been applied by a previous process
     Bool_t fBaseLineCorrection = false;
@@ -79,7 +79,7 @@ class TRestRawToDetectorSignalProcess : public TRestEventProcess {
 
     TRestEvent* ProcessEvent(TRestEvent* eventInput);
 
-    void ZeroSuppresion(TRestRawSignal* rawSignal, TRestDetectorSignal &sgnl);
+    void ZeroSuppresion(TRestRawSignal* rawSignal, TRestDetectorSignal& sgnl);
 
     /// It prints out the process parameters stored in the metadata structure
     void PrintMetadata() {
@@ -89,14 +89,14 @@ class TRestRawToDetectorSignalProcess : public TRestEventProcess {
         metadata << "Trigger starts : " << fTriggerStarts << " us" << endl;
         metadata << "Gain : " << fGain << endl;
 
-        if(fZeroSuppression){
-          metadata << "Base line range definition : ( " << fBaseLineRange.X() << " , " << fBaseLineRange.Y()
-                 << " ) " << endl;
-          metadata << "Integral range : ( " << fIntegralRange.X() << " , " << fIntegralRange.Y() << " ) "
-                 << endl;
-          metadata << "Point Threshold : " << fPointThreshold << " sigmas" << endl;
-          metadata << "Signal threshold : " << fSignalThreshold << " sigmas" << endl;
-          metadata << "Number of points over threshold : " << fNPointsOverThreshold << endl;
+        if (fZeroSuppression) {
+            metadata << "Base line range definition : ( " << fBaseLineRange.X() << " , " << fBaseLineRange.Y()
+                     << " ) " << endl;
+            metadata << "Integral range : ( " << fIntegralRange.X() << " , " << fIntegralRange.Y() << " ) "
+                     << endl;
+            metadata << "Point Threshold : " << fPointThreshold << " sigmas" << endl;
+            metadata << "Signal threshold : " << fSignalThreshold << " sigmas" << endl;
+            metadata << "Number of points over threshold : " << fNPointsOverThreshold << endl;
         }
 
         if (fBaseLineCorrection)

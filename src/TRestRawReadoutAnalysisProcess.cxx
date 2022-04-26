@@ -279,7 +279,8 @@ void TRestRawReadoutAnalysisProcess::EndProcess() {
                     h0->SetStats(false);
                     h0->Reset();
 
-                    if (fModuleActivityX[iter->first] != nullptr && fModuleActivityY[iter->first] != nullptr) {
+                    if (fModuleActivityX[iter->first] != nullptr &&
+                        fModuleActivityY[iter->first] != nullptr) {
                         TH1D* h1 = fModuleActivityX[iter->first];
                         TH1D* h2 = fModuleActivityY[iter->first];
 
@@ -307,7 +308,8 @@ void TRestRawReadoutAnalysisProcess::EndProcess() {
                         delete c1;
                     }
 
-                    if (fModuleBSLSigmaX[iter->first] != nullptr && fModuleBSLSigmaY[iter->first] != nullptr) {
+                    if (fModuleBSLSigmaX[iter->first] != nullptr &&
+                        fModuleBSLSigmaY[iter->first] != nullptr) {
                         TH2D* h1 = fModuleBSLSigmaX[iter->first];
                         TH2D* h2 = fModuleBSLSigmaY[iter->first];
 
