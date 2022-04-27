@@ -61,6 +61,24 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     Double_t fIntegralThreshold = 1229.0;
 
    public:
+    inline Double_t GetSampling() const { return fSampling; }
+    inline void SetSampling(Double_t sampling) { fSampling = sampling; }
+
+    inline Int_t GetNPoints() const { return fNPoints; }
+    inline void SetNPoints(Int_t nPoints) { fNPoints = nPoints; }
+
+    inline TString GetTriggerMode() const { return fTriggerMode; }
+    inline void SetTriggerMode(const TString& triggerMode) { fTriggerMode = triggerMode; }
+
+    inline Int_t GetTriggerDelay() const { return fTriggerDelay; }
+    inline void SetTriggerDelay(Int_t triggerDelay) { fTriggerDelay = triggerDelay; }
+
+    inline Double_t GetGain() const { return fGain; }
+    inline void SetGain(Double_t gain) { fGain = gain; }
+
+    inline Double_t GetIntegralThreshold() const { return fIntegralThreshold; }
+    inline void SetIntegralThreshold(Double_t integralThreshold) { fIntegralThreshold = integralThreshold; }
+
     any GetInputEvent() const override { return fInputSignalEvent; }
     any GetOutputEvent() const override { return fOutputRawSignalEvent; }
 
