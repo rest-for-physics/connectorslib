@@ -66,7 +66,7 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
 
     TRestEvent* ProcessEvent(TRestEvent* eventInput);
 
-    void LoadConfig(std::string configFilename, std::string name = "");
+    void LoadConfig(const std::string& configFilename, const std::string& name = "");
 
     /// It prints out the process parameters stored in the metadata structure
     void PrintMetadata() {

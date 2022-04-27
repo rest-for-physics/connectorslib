@@ -41,7 +41,7 @@ void TRestTrackToDetectorHitsProcess::Initialize() {
     fOutputHitsEvent = new TRestDetectorHitsEvent();
 }
 
-void TRestTrackToDetectorHitsProcess::LoadConfig(std::string configFilename, std::string name) {
+void TRestTrackToDetectorHitsProcess::LoadConfig(const string& configFilename, const string& name) {
     if (LoadConfigFromFile(configFilename, name) == -1) LoadDefaultConfig();
 }
 

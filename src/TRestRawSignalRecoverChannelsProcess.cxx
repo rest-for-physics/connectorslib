@@ -132,7 +132,7 @@ void TRestRawSignalRecoverChannelsProcess::Initialize() {
 /// \param name The name of the specific metadata. It will be used to find the
 /// correspondig TRestGeant4AnalysisProcess section inside the RML.
 ///
-void TRestRawSignalRecoverChannelsProcess::LoadConfig(string configFilename, string name) {
+void TRestRawSignalRecoverChannelsProcess::LoadConfig(const string& configFilename, const string& name) {
     if (LoadConfigFromFile(configFilename, name) == -1) LoadDefaultConfig();
 }
 

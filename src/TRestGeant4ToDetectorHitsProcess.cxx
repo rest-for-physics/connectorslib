@@ -126,7 +126,7 @@ void TRestGeant4ToDetectorHitsProcess::Initialize() {
 /// \param name The name of the specific metadata. It will be used to find the
 /// correspondig TRestGeant4ToDetectorHitsProcess section inside the RML.
 ///
-void TRestGeant4ToDetectorHitsProcess::LoadConfig(std::string configFilename, std::string name) {
+void TRestGeant4ToDetectorHitsProcess::LoadConfig(const string& configFilename, const string& name) {
     if (LoadConfigFromFile(configFilename, name)) LoadDefaultConfig();
 }
 

@@ -59,7 +59,7 @@ void TRestDetectorHitsToTrackFastProcess::Initialize() {
     fTrackEvent = new TRestTrackEvent();
 }
 
-void TRestDetectorHitsToTrackFastProcess::LoadConfig(std::string configFilename, std::string name) {
+void TRestDetectorHitsToTrackFastProcess::LoadConfig(const string& configFilename, const string& name) {
     if (LoadConfigFromFile(configFilename, name) == -1) LoadDefaultConfig();
 }
 
