@@ -16,7 +16,7 @@ ClassImp(TRestTrackToDetectorHitsProcess);
 TRestTrackToDetectorHitsProcess::TRestTrackToDetectorHitsProcess() { Initialize(); }
 
 //______________________________________________________________________________
-TRestTrackToDetectorHitsProcess::TRestTrackToDetectorHitsProcess(char* configFilename) {
+TRestTrackToDetectorHitsProcess::TRestTrackToDetectorHitsProcess(const char* configFilename) {
     Initialize();
 
     if (LoadConfigFromFile(configFilename) == -1) LoadDefaultConfig();

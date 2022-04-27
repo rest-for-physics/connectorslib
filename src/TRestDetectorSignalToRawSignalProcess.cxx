@@ -135,7 +135,7 @@ TRestDetectorSignalToRawSignalProcess::TRestDetectorSignalToRawSignalProcess() {
 ///
 /// \param configFilename A const char* giving the path to an RML file.
 ///
-TRestDetectorSignalToRawSignalProcess::TRestDetectorSignalToRawSignalProcess(char* configFilename) {
+TRestDetectorSignalToRawSignalProcess::TRestDetectorSignalToRawSignalProcess(const char* configFilename) {
     Initialize();
 
     LoadConfig(configFilename);

@@ -74,7 +74,7 @@ class TRestRawReadoutAnalysisProcess : public TRestEventProcess {
 
     // Constructor
     TRestRawReadoutAnalysisProcess();
-    TRestRawReadoutAnalysisProcess(char* configFilename);
+    TRestRawReadoutAnalysisProcess(const char* configFilename);
     // Destructor
     ~TRestRawReadoutAnalysisProcess();
 

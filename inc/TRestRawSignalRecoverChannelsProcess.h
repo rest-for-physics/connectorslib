@@ -79,7 +79,7 @@ class TRestRawSignalRecoverChannelsProcess : public TRestEventProcess {
 
     // Constructor
     TRestRawSignalRecoverChannelsProcess();
-    TRestRawSignalRecoverChannelsProcess(char* configFilename);
+    TRestRawSignalRecoverChannelsProcess(const char* configFilename);
 
     // Destructor
     ~TRestRawSignalRecoverChannelsProcess();

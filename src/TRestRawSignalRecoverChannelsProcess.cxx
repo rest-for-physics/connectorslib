@@ -87,7 +87,7 @@ TRestRawSignalRecoverChannelsProcess::TRestRawSignalRecoverChannelsProcess() { I
 ///
 /// \param configFilename A const char* giving the path to an RML file.
 ///
-TRestRawSignalRecoverChannelsProcess::TRestRawSignalRecoverChannelsProcess(char* configFilename) {
+TRestRawSignalRecoverChannelsProcess::TRestRawSignalRecoverChannelsProcess(const char* configFilename) {
     Initialize();
 
     if (LoadConfigFromFile(configFilename) == -1) LoadDefaultConfig();

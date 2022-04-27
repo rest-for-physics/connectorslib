@@ -82,7 +82,7 @@ TRestGeant4ToDetectorHitsProcess::TRestGeant4ToDetectorHitsProcess() { Initializ
 ///
 /// \param configFilename A const char* giving the path to an RML file.
 ///
-TRestGeant4ToDetectorHitsProcess::TRestGeant4ToDetectorHitsProcess(char* configFilename) {
+TRestGeant4ToDetectorHitsProcess::TRestGeant4ToDetectorHitsProcess(const char* configFilename) {
     Initialize();
 
     if (LoadConfigFromFile(configFilename)) LoadDefaultConfig();

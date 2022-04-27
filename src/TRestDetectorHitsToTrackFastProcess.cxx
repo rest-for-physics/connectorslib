@@ -21,7 +21,7 @@ ClassImp(TRestDetectorHitsToTrackFastProcess);
 TRestDetectorHitsToTrackFastProcess::TRestDetectorHitsToTrackFastProcess() { Initialize(); }
 
 //______________________________________________________________________________
-TRestDetectorHitsToTrackFastProcess::TRestDetectorHitsToTrackFastProcess(char* configFilename) {
+TRestDetectorHitsToTrackFastProcess::TRestDetectorHitsToTrackFastProcess(const char* configFilename) {
     Initialize();
 
     if (LoadConfigFromFile(configFilename) == -1) LoadDefaultConfig();

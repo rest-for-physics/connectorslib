@@ -93,7 +93,7 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
 
     // Constructor
     TRestDetectorSignalToRawSignalProcess();
-    TRestDetectorSignalToRawSignalProcess(char* configFilename);
+    TRestDetectorSignalToRawSignalProcess(const char* configFilename);
 
     // Destructor
     ~TRestDetectorSignalToRawSignalProcess();

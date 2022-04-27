@@ -73,7 +73,7 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
 
     // Constructor
     TRestGeant4ToDetectorHitsProcess();
-    TRestGeant4ToDetectorHitsProcess(char* configFilename);
+    TRestGeant4ToDetectorHitsProcess(const char* configFilename);
     // Destructor
     ~TRestGeant4ToDetectorHitsProcess();
 

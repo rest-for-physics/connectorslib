@@ -64,7 +64,7 @@ class TRestDetectorHitsToTrackFastProcess : public TRestEventProcess {
 
     // Constructor
     TRestDetectorHitsToTrackFastProcess();
-    TRestDetectorHitsToTrackFastProcess(char* configFilename);
+    TRestDetectorHitsToTrackFastProcess(const char* configFilename);
     // Destructor
     ~TRestDetectorHitsToTrackFastProcess();
 
