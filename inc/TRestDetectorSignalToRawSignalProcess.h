@@ -65,8 +65,8 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     Double_t fIntegralThreshold;
 
    public:
-    inline any GetInputEvent() const { return fInputSignalEvent; }
-    inline any GetOutputEvent() const { return fOutputRawSignalEvent; }
+    any GetInputEvent() const override { return fInputSignalEvent; }
+    any GetOutputEvent() const override { return fOutputRawSignalEvent; }
 
     TRestEvent* ProcessEvent(TRestEvent* eventInput);
 

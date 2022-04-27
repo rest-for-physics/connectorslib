@@ -45,8 +45,8 @@ class TRestDetectorHitsToTrackProcess : public TRestEventProcess {
     Double_t fClusterDistance = 2.5;
 
    public:
-    inline any GetInputEvent() const { return fHitsEvent; }
-    inline any GetOutputEvent() const { return fTrackEvent; }
+    any GetInputEvent() const override { return fHitsEvent; }
+    any GetOutputEvent() const override { return fTrackEvent; }
 
     TRestEvent* ProcessEvent(TRestEvent* eventInput);
 

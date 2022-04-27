@@ -74,8 +74,8 @@ class TRestRawToDetectorSignalProcess : public TRestEventProcess {
     Bool_t fBaseLineCorrection = false;
 
    public:
-    inline any GetInputEvent() const { return fInputSignalEvent; }
-    inline any GetOutputEvent() const { return fOutputSignalEvent; }
+    any GetInputEvent() const override { return fInputSignalEvent; }
+    any GetOutputEvent() const override { return fOutputSignalEvent; }
 
     TRestEvent* ProcessEvent(TRestEvent* eventInput);
 
