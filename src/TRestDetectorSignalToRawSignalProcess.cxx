@@ -137,7 +137,6 @@ TRestDetectorSignalToRawSignalProcess::TRestDetectorSignalToRawSignalProcess() {
 ///
 TRestDetectorSignalToRawSignalProcess::TRestDetectorSignalToRawSignalProcess(const char* configFilename) {
     Initialize();
-
     LoadConfig(configFilename);
 }
 
@@ -146,21 +145,6 @@ TRestDetectorSignalToRawSignalProcess::TRestDetectorSignalToRawSignalProcess(con
 ///
 TRestDetectorSignalToRawSignalProcess::~TRestDetectorSignalToRawSignalProcess() {
     delete fOutputRawSignalEvent;
-}
-
-///////////////////////////////////////////////
-/// \brief Function to load the default config in absence of RML input
-///
-void TRestDetectorSignalToRawSignalProcess::LoadDefaultConfig() {
-    SetName("signalToRawSignalProcess-Default");
-    SetTitle("Default config");
-
-    cout << "Signal to hits metadata not found. Loading default values" << endl;
-
-    fSampling = 1;
-    fNPoints = 512;
-    fTriggerMode = "firstDeposit";
-    fTriggerDelay = 50;
 }
 
 ///////////////////////////////////////////////
@@ -176,7 +160,7 @@ void TRestDetectorSignalToRawSignalProcess::LoadDefaultConfig() {
 /// correspondig TRestGeant4AnalysisProcess section inside the RML.
 ///
 void TRestDetectorSignalToRawSignalProcess::LoadConfig(std::string configFilename, std::string name) {
-    if (LoadConfigFromFile(configFilename, name)) LoadDefaultConfig();
+    LoadConfigFromFile(configFilename, name);
 }
 
 ///////////////////////////////////////////////

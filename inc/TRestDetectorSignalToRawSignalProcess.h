@@ -41,28 +41,24 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
 
     void Initialize();
 
-    void LoadDefaultConfig();
-
    protected:
     /// The sampling time from the binned raw output signal
-    Double_t fSampling;
+    Double_t fSampling = 1.0;  // ns
 
     /// The number of points of the resulting output signal
-    Int_t fNPoints;
+    Int_t fNPoints = 512;
 
     /// It is used to define the way the time start will be fixed
-    TString fTriggerMode;
+    TString fTriggerMode = "firstDeposit";
 
-    /// The number of time bins the time start is delayed in the resulting output
-    /// signal.
-    Int_t fTriggerDelay;
+    /// The number of time bins the time start is delayed in the resulting output signal.
+    Int_t fTriggerDelay = 100;  // ns
 
     /// A factor the data values will be multiplied by at the output signal.
-    Double_t fGain;
+    Double_t fGain = 100.0;
 
-    /// This parameter is used by integralWindow trigger mode to define the
-    /// acquisition window.
-    Double_t fIntegralThreshold;
+    /// This parameter is used by integralWindow trigger mode to define the acquisition window.
+    Double_t fIntegralThreshold = 1229.0;
 
    public:
     any GetInputEvent() const override { return fInputSignalEvent; }
