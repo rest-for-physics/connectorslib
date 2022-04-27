@@ -32,7 +32,7 @@ class TRestRawReadoutAnalysisProcess : public TRestEventProcess {
 
 #endif
 
-    void InitFromConfigFile();
+    void InitFromConfigFile() override;
 
     void Initialize();
 
@@ -50,9 +50,9 @@ class TRestRawReadoutAnalysisProcess : public TRestEventProcess {
     any GetInputEvent() const override { return fSignalEvent; }
     any GetOutputEvent() const override { return fSignalEvent; }
 
-    void InitProcess();
-    TRestEvent* ProcessEvent(TRestEvent* inputEvent);
-    void EndProcess();
+    void InitProcess() override;
+    TRestEvent* ProcessEvent(TRestEvent* inputEvent) override;
+    void EndProcess() override;
 
     void PrintMetadata() {
         BeginPrintProcess();

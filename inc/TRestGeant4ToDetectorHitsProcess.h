@@ -47,7 +47,7 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
     /// The geometry volume names to be transferred to TRestDetectorHitsEvent
     std::vector<TString> fVolumeSelection;
 
-    void InitFromConfigFile();
+    void InitFromConfigFile() override;
 
     void Initialize();
 
@@ -60,13 +60,13 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
     any GetInputEvent() const override { return fG4Event; }
     any GetOutputEvent() const override { return fHitsEvent; }
 
-    void InitProcess();
+    void InitProcess() override;
 
-    TRestEvent* ProcessEvent(TRestEvent* inputEvent);
+    TRestEvent* ProcessEvent(TRestEvent* inputEvent) override;
 
     void LoadConfig(const std::string& configFilename, const std::string& name = "");
 
-    void PrintMetadata();
+    void PrintMetadata() override;
 
     /// Returns the name of this process
     const char* GetProcessName() const override { return "g4toHitsEvent"; }

@@ -77,7 +77,7 @@ class TRestRawToDetectorSignalProcess : public TRestEventProcess {
     any GetInputEvent() const override { return fInputSignalEvent; }
     any GetOutputEvent() const override { return fOutputSignalEvent; }
 
-    TRestEvent* ProcessEvent(TRestEvent* inputEvent);
+    TRestEvent* ProcessEvent(TRestEvent* inputEvent) override;
 
     void ZeroSuppresion(TRestRawSignal* rawSignal, TRestDetectorSignal& sgnl);
 

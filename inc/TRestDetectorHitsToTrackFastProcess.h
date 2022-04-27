@@ -24,7 +24,7 @@ class TRestDetectorHitsToTrackFastProcess : public TRestEventProcess {
     TRestTrackEvent* fTrackEvent;        //!
 #endif
 
-    void InitFromConfigFile();
+    void InitFromConfigFile() override;
 
     void Initialize();
     Int_t FindTracks(TRestHits* hits);
@@ -41,9 +41,9 @@ class TRestDetectorHitsToTrackFastProcess : public TRestEventProcess {
     any GetInputEvent() const override { return fHitsEvent; }
     any GetOutputEvent() const override { return fTrackEvent; }
 
-    void InitProcess();
-    TRestEvent* ProcessEvent(TRestEvent* inputEvent);
-    void EndProcess();
+    void InitProcess() override;
+    TRestEvent* ProcessEvent(TRestEvent* inputEvent) override;
+    void EndProcess() override;
     void LoadDefaultConfig();
 
     void LoadConfig(const std::string& configFilename, const std::string& name = "");
