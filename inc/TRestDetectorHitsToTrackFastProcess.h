@@ -42,7 +42,7 @@ class TRestDetectorHitsToTrackFastProcess : public TRestEventProcess {
     any GetOutputEvent() const override { return fTrackEvent; }
 
     void InitProcess();
-    TRestEvent* ProcessEvent(TRestEvent* eventInput);
+    TRestEvent* ProcessEvent(TRestEvent* inputEvent);
     void EndProcess();
     void LoadDefaultConfig();
 

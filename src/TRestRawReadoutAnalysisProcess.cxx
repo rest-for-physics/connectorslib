@@ -86,8 +86,8 @@ void TRestRawReadoutAnalysisProcess::InitProcess() {
 }
 
 //______________________________________________________________________________
-TRestEvent* TRestRawReadoutAnalysisProcess::ProcessEvent(TRestEvent* evInput) {
-    fSignalEvent = (TRestRawSignalEvent*)evInput;
+TRestEvent* TRestRawReadoutAnalysisProcess::ProcessEvent(TRestEvent* inputEvent) {
+    fSignalEvent = (TRestRawSignalEvent*)inputEvent;
     if (fReadout != nullptr) {
         Double_t firstX_id = -1.;
         Double_t firstY_id = -1.;

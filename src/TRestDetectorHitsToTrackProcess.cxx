@@ -117,12 +117,12 @@ void TRestDetectorHitsToTrackProcess::Initialize() {
 ///////////////////////////////////////////////
 /// \brief The main processing event function
 ///
-TRestEvent* TRestDetectorHitsToTrackProcess::ProcessEvent(TRestEvent* evInput) {
+TRestEvent* TRestDetectorHitsToTrackProcess::ProcessEvent(TRestEvent* inputEvent) {
     /* Time measurement
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
     */
 
-    fHitsEvent = (TRestDetectorHitsEvent*)evInput;
+    fHitsEvent = (TRestDetectorHitsEvent*)inputEvent;
     fTrackEvent->SetEventInfo(fHitsEvent);
 
     if (GetVerboseLevel() >= REST_Debug)

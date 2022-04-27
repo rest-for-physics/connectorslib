@@ -153,8 +153,8 @@ void TRestRawSignalRecoverChannelsProcess::InitProcess() {
 ///////////////////////////////////////////////
 /// \brief The main processing event function
 ///
-TRestEvent* TRestRawSignalRecoverChannelsProcess::ProcessEvent(TRestEvent* evInput) {
-    fInputSignalEvent = (TRestRawSignalEvent*)evInput;
+TRestEvent* TRestRawSignalRecoverChannelsProcess::ProcessEvent(TRestEvent* inputEvent) {
+    fInputSignalEvent = (TRestRawSignalEvent*)inputEvent;
 
     //       TRestRawSignal *sgnl = fInputSignalEvent->GetSignal(n);
     for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++)

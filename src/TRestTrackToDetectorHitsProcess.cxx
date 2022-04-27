@@ -49,8 +49,8 @@ void TRestTrackToDetectorHitsProcess::LoadConfig(const string& configFilename, c
 void TRestTrackToDetectorHitsProcess::InitProcess() {}
 
 //______________________________________________________________________________
-TRestEvent* TRestTrackToDetectorHitsProcess::ProcessEvent(TRestEvent* evInput) {
-    fInputTrackEvent = (TRestTrackEvent*)evInput;
+TRestEvent* TRestTrackToDetectorHitsProcess::ProcessEvent(TRestEvent* inputEvent) {
+    fInputTrackEvent = (TRestTrackEvent*)inputEvent;
 
     if (this->GetVerboseLevel() >= REST_Debug) fInputTrackEvent->PrintOnlyTracks();
 

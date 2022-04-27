@@ -62,7 +62,7 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
 
     void InitProcess();
 
-    TRestEvent* ProcessEvent(TRestEvent* eventInput);
+    TRestEvent* ProcessEvent(TRestEvent* inputEvent);
 
     void LoadConfig(const std::string& configFilename, const std::string& name = "");
 

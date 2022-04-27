@@ -74,11 +74,11 @@ void TRestDetectorHitsToTrackFastProcess::InitProcess() {
 }
 
 //______________________________________________________________________________
-TRestEvent* TRestDetectorHitsToTrackFastProcess::ProcessEvent(TRestEvent* evInput) {
+TRestEvent* TRestDetectorHitsToTrackFastProcess::ProcessEvent(TRestEvent* inputEvent) {
     /* Time measurement
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
     */
-    fHitsEvent = (TRestDetectorHitsEvent*)evInput;
+    fHitsEvent = (TRestDetectorHitsEvent*)inputEvent;
 
     fTrackEvent->SetID(fHitsEvent->GetID());
     fTrackEvent->SetSubID(fHitsEvent->GetSubID());

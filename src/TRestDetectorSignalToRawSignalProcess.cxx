@@ -178,8 +178,8 @@ void TRestDetectorSignalToRawSignalProcess::Initialize() {
 ///////////////////////////////////////////////
 /// \brief The main processing event function
 ///
-TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* evInput) {
-    fInputSignalEvent = (TRestDetectorSignalEvent*)evInput;
+TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inputEvent) {
+    fInputSignalEvent = (TRestDetectorSignalEvent*)inputEvent;
 
     if (fInputSignalEvent->GetNumberOfSignals() <= 0) return nullptr;
 

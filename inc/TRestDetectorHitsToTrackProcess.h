@@ -48,7 +48,7 @@ class TRestDetectorHitsToTrackProcess : public TRestEventProcess {
     any GetInputEvent() const override { return fHitsEvent; }
     any GetOutputEvent() const override { return fTrackEvent; }
 
-    TRestEvent* ProcessEvent(TRestEvent* eventInput);
+    TRestEvent* ProcessEvent(TRestEvent* inputEvent);
 
     /// It prints out the process parameters stored in the metadata structure
     void PrintMetadata() {
