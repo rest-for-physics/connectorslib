@@ -50,7 +50,7 @@ class TRestTrackToDetectorHitsProcess : public TRestEventProcess {
         EndPrintProcess();
     }
 
-    inline TString GetProcessName() const { return (TString) "trackToDetectorHits"; }
+    inline const char* GetProcessName() const { return "trackToDetectorHits"; }
 
     // Constructor
     TRestTrackToDetectorHitsProcess();

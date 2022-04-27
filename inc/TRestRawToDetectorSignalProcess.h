@@ -109,7 +109,7 @@ class TRestRawToDetectorSignalProcess : public TRestEventProcess {
     TRestEventProcess* Maker() { return new TRestRawToDetectorSignalProcess; }
 
     /// Returns the name of this process
-    inline TString GetProcessName() const { return (TString) "rawSignalToSignal"; }
+    inline const char* GetProcessName() const { return "rawSignalToSignal"; }
 
     // Constructor
     TRestRawToDetectorSignalProcess();
