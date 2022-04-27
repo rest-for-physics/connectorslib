@@ -60,7 +60,7 @@ class TRestDetectorHitsToTrackProcess : public TRestEventProcess {
     }
 
     /// Returns the name of this process
-    inline const char* GetProcessName() const { return "hitsToTrack"; }
+    const char* GetProcessName() const override { return "hitsToTrack"; }
 
     TRestDetectorHitsToTrackProcess();
     ~TRestDetectorHitsToTrackProcess();

@@ -60,7 +60,7 @@ class TRestDetectorHitsToTrackFastProcess : public TRestEventProcess {
         EndPrintProcess();
     }
 
-    inline const char* GetProcessName() const { return "fastHitsToTrack"; }
+    const char* GetProcessName() const override { return "fastHitsToTrack"; }
 
     // Constructor
     TRestDetectorHitsToTrackFastProcess();

@@ -69,7 +69,7 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
     void PrintMetadata();
 
     /// Returns the name of this process
-    inline const char* GetProcessName() const { return "g4toHitsEvent"; }
+    const char* GetProcessName() const override { return "g4toHitsEvent"; }
 
     // Constructor
     TRestGeant4ToDetectorHitsProcess();
