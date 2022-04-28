@@ -37,7 +37,7 @@ class TRestRawToDetectorSignalProcess : public TRestEventProcess {
     /// A pointer to the specific TRestDetectorSignalEvent input
     TRestDetectorSignalEvent* fOutputSignalEvent;  //!
 
-    void Initialize();
+    void Initialize() override;
 
    protected:
     /// The sampling time used to transform the binned data to time information
@@ -82,7 +82,7 @@ class TRestRawToDetectorSignalProcess : public TRestEventProcess {
     void ZeroSuppresion(TRestRawSignal* rawSignal, TRestDetectorSignal& sgnl);
 
     /// It prints out the process parameters stored in the metadata structure
-    void PrintMetadata() {
+    void PrintMetadata() override {
         BeginPrintProcess();
 
         metadata << "Sampling time : " << fSampling << " us" << endl;
@@ -117,6 +117,6 @@ class TRestRawToDetectorSignalProcess : public TRestEventProcess {
     // Destructor
     ~TRestRawToDetectorSignalProcess();
 
-    ClassDef(TRestRawToDetectorSignalProcess, 2);
+    ClassDefOverride(TRestRawToDetectorSignalProcess, 2);
 };
 #endif

@@ -26,7 +26,7 @@ class TRestDetectorHitsToTrackFastProcess : public TRestEventProcess {
 
     void InitFromConfigFile() override;
 
-    void Initialize();
+    void Initialize() override;
     Int_t FindTracks(TRestHits* hits);
 
    protected:
@@ -48,7 +48,7 @@ class TRestDetectorHitsToTrackFastProcess : public TRestEventProcess {
 
     void LoadConfig(const std::string& configFilename, const std::string& name = "");
 
-    void PrintMetadata() {
+    void PrintMetadata() override {
         BeginPrintProcess();
 
         metadata << " Cell resolution : " << fCellResolution << " mm " << endl;
@@ -68,7 +68,7 @@ class TRestDetectorHitsToTrackFastProcess : public TRestEventProcess {
     // Destructor
     ~TRestDetectorHitsToTrackFastProcess();
 
-    ClassDef(TRestDetectorHitsToTrackFastProcess,
+    ClassDefOverride(TRestDetectorHitsToTrackFastProcess,
              1);  // Template for a REST "event process" class inherited from
                   // TRestEventProcess
 };

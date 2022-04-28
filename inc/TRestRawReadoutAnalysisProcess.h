@@ -34,7 +34,7 @@ class TRestRawReadoutAnalysisProcess : public TRestEventProcess {
 
     void InitFromConfigFile() override;
 
-    void Initialize();
+    void Initialize() override;
 
     std::string fModuleCanvasSave;  //!
 
@@ -54,7 +54,7 @@ class TRestRawReadoutAnalysisProcess : public TRestEventProcess {
     TRestEvent* ProcessEvent(TRestEvent* inputEvent) override;
     void EndProcess() override;
 
-    void PrintMetadata() {
+    void PrintMetadata() override {
         BeginPrintProcess();
 
         metadata << "channel activity and hitmap histograms required for module: ";
@@ -78,7 +78,7 @@ class TRestRawReadoutAnalysisProcess : public TRestEventProcess {
     // Destructor
     ~TRestRawReadoutAnalysisProcess();
 
-    ClassDef(TRestRawReadoutAnalysisProcess, 1);  // Template for a REST "event process" class inherited from
+    ClassDefOverride(TRestRawReadoutAnalysisProcess, 1);  // Template for a REST "event process" class inherited from
                                                   // TRestEventProcess
 };
 #endif
