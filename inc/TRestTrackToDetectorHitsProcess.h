@@ -26,7 +26,7 @@ class TRestTrackToDetectorHitsProcess : public TRestEventProcess {
 
     void InitFromConfigFile() override;
 
-    void Initialize();
+    void Initialize() override;
 
    protected:
     Int_t fTrackLevel;
@@ -42,7 +42,7 @@ class TRestTrackToDetectorHitsProcess : public TRestEventProcess {
 
     void LoadConfig(const std::string& configFilename, const std::string& name = "");
 
-    void PrintMetadata() {
+    void PrintMetadata() override {
         BeginPrintProcess();
 
         std::cout << "Track level : " << fTrackLevel << endl;
@@ -58,7 +58,7 @@ class TRestTrackToDetectorHitsProcess : public TRestEventProcess {
     // Destructor
     ~TRestTrackToDetectorHitsProcess();
 
-    ClassDef(TRestTrackToDetectorHitsProcess, 1);  // Template for a REST "event process" class inherited from
+    ClassDefOverride(TRestTrackToDetectorHitsProcess, 1);  // Template for a REST "event process" class inherited from
                                                    // TRestEventProcess
 };
 #endif

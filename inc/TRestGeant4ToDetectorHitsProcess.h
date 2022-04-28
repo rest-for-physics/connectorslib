@@ -49,7 +49,7 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
 
     void InitFromConfigFile() override;
 
-    void Initialize();
+    void Initialize() override;
 
     void LoadDefaultConfig();
 
@@ -77,7 +77,7 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
     // Destructor
     ~TRestGeant4ToDetectorHitsProcess();
 
-    ClassDef(TRestGeant4ToDetectorHitsProcess, 1);  // Transform a TRestGeant4Event event to a
+    ClassDefOverride(TRestGeant4ToDetectorHitsProcess, 1);  // Transform a TRestGeant4Event event to a
                                                     // TRestDetectorHitsEvent (hits-collection event)
 };
 #endif

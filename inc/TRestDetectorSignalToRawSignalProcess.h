@@ -39,7 +39,7 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
 
     void InitFromConfigFile() override;
 
-    void Initialize();
+    void Initialize() override;
 
    protected:
     /// The sampling time from the binned raw output signal
@@ -87,7 +87,7 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     void LoadConfig(const std::string& configFilename, const std::string& name = "");
 
     /// It prints out the process parameters stored in the metadata structure
-    void PrintMetadata() {
+    void PrintMetadata() override {
         BeginPrintProcess();
 
         metadata << "Sampling time : " << fSampling << " us" << endl;
@@ -112,6 +112,6 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     // Destructor
     ~TRestDetectorSignalToRawSignalProcess();
 
-    ClassDef(TRestDetectorSignalToRawSignalProcess, 2);
+    ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 2);
 };
 #endif
