@@ -58,7 +58,7 @@ class TRestTrackToDetectorHitsProcess : public TRestEventProcess {
     // Destructor
     ~TRestTrackToDetectorHitsProcess();
 
-    ClassDefOverride(TRestTrackToDetectorHitsProcess, 1);  // Template for a REST "event process" class inherited from
-                                                   // TRestEventProcess
+    ClassDefOverride(TRestTrackToDetectorHitsProcess, 1);  // Template for a REST "event process" class
+                                                           // inherited from TRestEventProcess
 };
 #endif

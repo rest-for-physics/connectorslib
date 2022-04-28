@@ -69,7 +69,7 @@ class TRestDetectorHitsToTrackFastProcess : public TRestEventProcess {
     ~TRestDetectorHitsToTrackFastProcess();
 
     ClassDefOverride(TRestDetectorHitsToTrackFastProcess,
-             1);  // Template for a REST "event process" class inherited from
-                  // TRestEventProcess
+                     1);  // Template for a REST "event process" class inherited from
+                          // TRestEventProcess
 };
 #endif

@@ -51,7 +51,7 @@ class TRestDetectorHitsToTrackProcess : public TRestEventProcess {
     TRestEvent* ProcessEvent(TRestEvent* inputEvent) override;
 
     /// It prints out the process parameters stored in the metadata structure
-    void PrintMetadata()  override {
+    void PrintMetadata() override {
         BeginPrintProcess();
 
         metadata << " cluster-distance : " << fClusterDistance << " mm " << endl;
@@ -65,7 +65,7 @@ class TRestDetectorHitsToTrackProcess : public TRestEventProcess {
     TRestDetectorHitsToTrackProcess();
     ~TRestDetectorHitsToTrackProcess();
 
-    ClassDefOverride(TRestDetectorHitsToTrackProcess, 1);  // Template for a REST "event process" class inherited from
-                                                   // TRestEventProcess
+    ClassDefOverride(TRestDetectorHitsToTrackProcess, 1);  // Template for a REST "event process" class
+                                                           // inherited from TRestEventProcess
 };
 #endif

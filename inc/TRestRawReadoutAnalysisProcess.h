@@ -78,7 +78,7 @@ class TRestRawReadoutAnalysisProcess : public TRestEventProcess {
     // Destructor
     ~TRestRawReadoutAnalysisProcess();
 
-    ClassDefOverride(TRestRawReadoutAnalysisProcess, 1);  // Template for a REST "event process" class inherited from
-                                                  // TRestEventProcess
+    ClassDefOverride(TRestRawReadoutAnalysisProcess, 1);  // Template for a REST "event process" class
+                                                          // inherited from TRestEventProcess
 };
 #endif
