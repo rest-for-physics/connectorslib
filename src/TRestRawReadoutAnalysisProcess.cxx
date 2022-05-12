@@ -18,18 +18,15 @@
 
 #include <TLegend.h>
 #include <TPaveText.h>
+
 using namespace std;
 
-ClassImp(TRestRawReadoutAnalysisProcess)
-    //______________________________________________________________________________
-    TRestRawReadoutAnalysisProcess::TRestRawReadoutAnalysisProcess() {
-    Initialize();
-}
+ClassImp(TRestRawReadoutAnalysisProcess);
 
-//______________________________________________________________________________
+TRestRawReadoutAnalysisProcess::TRestRawReadoutAnalysisProcess() { Initialize(); }
+
 TRestRawReadoutAnalysisProcess::~TRestRawReadoutAnalysisProcess() {}
 
-//______________________________________________________________________________
 void TRestRawReadoutAnalysisProcess::Initialize() {
     SetSectionName(this->ClassName());
     SetLibraryVersion(LIBRARY_VERSION);
@@ -39,7 +36,6 @@ void TRestRawReadoutAnalysisProcess::Initialize() {
     fReadout = nullptr;
 }
 
-//______________________________________________________________________________
 void TRestRawReadoutAnalysisProcess::InitProcess() {
     fReadout = GetMetadata<TRestDetectorReadout>();
     if (fReadout != nullptr) {
@@ -85,7 +81,6 @@ void TRestRawReadoutAnalysisProcess::InitProcess() {
     }
 }
 
-//______________________________________________________________________________
 TRestEvent* TRestRawReadoutAnalysisProcess::ProcessEvent(TRestEvent* inputEvent) {
     fSignalEvent = (TRestRawSignalEvent*)inputEvent;
     if (fReadout != nullptr) {
@@ -250,7 +245,6 @@ TRestEvent* TRestRawReadoutAnalysisProcess::ProcessEvent(TRestEvent* inputEvent)
     return fSignalEvent;
 }
 
-//______________________________________________________________________________
 void TRestRawReadoutAnalysisProcess::EndProcess() {
     if (fReadout != nullptr) {
         {
@@ -342,7 +336,6 @@ void TRestRawReadoutAnalysisProcess::EndProcess() {
     }
 }
 
-//______________________________________________________________________________
 // setting amplification:
 // <parameter name="modulesAmp" value = "2-1:5-1.2:6-0.8:8-0.9" />
 // setting readout modules to draw:
