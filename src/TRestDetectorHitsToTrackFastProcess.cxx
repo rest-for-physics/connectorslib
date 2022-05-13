@@ -8,31 +8,28 @@
 ///             TRestDetectorHitsToTrackFastProcess.cxx
 ///
 ///             Feb 2016:   First concept (Javier Galan)
-//
+///
 ///_______________________________________________________________________________
 
 #include "TRestDetectorHitsToTrackFastProcess.h"
+
 using namespace std;
 
 #include <TRestMesh.h>
 
 ClassImp(TRestDetectorHitsToTrackFastProcess);
-//______________________________________________________________________________
+
 TRestDetectorHitsToTrackFastProcess::TRestDetectorHitsToTrackFastProcess() { Initialize(); }
 
-//______________________________________________________________________________
-TRestDetectorHitsToTrackFastProcess::TRestDetectorHitsToTrackFastProcess(char* cfgFileName) {
+TRestDetectorHitsToTrackFastProcess::TRestDetectorHitsToTrackFastProcess(const char* configFilename) {
     Initialize();
 
-    if (LoadConfigFromFile(cfgFileName) == -1) LoadDefaultConfig();
-
-    // TRestDetectorHitsToTrackFastProcess default constructor
+    if (LoadConfigFromFile(configFilename) == -1) LoadDefaultConfig();
 }
 
-//______________________________________________________________________________
 TRestDetectorHitsToTrackFastProcess::~TRestDetectorHitsToTrackFastProcess() {
-    delete fTrackEvent;
     // TRestDetectorHitsToTrackFastProcess destructor
+    delete fTrackEvent;
 }
 
 void TRestDetectorHitsToTrackFastProcess::LoadDefaultConfig() {
@@ -45,7 +42,6 @@ void TRestDetectorHitsToTrackFastProcess::LoadDefaultConfig() {
     fNodes = (Int_t)(fNetSize / fCellResolution);
 }
 
-//______________________________________________________________________________
 void TRestDetectorHitsToTrackFastProcess::Initialize() {
     SetSectionName(this->ClassName());
     SetLibraryVersion(LIBRARY_VERSION);
@@ -59,11 +55,10 @@ void TRestDetectorHitsToTrackFastProcess::Initialize() {
     fTrackEvent = new TRestTrackEvent();
 }
 
-void TRestDetectorHitsToTrackFastProcess::LoadConfig(std::string cfgFilename, std::string name) {
-    if (LoadConfigFromFile(cfgFilename, name) == -1) LoadDefaultConfig();
+void TRestDetectorHitsToTrackFastProcess::LoadConfig(const string& configFilename, const string& name) {
+    if (LoadConfigFromFile(configFilename, name) == -1) LoadDefaultConfig();
 }
 
-//______________________________________________________________________________
 void TRestDetectorHitsToTrackFastProcess::InitProcess() {
     // Function to be executed once at the beginning of process
     // (before starting the process of the events)
@@ -73,12 +68,11 @@ void TRestDetectorHitsToTrackFastProcess::InitProcess() {
     // TRestEventProcess::InitProcess();
 }
 
-//______________________________________________________________________________
-TRestEvent* TRestDetectorHitsToTrackFastProcess::ProcessEvent(TRestEvent* evInput) {
+TRestEvent* TRestDetectorHitsToTrackFastProcess::ProcessEvent(TRestEvent* inputEvent) {
     /* Time measurement
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
     */
-    fHitsEvent = (TRestDetectorHitsEvent*)evInput;
+    fHitsEvent = (TRestDetectorHitsEvent*)inputEvent;
 
     fTrackEvent->SetID(fHitsEvent->GetID());
     fTrackEvent->SetSubID(fHitsEvent->GetSubID());
@@ -173,7 +167,6 @@ Int_t TRestDetectorHitsToTrackFastProcess::FindTracks(TRestHits* hits) {
     return nTracksFound;
 }
 
-//______________________________________________________________________________
 void TRestDetectorHitsToTrackFastProcess::EndProcess() {
     // Function to be executed once at the end of the process
     // (after all events have been processed)
@@ -183,7 +176,6 @@ void TRestDetectorHitsToTrackFastProcess::EndProcess() {
     // TRestEventProcess::EndProcess();
 }
 
-//______________________________________________________________________________
 void TRestDetectorHitsToTrackFastProcess::InitFromConfigFile() {
     fCellResolution = GetDblParameterWithUnits("cellResolution");
     fNetSize = GetDblParameterWithUnits("netSize");

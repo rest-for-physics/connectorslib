@@ -58,7 +58,7 @@
 ///
 /// List of observables:
 ///
-/// * NSignalsRejected: Number of rejected signals inside a event, due to 
+/// * NSignalsRejected: Number of rejected signals inside a event, due to
 /// zero suppression or just because it is below the desired threshold.
 ///
 /// The following lines of code show how the process metadata should be
@@ -69,7 +69,7 @@
 /// // A raw signal with 200ns binning will be translated to a
 /// // TRestDetectorSignalEvent. The new signal will start at time=20us, and its
 /// // amplitude will be reduced a factor 50. If zeroSuppression is true it will
-/// // perform 
+/// // perform
 ///
 /// <TRestRawToDetectorSignalProcess name="rsTos" title"Raw signal to signal">
 ///     <parameter name="sampling" value="0.2" units="us" />
@@ -82,7 +82,7 @@
 ///     <parameter name="signalThreshold" value="7"/>
 ///     <parameter name="nPointsOverThreshold" value="7"/>
 ///     <observable name="NSignalsRejected" value="ON"/>
-///     
+///
 /// </TRestRawToDetectorSignalProcess>
 /// \endcode
 ///
@@ -148,33 +148,35 @@ void TRestRawToDetectorSignalProcess::Initialize() {
 ///////////////////////////////////////////////
 /// \brief The main processing event function
 ///
-TRestEvent* TRestRawToDetectorSignalProcess::ProcessEvent(TRestEvent* evInput) {
-   fInputSignalEvent = (TRestRawSignalEvent*)evInput;
+TRestEvent* TRestRawToDetectorSignalProcess::ProcessEvent(TRestEvent* inputEvent) {
+    fInputSignalEvent = (TRestRawSignalEvent*)inputEvent;
 
-   Int_t rejectedSignal = 0;
+    Int_t rejectedSignal = 0;
 
-    if(fZeroSuppression){
-      fInputSignalEvent->SetBaseLineRange(fBaseLineRange);
-      fInputSignalEvent->SetRange(fIntegralRange);
+    if (fZeroSuppression) {
+        fInputSignalEvent->SetBaseLineRange(fBaseLineRange);
+        fInputSignalEvent->SetRange(fIntegralRange);
     }
 
-      for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
+    for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
         TRestDetectorSignal sgnl;
         sgnl.Initialize();
         TRestRawSignal* rawSgnl = fInputSignalEvent->GetSignal(n);
         sgnl.SetID(rawSgnl->GetID());
 
-          if(fZeroSuppression){
+        if (fZeroSuppression) {
             ZeroSuppresion(rawSgnl, sgnl);
-          } else {
+        } else {
             for (int p = 0; p < rawSgnl->GetNumberOfPoints(); p++)
-              if (rawSgnl->GetData(p) > fThreshold)
-                sgnl.NewPoint(fTriggerStarts + fSampling * p, fGain * rawSgnl->GetData(p));
-          }
+                if (rawSgnl->GetData(p) > fThreshold)
+                    sgnl.NewPoint(fTriggerStarts + fSampling * p, fGain * rawSgnl->GetData(p));
+        }
 
-        if (sgnl.GetNumberOfPoints() > 0) fOutputSignalEvent->AddSignal(sgnl);
-        else rejectedSignal++;
-      }
+        if (sgnl.GetNumberOfPoints() > 0)
+            fOutputSignalEvent->AddSignal(sgnl);
+        else
+            rejectedSignal++;
+    }
 
     SetObservableValue("NSignalsRejected", rejectedSignal);
 
@@ -183,17 +185,13 @@ TRestEvent* TRestRawToDetectorSignalProcess::ProcessEvent(TRestEvent* evInput) {
     return fOutputSignalEvent;
 }
 
-void TRestRawToDetectorSignalProcess::ZeroSuppresion(TRestRawSignal* rawSignal, TRestDetectorSignal &sgnl){
+void TRestRawToDetectorSignalProcess::ZeroSuppresion(TRestRawSignal* rawSignal, TRestDetectorSignal& sgnl) {
+    rawSignal->InitializePointsOverThreshold(TVector2(fPointThreshold, fSignalThreshold),
+                                             fNPointsOverThreshold, 512);
 
-  rawSignal->InitializePointsOverThreshold(TVector2(fPointThreshold, fSignalThreshold),
-                                           fNPointsOverThreshold, 512);
-
-  std::vector<Int_t> pOver = rawSignal->GetPointsOverThreshold();
+    std::vector<Int_t> pOver = rawSignal->GetPointsOverThreshold();
     for (int n = 0; n < pOver.size(); n++) {
-      int j = pOver[n];
-      sgnl.NewPoint(fTriggerStarts + fSampling * j, fGain *rawSignal->GetData(j));
+        int j = pOver[n];
+        sgnl.NewPoint(fTriggerStarts + fSampling * j, fGain * rawSignal->GetData(j));
     }
-
 }
-
-

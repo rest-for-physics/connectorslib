@@ -47,9 +47,9 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
     /// The geometry volume names to be transferred to TRestDetectorHitsEvent
     std::vector<TString> fVolumeSelection;
 
-    void InitFromConfigFile();
+    void InitFromConfigFile() override;
 
-    void Initialize();
+    void Initialize() override;
 
     void LoadDefaultConfig();
 
@@ -57,27 +57,27 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
     // add here the members of your event process
 
    public:
-    any GetInputEvent() { return fG4Event; }
-    any GetOutputEvent() { return fHitsEvent; }
+    any GetInputEvent() const override { return fG4Event; }
+    any GetOutputEvent() const override { return fHitsEvent; }
 
-    void InitProcess();
+    void InitProcess() override;
 
-    TRestEvent* ProcessEvent(TRestEvent* eventInput);
+    TRestEvent* ProcessEvent(TRestEvent* inputEvent) override;
 
-    void LoadConfig(std::string cfgFilename, std::string name = "");
+    void LoadConfig(const std::string& configFilename, const std::string& name = "");
 
-    void PrintMetadata();
+    void PrintMetadata() override;
 
     /// Returns the name of this process
-    TString GetProcessName() { return (TString) "g4toHitsEvent"; }
+    const char* GetProcessName() const override { return "g4toHitsEvent"; }
 
     // Constructor
     TRestGeant4ToDetectorHitsProcess();
-    TRestGeant4ToDetectorHitsProcess(char* cfgFileName);
+    TRestGeant4ToDetectorHitsProcess(const char* configFilename);
     // Destructor
     ~TRestGeant4ToDetectorHitsProcess();
 
-    ClassDef(TRestGeant4ToDetectorHitsProcess, 1);  // Transform a TRestGeant4Event event to a
-                                                    // TRestDetectorHitsEvent (hits-collection event)
+    ClassDefOverride(TRestGeant4ToDetectorHitsProcess, 1);  // Transform a TRestGeant4Event event to a
+                                                            // TRestDetectorHitsEvent (hits-collection event)
 };
 #endif

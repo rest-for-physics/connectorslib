@@ -133,12 +133,11 @@ TRestDetectorSignalToRawSignalProcess::TRestDetectorSignalToRawSignalProcess() {
 /// The default behaviour is that the config file must be specified with
 /// full path, absolute or relative.
 ///
-/// \param cfgFileName A const char* giving the path to an RML file.
+/// \param configFilename A const char* giving the path to an RML file.
 ///
-TRestDetectorSignalToRawSignalProcess::TRestDetectorSignalToRawSignalProcess(char* cfgFileName) {
+TRestDetectorSignalToRawSignalProcess::TRestDetectorSignalToRawSignalProcess(const char* configFilename) {
     Initialize();
-
-    LoadConfig(cfgFileName);
+    LoadConfig(configFilename);
 }
 
 ///////////////////////////////////////////////
@@ -149,21 +148,6 @@ TRestDetectorSignalToRawSignalProcess::~TRestDetectorSignalToRawSignalProcess() 
 }
 
 ///////////////////////////////////////////////
-/// \brief Function to load the default config in absence of RML input
-///
-void TRestDetectorSignalToRawSignalProcess::LoadDefaultConfig() {
-    SetName("signalToRawSignalProcess-Default");
-    SetTitle("Default config");
-
-    cout << "Signal to hits metadata not found. Loading default values" << endl;
-
-    fSampling = 1;
-    fNPoints = 512;
-    fTriggerMode = "firstDeposit";
-    fTriggerDelay = 50;
-}
-
-///////////////////////////////////////////////
 /// \brief Function to load the configuration from an external configuration
 /// file.
 ///
@@ -171,12 +155,12 @@ void TRestDetectorSignalToRawSignalProcess::LoadDefaultConfig() {
 /// the path to the config file must be specified using full path, absolute or
 /// relative.
 ///
-/// \param cfgFileName A const char* giving the path to an RML file.
+/// \param configFilename A const char* giving the path to an RML file.
 /// \param name The name of the specific metadata. It will be used to find the
-/// correspondig TRestGeant4AnalysisProcess section inside the RML.
+/// corresponding TRestGeant4AnalysisProcess section inside the RML.
 ///
-void TRestDetectorSignalToRawSignalProcess::LoadConfig(std::string cfgFilename, std::string name) {
-    if (LoadConfigFromFile(cfgFilename, name)) LoadDefaultConfig();
+void TRestDetectorSignalToRawSignalProcess::LoadConfig(const string& configFilename, const string& name) {
+    LoadConfigFromFile(configFilename, name);
 }
 
 ///////////////////////////////////////////////
@@ -194,8 +178,8 @@ void TRestDetectorSignalToRawSignalProcess::Initialize() {
 ///////////////////////////////////////////////
 /// \brief The main processing event function
 ///
-TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* evInput) {
-    fInputSignalEvent = (TRestDetectorSignalEvent*)evInput;
+TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inputEvent) {
+    fInputSignalEvent = (TRestDetectorSignalEvent*)inputEvent;
 
     if (fInputSignalEvent->GetNumberOfSignals() <= 0) return nullptr;
 

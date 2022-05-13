@@ -37,43 +37,57 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     /// A pointer to the specific TRestRawSignalEvent input
     TRestRawSignalEvent* fOutputRawSignalEvent;  //!
 
-    void InitFromConfigFile();
+    void InitFromConfigFile() override;
 
-    void Initialize();
-
-    void LoadDefaultConfig();
+    void Initialize() override;
 
    protected:
     /// The sampling time from the binned raw output signal
-    Double_t fSampling;
+    Double_t fSampling = 1.0;  // ns
 
     /// The number of points of the resulting output signal
-    Int_t fNPoints;
+    Int_t fNPoints = 512;
 
     /// It is used to define the way the time start will be fixed
-    TString fTriggerMode;
+    TString fTriggerMode = "firstDeposit";
 
-    /// The number of time bins the time start is delayed in the resulting output
-    /// signal.
-    Int_t fTriggerDelay;
+    /// The number of time bins the time start is delayed in the resulting output signal.
+    Int_t fTriggerDelay = 100;  // ns
 
     /// A factor the data values will be multiplied by at the output signal.
-    Double_t fGain;
+    Double_t fGain = 100.0;
 
-    /// This parameter is used by integralWindow trigger mode to define the
-    /// acquisition window.
-    Double_t fIntegralThreshold;
+    /// This parameter is used by integralWindow trigger mode to define the acquisition window.
+    Double_t fIntegralThreshold = 1229.0;
 
    public:
-    any GetInputEvent() { return fInputSignalEvent; }
-    any GetOutputEvent() { return fOutputRawSignalEvent; }
+    inline Double_t GetSampling() const { return fSampling; }
+    inline void SetSampling(Double_t sampling) { fSampling = sampling; }
 
-    TRestEvent* ProcessEvent(TRestEvent* eventInput);
+    inline Int_t GetNPoints() const { return fNPoints; }
+    inline void SetNPoints(Int_t nPoints) { fNPoints = nPoints; }
 
-    void LoadConfig(std::string cfgFilename, std::string name = "");
+    inline TString GetTriggerMode() const { return fTriggerMode; }
+    inline void SetTriggerMode(const TString& triggerMode) { fTriggerMode = triggerMode; }
+
+    inline Int_t GetTriggerDelay() const { return fTriggerDelay; }
+    inline void SetTriggerDelay(Int_t triggerDelay) { fTriggerDelay = triggerDelay; }
+
+    inline Double_t GetGain() const { return fGain; }
+    inline void SetGain(Double_t gain) { fGain = gain; }
+
+    inline Double_t GetIntegralThreshold() const { return fIntegralThreshold; }
+    inline void SetIntegralThreshold(Double_t integralThreshold) { fIntegralThreshold = integralThreshold; }
+
+    any GetInputEvent() const override { return fInputSignalEvent; }
+    any GetOutputEvent() const override { return fOutputRawSignalEvent; }
+
+    TRestEvent* ProcessEvent(TRestEvent* inputEvent) override;
+
+    void LoadConfig(const std::string& configFilename, const std::string& name = "");
 
     /// It prints out the process parameters stored in the metadata structure
-    void PrintMetadata() {
+    void PrintMetadata() override {
         BeginPrintProcess();
 
         metadata << "Sampling time : " << fSampling << " us" << endl;
@@ -89,15 +103,15 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     TRestEventProcess* Maker() { return new TRestDetectorSignalToRawSignalProcess; }
 
     /// Returns the name of this process
-    TString GetProcessName() { return (TString) "signalToRawSignal"; }
+    const char* GetProcessName() const override { return "signalToRawSignal"; }
 
     // Constructor
     TRestDetectorSignalToRawSignalProcess();
-    TRestDetectorSignalToRawSignalProcess(char* cfgFileName);
+    TRestDetectorSignalToRawSignalProcess(const char* configFilename);
 
     // Destructor
     ~TRestDetectorSignalToRawSignalProcess();
 
-    ClassDef(TRestDetectorSignalToRawSignalProcess, 2);
+    ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 2);
 };
 #endif

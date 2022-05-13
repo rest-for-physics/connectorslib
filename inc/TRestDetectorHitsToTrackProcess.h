@@ -32,13 +32,12 @@
 //! A process to convert a TRestDetectorHitsEvent into a TRestTrackEvent
 class TRestDetectorHitsToTrackProcess : public TRestEventProcess {
    private:
-
 #ifndef __CINT__
     TRestDetectorHitsEvent* fHitsEvent;  //!
     TRestTrackEvent* fTrackEvent;        //!
 #endif
 
-    void Initialize();
+    void Initialize() override;
     Int_t FindTracks(TRestHits* hits);
 
    protected:
@@ -46,13 +45,13 @@ class TRestDetectorHitsToTrackProcess : public TRestEventProcess {
     Double_t fClusterDistance = 2.5;
 
    public:
-    any GetInputEvent() { return fHitsEvent; }
-    any GetOutputEvent() { return fTrackEvent; }
+    any GetInputEvent() const override { return fHitsEvent; }
+    any GetOutputEvent() const override { return fTrackEvent; }
 
-    TRestEvent* ProcessEvent(TRestEvent* eventInput);
+    TRestEvent* ProcessEvent(TRestEvent* inputEvent) override;
 
     /// It prints out the process parameters stored in the metadata structure
-    void PrintMetadata() {
+    void PrintMetadata() override {
         BeginPrintProcess();
 
         metadata << " cluster-distance : " << fClusterDistance << " mm " << endl;
@@ -61,12 +60,12 @@ class TRestDetectorHitsToTrackProcess : public TRestEventProcess {
     }
 
     /// Returns the name of this process
-    TString GetProcessName() { return (TString) "hitsToTrack"; }
+    const char* GetProcessName() const override { return "hitsToTrack"; }
 
     TRestDetectorHitsToTrackProcess();
     ~TRestDetectorHitsToTrackProcess();
 
-    ClassDef(TRestDetectorHitsToTrackProcess, 1);  // Template for a REST "event process" class inherited from
-                                                   // TRestEventProcess
+    ClassDefOverride(TRestDetectorHitsToTrackProcess, 1);  // Template for a REST "event process" class
+                                                           // inherited from TRestEventProcess
 };
 #endif

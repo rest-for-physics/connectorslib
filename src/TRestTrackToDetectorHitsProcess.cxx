@@ -9,20 +9,19 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "TRestTrackToDetectorHitsProcess.h"
+
 using namespace std;
 
 ClassImp(TRestTrackToDetectorHitsProcess);
-//______________________________________________________________________________
+
 TRestTrackToDetectorHitsProcess::TRestTrackToDetectorHitsProcess() { Initialize(); }
 
-//______________________________________________________________________________
-TRestTrackToDetectorHitsProcess::TRestTrackToDetectorHitsProcess(char* cfgFileName) {
+TRestTrackToDetectorHitsProcess::TRestTrackToDetectorHitsProcess(const char* configFilename) {
     Initialize();
 
-    if (LoadConfigFromFile(cfgFileName) == -1) LoadDefaultConfig();
+    if (LoadConfigFromFile(configFilename) == -1) LoadDefaultConfig();
 }
 
-//______________________________________________________________________________
 TRestTrackToDetectorHitsProcess::~TRestTrackToDetectorHitsProcess() { delete fOutputHitsEvent; }
 
 void TRestTrackToDetectorHitsProcess::LoadDefaultConfig() {
@@ -32,7 +31,6 @@ void TRestTrackToDetectorHitsProcess::LoadDefaultConfig() {
     fTrackLevel = 0;
 }
 
-//______________________________________________________________________________
 void TRestTrackToDetectorHitsProcess::Initialize() {
     SetSectionName(this->ClassName());
     SetLibraryVersion(LIBRARY_VERSION);
@@ -41,16 +39,14 @@ void TRestTrackToDetectorHitsProcess::Initialize() {
     fOutputHitsEvent = new TRestDetectorHitsEvent();
 }
 
-void TRestTrackToDetectorHitsProcess::LoadConfig(std::string cfgFilename, std::string name) {
-    if (LoadConfigFromFile(cfgFilename, name) == -1) LoadDefaultConfig();
+void TRestTrackToDetectorHitsProcess::LoadConfig(const string& configFilename, const string& name) {
+    if (LoadConfigFromFile(configFilename, name) == -1) LoadDefaultConfig();
 }
 
-//______________________________________________________________________________
 void TRestTrackToDetectorHitsProcess::InitProcess() {}
 
-//______________________________________________________________________________
-TRestEvent* TRestTrackToDetectorHitsProcess::ProcessEvent(TRestEvent* evInput) {
-    fInputTrackEvent = (TRestTrackEvent*)evInput;
+TRestEvent* TRestTrackToDetectorHitsProcess::ProcessEvent(TRestEvent* inputEvent) {
+    fInputTrackEvent = (TRestTrackEvent*)inputEvent;
 
     if (this->GetVerboseLevel() >= REST_Debug) fInputTrackEvent->PrintOnlyTracks();
 
@@ -66,10 +62,8 @@ TRestEvent* TRestTrackToDetectorHitsProcess::ProcessEvent(TRestEvent* evInput) {
     return fOutputHitsEvent;
 }
 
-//______________________________________________________________________________
 void TRestTrackToDetectorHitsProcess::EndProcess() {}
 
-//______________________________________________________________________________
 void TRestTrackToDetectorHitsProcess::InitFromConfigFile() {
     fTrackLevel = StringToInteger(GetParameter("trackLevel", "1"));
 }

@@ -18,18 +18,15 @@
 
 #include <TLegend.h>
 #include <TPaveText.h>
+
 using namespace std;
 
-ClassImp(TRestRawReadoutAnalysisProcess)
-    //______________________________________________________________________________
-    TRestRawReadoutAnalysisProcess::TRestRawReadoutAnalysisProcess() {
-    Initialize();
-}
+ClassImp(TRestRawReadoutAnalysisProcess);
 
-//______________________________________________________________________________
+TRestRawReadoutAnalysisProcess::TRestRawReadoutAnalysisProcess() { Initialize(); }
+
 TRestRawReadoutAnalysisProcess::~TRestRawReadoutAnalysisProcess() {}
 
-//______________________________________________________________________________
 void TRestRawReadoutAnalysisProcess::Initialize() {
     SetSectionName(this->ClassName());
     SetLibraryVersion(LIBRARY_VERSION);
@@ -39,7 +36,6 @@ void TRestRawReadoutAnalysisProcess::Initialize() {
     fReadout = nullptr;
 }
 
-//______________________________________________________________________________
 void TRestRawReadoutAnalysisProcess::InitProcess() {
     fReadout = GetMetadata<TRestDetectorReadout>();
     if (fReadout != nullptr) {
@@ -85,9 +81,8 @@ void TRestRawReadoutAnalysisProcess::InitProcess() {
     }
 }
 
-//______________________________________________________________________________
-TRestEvent* TRestRawReadoutAnalysisProcess::ProcessEvent(TRestEvent* evInput) {
-    fSignalEvent = (TRestRawSignalEvent*)evInput;
+TRestEvent* TRestRawReadoutAnalysisProcess::ProcessEvent(TRestEvent* inputEvent) {
+    fSignalEvent = (TRestRawSignalEvent*)inputEvent;
     if (fReadout != nullptr) {
         Double_t firstX_id = -1.;
         Double_t firstY_id = -1.;
@@ -250,7 +245,6 @@ TRestEvent* TRestRawReadoutAnalysisProcess::ProcessEvent(TRestEvent* evInput) {
     return fSignalEvent;
 }
 
-//______________________________________________________________________________
 void TRestRawReadoutAnalysisProcess::EndProcess() {
     if (fReadout != nullptr) {
         {
@@ -279,7 +273,8 @@ void TRestRawReadoutAnalysisProcess::EndProcess() {
                     h0->SetStats(false);
                     h0->Reset();
 
-                    if (fModuleActivityX[iter->first] != nullptr && fModuleActivityY[iter->first] != nullptr) {
+                    if (fModuleActivityX[iter->first] != nullptr &&
+                        fModuleActivityY[iter->first] != nullptr) {
                         TH1D* h1 = fModuleActivityX[iter->first];
                         TH1D* h2 = fModuleActivityY[iter->first];
 
@@ -307,7 +302,8 @@ void TRestRawReadoutAnalysisProcess::EndProcess() {
                         delete c1;
                     }
 
-                    if (fModuleBSLSigmaX[iter->first] != nullptr && fModuleBSLSigmaY[iter->first] != nullptr) {
+                    if (fModuleBSLSigmaX[iter->first] != nullptr &&
+                        fModuleBSLSigmaY[iter->first] != nullptr) {
                         TH2D* h1 = fModuleBSLSigmaX[iter->first];
                         TH2D* h2 = fModuleBSLSigmaY[iter->first];
 
@@ -340,7 +336,6 @@ void TRestRawReadoutAnalysisProcess::EndProcess() {
     }
 }
 
-//______________________________________________________________________________
 // setting amplification:
 // <parameter name="modulesAmp" value = "2-1:5-1.2:6-0.8:8-0.9" />
 // setting readout modules to draw:

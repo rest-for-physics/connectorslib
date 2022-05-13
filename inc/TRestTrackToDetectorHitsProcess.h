@@ -24,25 +24,25 @@ class TRestTrackToDetectorHitsProcess : public TRestEventProcess {
     TRestDetectorHitsEvent* fOutputHitsEvent;  //!
 #endif
 
-    void InitFromConfigFile();
+    void InitFromConfigFile() override;
 
-    void Initialize();
+    void Initialize() override;
 
    protected:
     Int_t fTrackLevel;
 
    public:
-    any GetInputEvent() { return fInputTrackEvent; }
-    any GetOutputEvent() { return fOutputHitsEvent; }
+    any GetInputEvent() const override { return fInputTrackEvent; }
+    any GetOutputEvent() const override { return fOutputHitsEvent; }
 
-    void InitProcess();
-    TRestEvent* ProcessEvent(TRestEvent* eventInput);
-    void EndProcess();
+    void InitProcess() override;
+    TRestEvent* ProcessEvent(TRestEvent* inputEvent) override;
+    void EndProcess() override;
     void LoadDefaultConfig();
 
-    void LoadConfig(std::string cfgFilename, std::string name = "");
+    void LoadConfig(const std::string& configFilename, const std::string& name = "");
 
-    void PrintMetadata() {
+    void PrintMetadata() override {
         BeginPrintProcess();
 
         std::cout << "Track level : " << fTrackLevel << endl;
@@ -50,15 +50,15 @@ class TRestTrackToDetectorHitsProcess : public TRestEventProcess {
         EndPrintProcess();
     }
 
-    TString GetProcessName() { return (TString) "trackToDetectorHits"; }
+    const char* GetProcessName() const override { return "trackToDetectorHits"; }
 
     // Constructor
     TRestTrackToDetectorHitsProcess();
-    TRestTrackToDetectorHitsProcess(char* cfgFileName);
+    TRestTrackToDetectorHitsProcess(const char* configFilename);
     // Destructor
     ~TRestTrackToDetectorHitsProcess();
 
-    ClassDef(TRestTrackToDetectorHitsProcess, 1);  // Template for a REST "event process" class inherited from
-                                                   // TRestEventProcess
+    ClassDefOverride(TRestTrackToDetectorHitsProcess, 1);  // Template for a REST "event process" class
+                                                           // inherited from TRestEventProcess
 };
 #endif
