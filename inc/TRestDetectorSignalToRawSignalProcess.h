@@ -90,11 +90,11 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     void PrintMetadata() override {
         BeginPrintProcess();
 
-        metadata << "Sampling time : " << fSampling << " us" << endl;
-        metadata << "Points per channel : " << fNPoints << endl;
-        metadata << "Trigger mode : " << fTriggerMode << endl;
-        metadata << "Trigger delay : " << fTriggerDelay << " time units" << endl;
-        metadata << "ADC gain : " << fGain << endl;
+        RESTMetadata << "Sampling time : " << fSampling << " us" << RESTendl;
+        RESTMetadata << "Points per channel : " << fNPoints << RESTendl;
+        RESTMetadata << "Trigger mode : " << fTriggerMode << RESTendl;
+        RESTMetadata << "Trigger delay : " << fTriggerDelay << " time units" << RESTendl;
+        RESTMetadata << "ADC gain : " << fGain << RESTendl;
 
         EndPrintProcess();
     }

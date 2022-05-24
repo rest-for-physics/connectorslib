@@ -183,7 +183,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
     if (fInputSignalEvent->GetNumberOfSignals() <= 0) return nullptr;
 
-    if (GetVerboseLevel() >= REST_Debug) fOutputRawSignalEvent->PrintEvent();
+    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) fOutputRawSignalEvent->PrintEvent();
 
     fOutputRawSignalEvent->SetID(fInputSignalEvent->GetID());
     fOutputRawSignalEvent->SetSubID(fInputSignalEvent->GetSubID());
@@ -209,7 +209,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             }
         }
     } else {
-        if (GetVerboseLevel() >= REST_Warning) {
+        if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
             cout << "REST WARNING. TRestDetectorSignalToRawSignalProcess. fTriggerMode not "
                     "recognized!"
                  << endl;
@@ -223,7 +223,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
     }
 
     if (std::isnan(tStart)) {
-        if (GetVerboseLevel() >= REST_Warning) {
+        if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
             cout << endl;
             cout << "REST WARNING. TRestDetectorSignalToRawSignalProcess. tStart was not "
                     "defined."
@@ -235,7 +235,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
         tEnd = fNPoints * fSampling;
     }
 
-    if (GetVerboseLevel() >= REST_Debug) {
+    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) {
         cout << "tStart : " << tStart << " us " << endl;
         cout << "tEnd : " << tEnd << " us " << endl;
     }
@@ -251,25 +251,25 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             Double_t t = sgnl->GetTime(m);
             Double_t d = sgnl->GetData(m);
 
-            if (GetVerboseLevel() >= REST_Debug && n < 3 && m < 5)
+            if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug && n < 3 && m < 5)
                 cout << "Signal : " << n << " Sample : " << m << " T : " << t << " Data : " << d << endl;
 
             if (t > tStart && t < tEnd) {
                 // convert physical time (in us) to timeBin
                 Int_t timeBin = (Int_t)round((t - tStart) / fSampling);
 
-                if (GetVerboseLevel() >= REST_Warning)
+                if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning)
                     if (timeBin < 0 || timeBin > fNPoints) {
                         cout << "Time bin out of range!!! bin value : " << timeBin << endl;
                         timeBin = 0;
                     }
 
-                debug << "Adding data : " << sgnl->GetData(m) << " to Time Bin : " << timeBin << endl;
+                RESTDebug << "Adding data : " << sgnl->GetData(m) << " to Time Bin : " << timeBin << RESTendl;
                 sData[timeBin] += fGain * sgnl->GetData(m);
             }
         }
 
-        if (GetVerboseLevel() >= REST_Warning)
+        if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning)
             for (int x = 0; x < fNPoints; x++)
                 if (sData[x] < -32768. || sData[x] > 32768.)
                     cout << "REST Warning : data is outside short range : " << sData[x] << endl;
@@ -283,13 +283,13 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             rSgnl.AddPoint(value);
         }
 
-        if (GetVerboseLevel() >= REST_Debug) rSgnl.Print();
-        debug << "Adding signal to raw signal event" << endl;
+        if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) rSgnl.Print();
+        RESTDebug << "Adding signal to raw signal event" << RESTendl;
         fOutputRawSignalEvent->AddSignal(rSgnl);
     }
 
-    debug << "TRestDetectorSignalToRawSignalProcess. Returning event with N signals "
-          << fOutputRawSignalEvent->GetNumberOfSignals() << endl;
+    RESTDebug << "TRestDetectorSignalToRawSignalProcess. Returning event with N signals "
+          << fOutputRawSignalEvent->GetNumberOfSignals() << RESTendl;
 
     return fOutputRawSignalEvent;
 }

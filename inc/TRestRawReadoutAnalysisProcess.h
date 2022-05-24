@@ -57,15 +57,15 @@ class TRestRawReadoutAnalysisProcess : public TRestEventProcess {
     void PrintMetadata() override {
         BeginPrintProcess();
 
-        metadata << "channel activity and hitmap histograms required for module: ";
+        RESTMetadata << "channel activity and hitmap histograms required for module: ";
         auto iter2 = fModuleHitMaps.begin();
         while (iter2 != fModuleHitMaps.end()) {
-            metadata << iter2->first << ", ";
+            RESTMetadata << iter2->first << ", ";
             iter2++;
         }
-        metadata << endl;
+        RESTMetadata << RESTendl;
 
-        metadata << "path for output plots: " << fModuleCanvasSave << endl;
+        RESTMetadata << "path for output plots: " << fModuleCanvasSave << RESTendl;
 
         EndPrintProcess();
     }

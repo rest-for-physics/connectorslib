@@ -48,7 +48,7 @@ void TRestTrackToDetectorHitsProcess::InitProcess() {}
 TRestEvent* TRestTrackToDetectorHitsProcess::ProcessEvent(TRestEvent* inputEvent) {
     fInputTrackEvent = (TRestTrackEvent*)inputEvent;
 
-    if (this->GetVerboseLevel() >= REST_Debug) fInputTrackEvent->PrintOnlyTracks();
+    if (this->GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) fInputTrackEvent->PrintOnlyTracks();
 
     for (int n = 0; n < fInputTrackEvent->GetNumberOfTracks(); n++)
         if (fInputTrackEvent->GetLevel(n) == fTrackLevel) {

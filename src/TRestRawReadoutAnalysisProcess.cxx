@@ -43,9 +43,9 @@ void TRestRawReadoutAnalysisProcess::InitProcess() {
         while (iter != fModuleHitMaps.end()) {
             TRestDetectorReadoutModule* mod = fReadout->GetReadoutModuleWithID(iter->first);
             if (mod == nullptr) {
-                warning << "REST Warning(TRestRawReadoutAnalysisProcess): readout "
+                RESTWarning << "REST Warning(TRestRawReadoutAnalysisProcess): readout "
                            "module with id "
-                        << iter->first << " not found!" << endl;
+                        << iter->first << " not found!" << RESTendl;
             } else {
                 fModuleHitMaps[iter->first] =
                     new TH2D((TString) "Hitmap_M" + ToString(iter->first),
@@ -195,11 +195,11 @@ TRestEvent* TRestRawReadoutAnalysisProcess::ProcessEvent(TRestEvent* inputEvent)
                 // cout << fReadout->GetX(firstX_id) << " " << fReadout->GetY(firstY_id)
                 // << endl; cout << endl;
 
-                debug << "TRestRawReadoutAnalysisProcess. Adding point to hitmap of "
+                RESTDebug << "TRestRawReadoutAnalysisProcess. Adding point to hitmap of "
                          "module : "
-                      << mod1 << endl;
-                debug << "Position on module(X, Y) : (" << x << ", " << y << ")" << endl;
-                debug << "Absolute position:(X, Y) : (" << firstx << ", " << firsty << ")" << endl;
+                      << mod1 << RESTendl;
+                RESTDebug << "Position on module(X, Y) : (" << x << ", " << y << ")" << RESTendl;
+                RESTDebug << "Absolute position:(X, Y) : (" << firstx << ", " << firsty << ")" << RESTendl;
             }
         }
         this->SetObservableValue("ModuleFirstX", modulefirstxchannel);
