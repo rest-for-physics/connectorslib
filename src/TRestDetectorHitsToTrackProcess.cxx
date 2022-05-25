@@ -125,32 +125,32 @@ TRestEvent* TRestDetectorHitsToTrackProcess::ProcessEvent(TRestEvent* inputEvent
     fHitsEvent = (TRestDetectorHitsEvent*)inputEvent;
     fTrackEvent->SetEventInfo(fHitsEvent);
 
-    if (GetVerboseLevel() >= REST_Debug)
+    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug)
         cout << "TResDetectorHitsToTrackProcess : nHits " << fHitsEvent->GetNumberOfHits() << endl;
 
     TRestHits* xzHits = fHitsEvent->GetXZHits();
 
-    if (GetVerboseLevel() >= REST_Debug)
+    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug)
         cout << "TRestDetectorHitsToTrackProcess : Number of xzHits : " << xzHits->GetNumberOfHits() << endl;
     Int_t xTracks = FindTracks(xzHits);
 
     fTrackEvent->SetNumberOfXTracks(xTracks);
 
     TRestHits* yzHits = fHitsEvent->GetYZHits();
-    if (GetVerboseLevel() >= REST_Debug)
+    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug)
         cout << "TRestDetectorHitsToTrackProcess : Number of yzHits : " << yzHits->GetNumberOfHits() << endl;
     Int_t yTracks = FindTracks(yzHits);
 
     fTrackEvent->SetNumberOfYTracks(yTracks);
 
     TRestHits* xyzHits = fHitsEvent->GetXYZHits();
-    if (GetVerboseLevel() >= REST_Debug)
+    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug)
         cout << "TRestDetectorHitsToTrackProcess : Number of xyzHits : " << xyzHits->GetNumberOfHits()
              << endl;
 
     FindTracks(xyzHits);
 
-    if (GetVerboseLevel() >= REST_Debug) {
+    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) {
         cout << "TRestDetectorHitsToTrackProcess. X tracks : " << xTracks << "  Y tracks : " << yTracks
              << endl;
         cout << "TRestDetectorHitsToTrackProcess. Total number of tracks : "
@@ -159,7 +159,7 @@ TRestEvent* TRestDetectorHitsToTrackProcess::ProcessEvent(TRestEvent* inputEvent
 
     if (fTrackEvent->GetNumberOfTracks() == 0) return nullptr;
 
-    if (GetVerboseLevel() >= REST_Debug) fTrackEvent->PrintOnlyTracks();
+    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) fTrackEvent->PrintOnlyTracks();
 
     fTrackEvent->SetLevels();
 
@@ -173,7 +173,7 @@ TRestEvent* TRestDetectorHitsToTrackProcess::ProcessEvent(TRestEvent* inputEvent
 /// \return It returns the number of tracks found
 ///
 Int_t TRestDetectorHitsToTrackProcess::FindTracks(TRestHits* hits) {
-    if (GetVerboseLevel() >= REST_Extreme) hits->PrintHits();
+    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Extreme) hits->PrintHits();
     Int_t nTracksFound = 0;
     vector<Int_t> Q;  // list of points (hits) that need to be checked
     vector<Int_t> P;  // list of neighbours within a radious fClusterDistance
@@ -248,7 +248,7 @@ Int_t TRestDetectorHitsToTrackProcess::FindTracks(TRestHits* hits) {
         track->SetVolumeHits(volHit);
         volHit.RemoveHits();
 
-        debug << "Adding track : id=" << track->GetTrackID() << " parent : " << track->GetParentID() << endl;
+        RESTDebug << "Adding track : id=" << track->GetTrackID() << " parent : " << track->GetParentID() << RESTendl;
         fTrackEvent->AddTrack(track);
         nTracksFound++;
 

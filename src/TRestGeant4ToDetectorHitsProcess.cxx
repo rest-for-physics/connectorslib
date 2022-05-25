@@ -140,44 +140,44 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
     for (unsigned int n = 0; n < fVolumeSelection.size(); n++) {
         if (fG4Metadata->GetActiveVolumeID(fVolumeSelection[n]) >= 0)
             fVolumeId.push_back(fG4Metadata->GetActiveVolumeID(fVolumeSelection[n]));
-        else if (GetVerboseLevel() >= REST_Warning)
+        else if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning)
             cout << "TRestGeant4ToDetectorHitsProcess. volume name : " << fVolumeSelection[n]
                  << " not found and will not be added." << endl;
     }
 
     /* {{{ Debug output */
-    debug << "Active volumes available in TRestGeant4Metadata" << endl;
-    debug << "-------------------------------------------" << endl;
+    RESTDebug << "Active volumes available in TRestGeant4Metadata" << RESTendl;
+    RESTDebug << "-------------------------------------------" << RESTendl;
     for (int n = 0; n < fG4Metadata->GetNumberOfActiveVolumes(); n++)
-        debug << "Volume id : " << n << " name : " << fG4Metadata->GetActiveVolumeName(n) << endl;
-    debug << endl;
+        RESTDebug << "Volume id : " << n << " name : " << fG4Metadata->GetActiveVolumeName(n) << RESTendl;
+    RESTDebug << RESTendl;
 
-    debug << "TRestGeant4HitsProcess volumes enabled in RML : ";
-    debug << "-------------------------------------------" << endl;
+    RESTDebug << "TRestGeant4HitsProcess volumes enabled in RML : ";
+    RESTDebug << "-------------------------------------------" << RESTendl;
     if (fVolumeSelection.size() == 0)
-        debug << "all" << endl;
+        RESTDebug << "all" << RESTendl;
     else {
         for (int n = 0; n < fVolumeSelection.size(); n++) {
-            debug << "" << endl;
-            debug << " - " << fVolumeSelection[n] << endl;
+            RESTDebug << "" << RESTendl;
+            RESTDebug << " - " << fVolumeSelection[n] << RESTendl;
         }
-        debug << " " << endl;
+        RESTDebug << " " << RESTendl;
     }
 
     if (fVolumeSelection.size() > 0 && fVolumeSelection.size() != fVolumeId.size())
-        warning << "TRestGeant4ToDetectorHitsProcess. Not all volumes were properly identified!" << endl;
+        RESTWarning << "TRestGeant4ToDetectorHitsProcess. Not all volumes were properly identified!" << RESTendl;
 
     if (fVolumeId.size() > 0) {
-        debug << "TRestGeant4HitsProcess volumes identified : ";
-        debug << "---------------------------------------" << endl;
+        RESTDebug << "TRestGeant4HitsProcess volumes identified : ";
+        RESTDebug << "---------------------------------------" << RESTendl;
         if (fVolumeSelection.size() == 0)
-            debug << "all" << endl;
+            RESTDebug << "all" << RESTendl;
         else
             for (int n = 0; n < fVolumeSelection.size(); n++) {
-                debug << "" << endl;
-                debug << " - " << fVolumeSelection[n] << endl;
+                RESTDebug << "" << RESTendl;
+                RESTDebug << " - " << fVolumeSelection[n] << RESTendl;
             }
-        debug << " " << endl;
+        RESTDebug << " " << RESTendl;
     }
     /* }}} */
 }
@@ -188,7 +188,7 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
 TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* inputEvent) {
     fG4Event = (TRestGeant4Event*)inputEvent;
 
-    if (GetVerboseLevel() >= REST_Extreme) {
+    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Extreme) {
         cout << "------ TRestGeant4ToDetectorHitsProcess --- Printing Input Event --- START ----" << endl;
         fG4Event->PrintEvent();
         cout << "------ TRestGeant4ToDetectorHitsProcess --- Printing Input Event ---- END ----" << endl;
@@ -219,7 +219,7 @@ TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* inputEven
         }
     }
 
-    if (GetVerboseLevel() >= REST_Debug) {
+    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) {
         cout << "TRestGeant4ToDetectorHitsProcess. Hits added : " << fHitsEvent->GetNumberOfHits() << endl;
         cout << "TRestGeant4ToDetectorHitsProcess. Hits total energy : " << fHitsEvent->GetEnergy() << endl;
     }
@@ -246,7 +246,7 @@ void TRestGeant4ToDetectorHitsProcess::PrintMetadata() {
     BeginPrintProcess();
 
     for (unsigned int n = 0; n < fVolumeSelection.size(); n++)
-        metadata << "Volume added : " << fVolumeSelection[n] << endl;
+        RESTMetadata << "Volume added : " << fVolumeSelection[n] << RESTendl;
 
     EndPrintProcess();
 }

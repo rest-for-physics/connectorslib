@@ -51,11 +51,11 @@ class TRestDetectorHitsToTrackFastProcess : public TRestEventProcess {
     void PrintMetadata() override {
         BeginPrintProcess();
 
-        metadata << " Cell resolution : " << fCellResolution << " mm " << endl;
-        metadata << " Net size : " << fNetSize << " mm " << endl;
-        metadata << " Net origin : ( " << fNetOrigin.X() << " , " << fNetOrigin.Y() << " , " << fNetOrigin.Z()
-                 << " ) mm " << endl;
-        metadata << " Number of nodes (per axis) : " << fNodes << endl;
+        RESTMetadata << " Cell resolution : " << fCellResolution << " mm " << RESTendl;
+        RESTMetadata << " Net size : " << fNetSize << " mm " << RESTendl;
+        RESTMetadata << " Net origin : ( " << fNetOrigin.X() << " , " << fNetOrigin.Y() << " , " << fNetOrigin.Z()
+                 << " ) mm " << RESTendl;
+        RESTMetadata << " Number of nodes (per axis) : " << fNodes << RESTendl;
 
         EndPrintProcess();
     }

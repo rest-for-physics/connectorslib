@@ -85,22 +85,22 @@ class TRestRawToDetectorSignalProcess : public TRestEventProcess {
     void PrintMetadata() override {
         BeginPrintProcess();
 
-        metadata << "Sampling time : " << fSampling << " us" << endl;
-        metadata << "Trigger starts : " << fTriggerStarts << " us" << endl;
-        metadata << "Gain : " << fGain << endl;
+        RESTMetadata << "Sampling time : " << fSampling << " us" << RESTendl;
+        RESTMetadata << "Trigger starts : " << fTriggerStarts << " us" << RESTendl;
+        RESTMetadata << "Gain : " << fGain << RESTendl;
 
         if (fZeroSuppression) {
-            metadata << "Base line range definition : ( " << fBaseLineRange.X() << " , " << fBaseLineRange.Y()
-                     << " ) " << endl;
-            metadata << "Integral range : ( " << fIntegralRange.X() << " , " << fIntegralRange.Y() << " ) "
-                     << endl;
-            metadata << "Point Threshold : " << fPointThreshold << " sigmas" << endl;
-            metadata << "Signal threshold : " << fSignalThreshold << " sigmas" << endl;
-            metadata << "Number of points over threshold : " << fNPointsOverThreshold << endl;
+            RESTMetadata << "Base line range definition : ( " << fBaseLineRange.X() << " , " << fBaseLineRange.Y()
+                     << " ) " << RESTendl;
+            RESTMetadata << "Integral range : ( " << fIntegralRange.X() << " , " << fIntegralRange.Y() << " ) "
+                     << RESTendl;
+            RESTMetadata << "Point Threshold : " << fPointThreshold << " sigmas" << RESTendl;
+            RESTMetadata << "Signal threshold : " << fSignalThreshold << " sigmas" << RESTendl;
+            RESTMetadata << "Number of points over threshold : " << fNPointsOverThreshold << RESTendl;
         }
 
         if (fBaseLineCorrection)
-            metadata << "BaseLine correction is enabled for TRestRawSignalAnalysisProcess" << endl;
+            RESTMetadata << "BaseLine correction is enabled for TRestRawSignalAnalysisProcess" << RESTendl;
 
         EndPrintProcess();
     }

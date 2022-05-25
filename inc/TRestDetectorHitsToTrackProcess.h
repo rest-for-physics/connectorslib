@@ -54,7 +54,7 @@ class TRestDetectorHitsToTrackProcess : public TRestEventProcess {
     void PrintMetadata() override {
         BeginPrintProcess();
 
-        metadata << " cluster-distance : " << fClusterDistance << " mm " << endl;
+        RESTMetadata << " cluster-distance : " << fClusterDistance << " mm " << RESTendl;
 
         EndPrintProcess();
     }
