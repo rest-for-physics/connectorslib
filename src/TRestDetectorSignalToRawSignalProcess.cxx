@@ -241,7 +241,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
     }
 
     for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
-        Double_t sData[fNPoints];
+        vector<Double_t> sData(fNPoints);
         for (int i = 0; i < fNPoints; i++) sData[i] = 0;
 
         TRestDetectorSignal* sgnl = fInputSignalEvent->GetSignal(n);

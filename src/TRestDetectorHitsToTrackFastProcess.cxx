@@ -135,8 +135,8 @@ Int_t TRestDetectorHitsToTrackFastProcess::FindTracks(TRestHits* hits) {
 
     Int_t nTracksFound = mesh->GetNumberOfGroups();
 
-    TRestTrack track[nTracksFound];
-    TRestVolumeHits volHit[nTracksFound];
+    vector<TRestTrack> track(nTracksFound);
+    vector<TRestVolumeHits> volHit(nTracksFound);
 
     double nan = numeric_limits<double>::quiet_NaN();
     for (int h = 0; h < hits->GetNumberOfHits(); h++) {
