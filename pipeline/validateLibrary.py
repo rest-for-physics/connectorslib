@@ -14,9 +14,9 @@ import subprocess
 
 
 def validateClass(className):
-    print ""
-    print "++++ Validating class : " + className
-    with open(className, 'r') as file:
+    print ("")
+    print ("++++ Validating class : " + className)
+    with open(className, 'r', encoding="utf-8") as file:
         data = file.read()
 
         data = data[data.find("::Initialize"):]
@@ -26,7 +26,7 @@ def validateClass(className):
         #print (data)
         #print data.find("SETLIBRARYVERSION(LIBRARY_VERSION);")
         if data.find("SETLIBRARYVERSION(LIBRARY_VERSION);") >= 0:
-            print "OK"
+            print ("OK")
             return
         else:
             print( "Problem found at class : " + className )
@@ -48,7 +48,7 @@ def getObservablePositions(data):
            break
 
         name = data[pos1:pos2]
-        if(not obsposes.has_key(name)):
+        if(not name in obsposes):
             obsposes[name] = pos1
 
         pos = pos2 + 1
@@ -74,7 +74,7 @@ def getMethodDefinition(text):
                 counter = counter - 1
                 start = pos2 + 1
         elif pos1 != -1:
-                print "Big error!!"
+                print ("Big error!!")
         else:
                 counter = counter - 1
                 start = pos2 + 1
@@ -154,13 +154,13 @@ for r, d, f in os.walk(sys.argv[1]):
             validate = 0
             if '.cxx' in file:
 #                print ( file )
-                with open(os.path.join(r, file)) as fin:
+                with open(os.path.join(r, file), encoding="utf-8") as fin:
                     if '::InitFromConfigFile' in fin.read():
                         validate = 1
-                with open(os.path.join(r, file)) as fin:
+                with open(os.path.join(r, file), encoding="utf-8") as fin:
                     if '::LoadDefaultConfig' in fin.read():
                         validate = 1
-                with open(os.path.join(r, file)) as fin:
+                with open(os.path.join(r, file), encoding="utf-8") as fin:
                     if '::Initialize' in fin.read():
                         validate = validate + 1
             if validate == 2:
