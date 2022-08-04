@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+
+<test>
+
+    <TRestGeant4ToDetectorSignalVetoProcess>
+
+        <parameter name="vetoVolumesExpression" value="^scintillatorVolume"/>
+        <parameter name="vetoDetectorsExpression" value="^scintillatorLightGuideVolume"/>
+
+        <parameter name="vetoDetectorOffset" value="0"/>
+        <parameter name="vetoLightAttenuation" value="0"/>
+        <parameter name="quenchingFactor" value="0"/>
+
+    </TRestGeant4ToDetectorSignalVetoProcess>
+
+    <TRestDetectorSignalToRawSignalProcess>
+
+        <parameter name="sampling" value="1us"/>
+        <parameter name="Npoints" value="512"/>
+
+        <parameter name="triggerMode" value="firstDeposit"/>
+        <parameter name="triggerDelay" value="100"/>
+        <parameter name="gain" value="1"/>
+
+    </TRestDetectorSignalToRawSignalProcess>
+
+    <TRestRawSignalShapingProcess>
+        <parameter name="shapingType" value="shaperSin"/>
+        <parameter name="shapingTime" value="1us"/>
+        <parameter name="gain" value="1"/>
+    </TRestRawSignalShapingProcess>
+
+</test>
