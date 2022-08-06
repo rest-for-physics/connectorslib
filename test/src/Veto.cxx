@@ -80,6 +80,7 @@ TEST(TRestGeant4ToDetectorSignalVetoProcess, Simulation) {
     // event->PrintEvent(1, 1);
 
     const auto outputEvent = (TRestDetectorSignalEvent*)process.ProcessEvent(event);
+    EXPECT_TRUE(outputEvent != nullptr);
     // outputEvent->PrintEvent();
 
     // To Raw
@@ -88,15 +89,15 @@ TEST(TRestGeant4ToDetectorSignalVetoProcess, Simulation) {
     processToRaw.PrintMetadata();
 
     const auto outputEventRaw = (TRestRawSignalEvent*)processToRaw.ProcessEvent(outputEvent);
+    EXPECT_TRUE(outputEventRaw != nullptr);
     // outputEventRaw->PrintEvent();
-    cout << "number of signals: " << outputEventRaw->GetNumberOfSignals() << endl;
 
     // Shaping
     TRestRawSignalShapingProcess processShaping(vetoAnalysisRml.c_str());
     processShaping.InitProcess();
     processShaping.PrintMetadata();
 
-    const auto outputEventShaping = (TRestRawSignalEvent*)processToRaw.ProcessEvent(outputEventRaw);
+    const auto outputEventShaping = (TRestRawSignalEvent*)processShaping.ProcessEvent(outputEventRaw);
     EXPECT_TRUE(outputEventShaping != nullptr);
     outputEventShaping->PrintEvent();
 }

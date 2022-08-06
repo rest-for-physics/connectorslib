@@ -25,9 +25,11 @@
     </TRestDetectorSignalToRawSignalProcess>
 
     <TRestRawSignalShapingProcess>
+
         <parameter name="shapingType" value="shaperSin"/>
-        <parameter name="shapingTime" value="1us"/>
-        <parameter name="gain" value="1"/>
+        <parameter name="shapingTime" value="50"/>
+        <parameter name="shapingGain" value="10"/>
+
     </TRestRawSignalShapingProcess>
 
 </test>
