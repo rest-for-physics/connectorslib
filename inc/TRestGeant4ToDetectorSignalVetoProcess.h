@@ -21,14 +21,27 @@ class TRestGeant4ToDetectorSignalVetoProcess : public TRestEventProcess {
     inline double GetVetoDetectorOffsetSize() const { return fVetoDetectorOffsetSize; }
     inline double GetVetoLightAttenuation() const { return fVetoLightAttenuation; }
     inline double GetVetoQuenchingFactor() const { return fVetoQuenchingFactor; }
+    inline std::map<TString, Int_t> GetVetoVolumeToSignalIdMap() const { return fVetoVolumesToSignalIdMap; }
 
     inline void SetVetoVolumesExpression(const TString& expression) { fVetoVolumesExpression = expression; }
     inline void SetVetoDetectorsExpression(const TString& expression) {
         fVetoDetectorsExpression = expression;
     }
     inline void SetVetoDetectorOffsetSize(double offset) { fVetoDetectorOffsetSize = offset; }
-    inline void SetVetoLightAttenuation(double attenuation) { fVetoLightAttenuation = attenuation; }
-    inline void SetVetoQuenchingFactor(double quenchingFactor) { fVetoQuenchingFactor = quenchingFactor; }
+    inline void SetVetoLightAttenuation(double attenuation) {
+        if (attenuation < 0) {
+            std::cerr << "Light attenuation factor must be positive" << std::endl;
+            exit(1);
+        }
+        fVetoLightAttenuation = attenuation;
+    }
+    inline void SetVetoQuenchingFactor(double quenchingFactor) {
+        if (quenchingFactor < 0 || quenchingFactor > 1) {
+            std::cerr << "Quenching factor must be between 0 and 1" << std::endl;
+            exit(1);
+        }
+        fVetoQuenchingFactor = quenchingFactor;
+    }
 
    private:
     TRestGeant4Event* fInputEvent = nullptr;               //!
@@ -39,6 +52,9 @@ class TRestGeant4ToDetectorSignalVetoProcess : public TRestEventProcess {
     std::vector<TString> fVetoDetectorVolumes;
     std::map<TString, TVector3> fVetoDetectorBoundaryPosition;
     std::map<TString, TVector3> fVetoDetectorBoundaryDirection;
+
+    std::map<TString, Int_t> fVetoVolumesToSignalIdMap;
+    std::set<TString> fParticlesNotQuenched = {"gamma", "e-", "e-", "mu-", "mu+"};
 
     void InitFromConfigFile() override;
     void Initialize() override;

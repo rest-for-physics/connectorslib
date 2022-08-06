@@ -50,8 +50,8 @@ TEST(TRestGeant4ToDetectorSignalVetoProcess, FromRml) {
 
     EXPECT_TRUE(process.GetVetoVolumesExpression() == "^scintillatorVolume");
     EXPECT_TRUE(process.GetVetoDetectorExpression() == "^scintillatorLightGuideVolume");
-    EXPECT_TRUE(process.GetVetoDetectorOffsetSize() == 0);
-    EXPECT_TRUE(process.GetVetoLightAttenuation() == 0);
+    EXPECT_TRUE(process.GetVetoDetectorOffsetSize() == 65.0);
+    EXPECT_TRUE(process.GetVetoLightAttenuation() == 3000.0);
     EXPECT_TRUE(process.GetVetoQuenchingFactor() == 0);
 }
 

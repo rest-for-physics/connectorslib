@@ -11,8 +11,8 @@ ClassImp(TRestGeant4ToDetectorSignalVetoProcess);
 
 TRestGeant4ToDetectorSignalVetoProcess::TRestGeant4ToDetectorSignalVetoProcess() { Initialize(); }
 
-TRestGeant4ToDetectorSignalVetoProcess::TRestGeant4ToDetectorSignalVetoProcess(const char* configFilename) {
-    TRestGeant4ToDetectorSignalVetoProcess();
+TRestGeant4ToDetectorSignalVetoProcess::TRestGeant4ToDetectorSignalVetoProcess(const char* configFilename)
+    : TRestGeant4ToDetectorSignalVetoProcess() {
     if (LoadConfigFromFile(configFilename)) {
         LoadDefaultConfig();
     }
@@ -39,6 +39,7 @@ void TRestGeant4ToDetectorSignalVetoProcess::InitProcess() {
     fVetoDetectorVolumes.clear();
     fVetoDetectorBoundaryDirection.clear();
     fVetoDetectorBoundaryPosition.clear();
+    fVetoVolumesToSignalIdMap.clear();
 
     if (fGeant4Metadata == nullptr) {
         // maybe it was manually initialized
@@ -64,6 +65,10 @@ void TRestGeant4ToDetectorSignalVetoProcess::InitProcess() {
     if (fVetoVolumes.empty()) {
         cerr << "TRestGeant4ToDetectorSignalVetoProcess::InitProcess: No veto volumes found" << endl;
         exit(1);
+    }
+
+    for (int i = 0; i < fVetoVolumes.size(); i++) {
+        fVetoVolumesToSignalIdMap[fVetoVolumes[i]] = i;
     }
 
     // get detector volumes if requested
@@ -118,9 +123,8 @@ TRestEvent* TRestGeant4ToDetectorSignalVetoProcess::ProcessEvent(TRestEvent* inp
     fOutputEvent->SetSubEventTag(fInputEvent->GetSubEventTag());
 
     map<TString, TRestDetectorSignal> fVetoSignalMap;
-    int vetoID = 0;
     for (const auto& volume : fVetoVolumes) {
-        fVetoSignalMap[volume].SetSignalID(vetoID++);
+        fVetoSignalMap[volume].SetSignalID(fVetoVolumesToSignalIdMap.at(volume));
     }
     for (const auto& track : fInputEvent->GetTracks()) {
         const auto& hits = track.GetHits();
@@ -129,9 +133,29 @@ TRestEvent* TRestGeant4ToDetectorSignalVetoProcess::ProcessEvent(TRestEvent* inp
             if (fVetoSignalMap.count(volume) <= 0) {
                 continue;
             }
-            const auto energy = hits.GetEnergy(i);
+            auto energy = hits.GetEnergy(i);
             if (energy <= 0) {
-                // TODO: quenching
+                continue;
+            }
+            if (fVetoQuenchingFactor < 1) {
+                const auto particle = track.GetParticleName();
+                if (fParticlesNotQuenched.count(particle) == 0) {
+                    energy *= fVetoQuenchingFactor;
+                }
+            }
+            if (fVetoDetectorOffsetSize != 0 && fVetoLightAttenuation > 0) {
+                const TVector3 position = hits.GetPosition(i);
+                const double distance =
+                    fVetoDetectorBoundaryPosition.at(volume) * fVetoDetectorBoundaryDirection.at(volume) -
+                    position * fVetoDetectorBoundaryDirection.at(volume);
+                assert(
+                    distance >=
+                    0.0);  // distance can never be less than zero, this means the boundary position is wrong
+                const auto attenuation =
+                    TMath::Exp(-distance / fVetoLightAttenuation);  // attenuation factor is in mm
+                energy *= attenuation;
+            }
+            if (energy <= 0) {
                 continue;
             }
             auto& signal = fVetoSignalMap.at(volume);
@@ -157,8 +181,8 @@ void TRestGeant4ToDetectorSignalVetoProcess::InitFromConfigFile() {
     fVetoDetectorsExpression = GetParameter("vetoDetectorsExpression", fVetoDetectorsExpression);
 
     fVetoDetectorOffsetSize = GetDblParameterWithUnits("vetoDetectorOffset", fVetoDetectorOffsetSize);
-    fVetoLightAttenuation = GetDblParameterWithUnits("vetoLightAttenuation", fVetoLightAttenuation);
-    fVetoQuenchingFactor = GetDblParameterWithUnits("quenchingFactor", fVetoQuenchingFactor);
+    SetVetoLightAttenuation(GetDblParameterWithUnits("vetoLightAttenuation", fVetoLightAttenuation));
+    SetVetoQuenchingFactor(GetDblParameterWithUnits("quenchingFactor", fVetoQuenchingFactor));
 }
 
 // TODO: Find how to place this so that we don't need to copy it in every source file
@@ -176,8 +200,8 @@ void TRestGeant4ToDetectorSignalVetoProcess::PrintMetadata() {
     cout << "Veto volume expression: " << fVetoVolumesExpression << endl;
     if (!fVetoDetectorsExpression.IsNull()) {
         cout << "Veto detector expression: " << fVetoDetectorsExpression << endl;
-        cout << "Veto detector offset: " << fVetoDetectorOffsetSize << endl;
-        cout << "Veto light attenuation: " << fVetoLightAttenuation << endl;
+        cout << "Veto detector offset: " << fVetoDetectorOffsetSize << " mm" << endl;
+        cout << "Veto light attenuation: " << fVetoLightAttenuation << " mm" << endl;
     } else {
         cout << "Veto detector expression: not set" << endl;
     }
