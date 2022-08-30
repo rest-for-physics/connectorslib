@@ -110,6 +110,58 @@ void TRestGeant4ToDetectorSignalVetoProcess::InitProcess() {
         fVetoDetectorBoundaryPosition[vetoName] = vetoDetectorPosition - direction * fVetoDetectorOffsetSize;
     }
 
+    // Drift
+    if (fDriftEnabled) {
+        // Check if selected volumes are valid and replace them by the physical volume if user set the logical
+        if (!geometryInfo.IsValidPhysicalVolume(fDriftVolume)) {
+            if (geometryInfo.IsValidLogicalVolume(fDriftVolume)) {
+                if (geometryInfo.GetAllPhysicalVolumesFromLogical(fDriftVolume).size() == 1) {
+                    fDriftVolume = geometryInfo.GetAlternativeNameFromGeant4PhysicalName(
+                        geometryInfo.GetAllPhysicalVolumesFromLogical(fDriftVolume)[0]);
+                } else {
+                    cout << "TRestGeant4ToDetectorSignalVetoProcess::InitProcess: Logical volume "
+                         << fDriftVolume
+                         << " has more than one physical volume. Please explicitly select the physical volume"
+                         << endl;
+                    exit(1);
+                }
+            } else {
+                cout << "TRestGeant4ToDetectorSignalVetoProcess::InitProcess: Volume " << fDriftVolume
+                     << " is not a valid physical or logical volume" << endl;
+                exit(1);
+            }
+        }
+        if (!geometryInfo.IsValidPhysicalVolume(fDriftReadoutVolume)) {
+            if (geometryInfo.IsValidLogicalVolume(fDriftReadoutVolume)) {
+                if (geometryInfo.GetAllPhysicalVolumesFromLogical(fDriftReadoutVolume).size() == 1) {
+                    fDriftReadoutVolume = geometryInfo.GetAlternativeNameFromGeant4PhysicalName(
+                        geometryInfo.GetAllPhysicalVolumesFromLogical(fDriftReadoutVolume)[0]);
+                } else {
+                    cout << "TRestGeant4ToDetectorSignalVetoProcess::InitProcess: Logical volume "
+                         << fDriftReadoutVolume
+                         << " has more than one physical volume. Please explicitly select the physical volume"
+                         << endl;
+                    exit(1);
+                }
+            } else {
+                cout << "TRestGeant4ToDetectorSignalVetoProcess::InitProcess: Volume " << fDriftReadoutVolume
+                     << " is not a valid physical or logical volume" << endl;
+                exit(1);
+            }
+        }
+        if (fDriftVelocity <= 0) {
+            cout << "TRestGeant4ToDetectorSignalVetoProcess::InitProcess: Drift velocity must be positive"
+                 << endl;
+            exit(1);
+        }
+        if (fDriftReadoutNormalDirection.Mag() == 0) {
+            cout << "TRestGeant4ToDetectorSignalVetoProcess::InitProcess: Drift readout normal direction "
+                    "cannot be zero"
+                 << endl;
+            exit(1);
+        }
+    }
+
     PrintMetadata();
 }
 
@@ -122,6 +174,39 @@ TRestEvent* TRestGeant4ToDetectorSignalVetoProcess::ProcessEvent(TRestEvent* inp
     fOutputEvent->SetTimeStamp(fInputEvent->GetTimeStamp());
     fOutputEvent->SetSubEventTag(fInputEvent->GetSubEventTag());
 
+    // If drift is enabled compute the delay
+    Double_t triggerTime = 0;
+    if (fDriftEnabled) {
+        const auto& geometryInfo = fGeant4Metadata->GetGeant4GeometryInfo();
+        const auto& readoutVolumePositionWithOffset = geometryInfo.GetPosition(fDriftReadoutVolume) +
+                                                      fDriftReadoutNormalDirection * fDriftReadoutOffset;
+        for (const auto& track : fInputEvent->GetTracks()) {
+            const auto& hits = track.GetHits();
+            for (int i = 0; i < hits.GetNumberOfHits(); i++) {
+                const auto volume =
+                    fGeant4Metadata->GetGeant4GeometryInfo().GetVolumeFromID(hits.GetVolumeId(i));
+                if (volume != fDriftVolume) {
+                    continue;
+                }
+                auto energy = hits.GetEnergy(i);
+                if (energy <= 0) {
+                    continue;
+                }
+                const TVector3 position = hits.GetPosition(i);
+                const double distance = fDriftReadoutNormalDirection * position -
+                                        fDriftReadoutNormalDirection * readoutVolumePositionWithOffset;
+                if (distance < 0) {
+                    cout << "Distance to readout should never be negative" << endl;
+                    exit(1);
+                }
+                const double hitTriggerTime = distance / fDriftVelocity + hits.GetTime(i);
+                if (hitTriggerTime == 0 || triggerTime < hitTriggerTime) {
+                    triggerTime = hitTriggerTime;
+                }
+            }
+        }
+    }
+    print("trigger time: {}\n", triggerTime);
     map<TString, TRestDetectorSignal> fVetoSignalMap;
     for (const auto& volume : fVetoVolumes) {
         fVetoSignalMap[volume].SetSignalID(fVetoVolumesToSignalIdMap.at(volume));
@@ -159,7 +244,7 @@ TRestEvent* TRestGeant4ToDetectorSignalVetoProcess::ProcessEvent(TRestEvent* inp
                 continue;
             }
             auto& signal = fVetoSignalMap.at(volume);
-            const auto time = hits.GetTime(i);
+            const auto time = hits.GetTime(i) - triggerTime;
             signal.AddPoint(time, energy);
         }
     }
@@ -183,6 +268,14 @@ void TRestGeant4ToDetectorSignalVetoProcess::InitFromConfigFile() {
     fVetoDetectorOffsetSize = GetDblParameterWithUnits("vetoDetectorOffset", fVetoDetectorOffsetSize);
     SetVetoLightAttenuation(GetDblParameterWithUnits("vetoLightAttenuation", fVetoLightAttenuation));
     SetVetoQuenchingFactor(GetDblParameterWithUnits("quenchingFactor", fVetoQuenchingFactor));
+
+    fDriftEnabled = StringToBool(GetParameter("drift", to_string(fDriftEnabled)));
+    fDriftVolume = GetParameter("driftVolume", fDriftVolume);
+    fDriftReadoutVolume = GetParameter("driftReadoutVolume", fDriftReadoutVolume);
+    fDriftReadoutOffset = GetDblParameterWithUnits("driftReadoutOffset", fDriftReadoutOffset);
+    fDriftReadoutNormalDirection =
+        Get3DVectorParameterWithUnits("driftReadoutPlaneNormal", fDriftReadoutNormalDirection);
+    fDriftVelocity = GetDblParameterWithUnits("driftVelocity", fDriftVelocity);
 }
 
 // TODO: Find how to place this so that we don't need to copy it in every source file
@@ -217,6 +310,9 @@ void TRestGeant4ToDetectorSignalVetoProcess::PrintMetadata() {
     cout << "Number of veto volumes: " << fVetoVolumes.size() << endl;
     cout << "Number of veto detector volumes: " << fVetoDetectorVolumes.size() << endl;
 
+    if (fGeant4Metadata == nullptr) {
+        return;
+    }
     const auto& geometryInfo = fGeant4Metadata->GetGeant4GeometryInfo();
     for (int i = 0; i < fVetoVolumes.size(); i++) {
         const auto& vetoName = fVetoVolumes[i];
@@ -236,5 +332,17 @@ void TRestGeant4ToDetectorSignalVetoProcess::PrintMetadata() {
         print("   Boundary position: {} mm - direction: {}\n", fVetoDetectorBoundaryPosition.at(vetoName),
               fVetoDetectorBoundaryDirection.at(vetoName));
     }
+
+    if (!fDriftEnabled) {
+        print("Drift is not enabled\n");
+    } else {
+        print("Drift is enabled\n");
+        print(" - Drift volume: {}\n", fDriftVolume);
+        print(" - Drift readout volume: {}\n", fDriftReadoutVolume);
+        print(" - Drift readout offset: {}\n", fDriftReadoutOffset);
+        print(" - Drift readout normal: {}\n", fDriftReadoutNormalDirection);
+        print(" - Drift velocity: {} mm/us\n", fDriftVelocity);
+    }
+
     EndPrintProcess();
 }

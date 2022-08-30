@@ -56,6 +56,13 @@ class TRestGeant4ToDetectorSignalVetoProcess : public TRestEventProcess {
     std::map<TString, Int_t> fVetoVolumesToSignalIdMap;
     std::set<TString> fParticlesNotQuenched = {"gamma", "e-", "e-", "mu-", "mu+"};
 
+    bool fDriftEnabled = false;
+    std::string fDriftVolume;
+    std::string fDriftReadoutVolume;
+    double fDriftReadoutOffset = 0;
+    TVector3 fDriftReadoutNormalDirection = TVector3(0, 0, 1);
+    double fDriftVelocity = 0;
+
     void InitFromConfigFile() override;
     void Initialize() override;
     void LoadDefaultConfig();
