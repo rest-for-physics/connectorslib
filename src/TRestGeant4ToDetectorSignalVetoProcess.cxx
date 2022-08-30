@@ -206,7 +206,6 @@ TRestEvent* TRestGeant4ToDetectorSignalVetoProcess::ProcessEvent(TRestEvent* inp
             }
         }
     }
-    print("trigger time: {}\n", triggerTime);
     map<TString, TRestDetectorSignal> fVetoSignalMap;
     for (const auto& volume : fVetoVolumes) {
         fVetoSignalMap[volume].SetSignalID(fVetoVolumesToSignalIdMap.at(volume));

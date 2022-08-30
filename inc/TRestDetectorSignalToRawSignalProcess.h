@@ -52,13 +52,22 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     TString fTriggerMode = "firstDeposit";
 
     /// The number of time bins the time start is delayed in the resulting output signal.
-    Int_t fTriggerDelay = 100;  // ns
+    Int_t fTriggerDelay = 100;
 
     /// A factor the data values will be multiplied by at the output signal.
     Double_t fGain = 100.0;
 
     /// This parameter is used by integralWindow trigger mode to define the acquisition window.
     Double_t fIntegralThreshold = 1229.0;
+
+    /// On "fixed" trigger mode, this parameter defines the time corresponding to the first bin (affected by
+    /// the trigger delay).
+    Double_t fTriggerFixedTime = 0.0;  // ns
+
+    /// If enabled it will perform shaping before converting to raw signal, avoiding problems due to
+    /// artificial saturation of non shaped signals (deltas have much higher maximum than shaped waveforms...)
+    bool fShapingEnabled = false;
+    Double_t fShapingTime = 50.0;  // ns
 
    public:
     inline Double_t GetSampling() const { return fSampling; }

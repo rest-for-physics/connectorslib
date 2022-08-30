@@ -113,7 +113,11 @@
 ///
 /// <hr>
 ///
+
 #include "TRestDetectorSignalToRawSignalProcess.h"
+
+#include <limits>
+
 using namespace std;
 
 ClassImp(TRestDetectorSignalToRawSignalProcess);
@@ -181,9 +185,12 @@ void TRestDetectorSignalToRawSignalProcess::Initialize() {
 TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inputEvent) {
     fInputSignalEvent = (TRestDetectorSignalEvent*)inputEvent;
 
-    if (fInputSignalEvent->GetNumberOfSignals() <= 0) return nullptr;
+    if (fInputSignalEvent->GetNumberOfSignals() <= 0) {
+        return nullptr;
+    }
 
-    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) fOutputRawSignalEvent->PrintEvent();
+    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug)
+        fOutputRawSignalEvent->PrintEvent();
 
     fOutputRawSignalEvent->SetID(fInputSignalEvent->GetID());
     fOutputRawSignalEvent->SetSubID(fInputSignalEvent->GetSubID());
@@ -208,10 +215,13 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                 tEnd = t + (fNPoints - fTriggerDelay) * fSampling;
             }
         }
+    } else if (fTriggerMode == "fixed") {
+        tStart = fTriggerFixedTime - fTriggerDelay * fSampling;
+        tEnd = fTriggerFixedTime + (fNPoints - fTriggerDelay) * fSampling;
+
     } else {
         if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
-            cout << "REST WARNING. TRestDetectorSignalToRawSignalProcess. fTriggerMode not "
-                    "recognized!"
+            cout << "REST WARNING. TRestDetectorSignalToRawSignalProcess. fTriggerMode not recognized!"
                  << endl;
             cout << "Setting fTriggerMode to firstDeposit" << endl;
         }
@@ -240,56 +250,109 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
         cout << "tEnd : " << tEnd << " us " << endl;
     }
 
-    for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
-        vector<Double_t> sData(fNPoints);
-        for (int i = 0; i < fNPoints; i++) sData[i] = 0;
+    if (!fShapingEnabled) {
+        for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
+            vector<Double_t> sData(fNPoints);
+            for (int i = 0; i < fNPoints; i++) sData[i] = 0;
 
-        TRestDetectorSignal* sgnl = fInputSignalEvent->GetSignal(n);
-        Int_t signalID = sgnl->GetSignalID();
+            TRestDetectorSignal* signal = fInputSignalEvent->GetSignal(n);
+            Int_t signalID = signal->GetSignalID();
 
-        for (int m = 0; m < sgnl->GetNumberOfPoints(); m++) {
-            Double_t t = sgnl->GetTime(m);
-            Double_t d = sgnl->GetData(m);
+            for (int m = 0; m < signal->GetNumberOfPoints(); m++) {
+                Double_t t = signal->GetTime(m);
+                Double_t d = signal->GetData(m);
 
-            if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug && n < 3 && m < 5)
-                cout << "Signal : " << n << " Sample : " << m << " T : " << t << " Data : " << d << endl;
+                if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug && n < 3 && m < 5)
+                    cout << "Signal : " << n << " Sample : " << m << " T : " << t << " Data : " << d << endl;
 
-            if (t > tStart && t < tEnd) {
-                // convert physical time (in us) to timeBin
-                Int_t timeBin = (Int_t)round((t - tStart) / fSampling);
+                if (t > tStart && t < tEnd) {
+                    // convert physical time (in us) to timeBin
+                    Int_t timeBin = (Int_t)round((t - tStart) / fSampling);
 
-                if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning)
-                    if (timeBin < 0 || timeBin > fNPoints) {
-                        cout << "Time bin out of range!!! bin value : " << timeBin << endl;
-                        timeBin = 0;
-                    }
+                    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning)
+                        if (timeBin < 0 || timeBin > fNPoints) {
+                            cout << "Time bin out of range!!! bin value : " << timeBin << endl;
+                            timeBin = 0;
+                        }
 
-                RESTDebug << "Adding data : " << sgnl->GetData(m) << " to Time Bin : " << timeBin << RESTendl;
-                sData[timeBin] += fGain * sgnl->GetData(m);
+                    RESTDebug << "Adding data : " << signal->GetData(m) << " to Time Bin : " << timeBin
+                              << RESTendl;
+                    sData[timeBin] += fGain * signal->GetData(m);
+                }
             }
+
+            if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
+                for (int x = 0; x < fNPoints; x++) {
+                    if (sData[x] < std::numeric_limits<Short_t>::min() ||
+                        sData[x] > std::numeric_limits<Short_t>::max()) {
+                        cout << "REST Warning : data is outside short range : " << sData[x] << endl;
+                    }
+                }
+            }
+
+            TRestRawSignal rSgnl;
+            rSgnl.SetSignalID(signalID);
+            for (int x = 0; x < fNPoints; x++) {
+                if (sData[x] < std::numeric_limits<Short_t>::min() ||
+                    sData[x] > std::numeric_limits<Short_t>::max()) {
+                    fOutputRawSignalEvent->SetOK(false);
+                }
+                Short_t value = (Short_t)round(sData[x]);
+                rSgnl.AddPoint(value);
+            }
+
+            if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) rSgnl.Print();
+            RESTDebug << "Adding signal to raw signal event" << RESTendl;
+            fOutputRawSignalEvent->AddSignal(rSgnl);
         }
+    } else {
+        auto shapingFunction = [](Double_t t, Double_t shapingTime) -> Double_t {
+            if (t <= 0) {
+                return 0.0;
+            }
+            const Double_t c = t / shapingTime;
+            return TMath::Exp(-3. * c) * TMath::Power(c, 3) * TMath::Sin(c);
+        };
+        for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
+            const auto signal = fInputSignalEvent->GetSignal(n);
+            if (signal->GetNumberOfPoints() == 0) {
+                continue;
+            }
+            vector<Double_t> data(fNPoints, 0);
+            for (int i = 0; i < signal->GetNumberOfPoints(); i++) {
+                const Double_t time = signal->GetTime(i);
+                const Double_t value = signal->GetData(i);
+                // cout << "time: " << time << " value: " << value << " gain: " << fGain
+                //      << " shapingtime: " << fShapingTime << endl;
+                for (int j = 0; j < data.size(); j++) {
+                    const Double_t t = double(j) * fSampling - tStart - time;
+                    data[j] += fGain * value * shapingFunction(t, fShapingTime);
+                    // cout << " - " << data[j] << " " << t << " " << shapingFunction(t, fShapingTime) <<
+                    // endl;
+                }
+            }
 
-        if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning)
-            for (int x = 0; x < fNPoints; x++)
-                if (sData[x] < -32768. || sData[x] > 32768.)
-                    cout << "REST Warning : data is outside short range : " << sData[x] << endl;
-
-        TRestRawSignal rSgnl;
-        rSgnl.SetSignalID(signalID);
-        for (int x = 0; x < fNPoints; x++) {
-            if (sData[x] < -32768. || sData[x] > 32768.) fOutputRawSignalEvent->SetOK(false);
-
-            Short_t value = (Short_t)round(sData[x]);
-            rSgnl.AddPoint(value);
+            if (data == std::vector<Double_t>(fNPoints, 0)) {
+                continue;
+            }
+            TRestRawSignal rawSignal;
+            rawSignal.SetSignalID(signal->GetSignalID());
+            for (int i = 0; i < fNPoints; i++) {
+                if (data[i] < std::numeric_limits<Short_t>::min()) {
+                    data[i] = std::numeric_limits<Short_t>::min();
+                    fOutputRawSignalEvent->SetOK(false);
+                } else if (data[i] > std::numeric_limits<Short_t>::max()) {
+                    data[i] = std::numeric_limits<Short_t>::max();
+                    fOutputRawSignalEvent->SetOK(false);
+                }
+                rawSignal.AddPoint((Short_t)round(data[i]));
+            }
+            fOutputRawSignalEvent->AddSignal(rawSignal);
         }
-
-        if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) rSgnl.Print();
-        RESTDebug << "Adding signal to raw signal event" << RESTendl;
-        fOutputRawSignalEvent->AddSignal(rSgnl);
     }
 
     RESTDebug << "TRestDetectorSignalToRawSignalProcess. Returning event with N signals "
-          << fOutputRawSignalEvent->GetNumberOfSignals() << RESTendl;
+              << fOutputRawSignalEvent->GetNumberOfSignals() << RESTendl;
 
     return fOutputRawSignalEvent;
 }
@@ -300,9 +363,12 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 ///
 void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
     fSampling = GetDblParameterWithUnits("sampling");
-    fNPoints = StringToInteger(GetParameter("Npoints", "512"));
+    fNPoints = StringToInteger(GetParameter("Npoints", fNPoints));
     fTriggerMode = GetParameter("triggerMode", "firstDeposit");
-    fTriggerDelay = StringToInteger(GetParameter("triggerDelay", 100));
-    fGain = StringToDouble(GetParameter("gain", "100"));
-    fIntegralThreshold = StringToDouble(GetParameter("integralThreshold", "1229"));
+    fTriggerDelay = StringToInteger(GetParameter("triggerDelay", fTriggerDelay));
+    fGain = GetDblParameterWithUnits("gain", fGain);
+    fIntegralThreshold = StringToDouble(GetParameter("integralThreshold", fIntegralThreshold));
+
+    fShapingTime = GetDblParameterWithUnits("shapingTime", fShapingTime);
+    fShapingEnabled = fShapingTime > 0;
 }
