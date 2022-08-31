@@ -52,7 +52,7 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     TString fTriggerMode = "firstDeposit";
 
     /// The number of time bins the time start is delayed in the resulting output signal.
-    Int_t fTriggerDelay = 100;  // ns
+    Int_t fTriggerDelay = 100;
 
     /// A factor the data values will be multiplied by at the output signal.
     Double_t fGain = 100.0;
@@ -67,6 +67,9 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     /// Usage: fCalibrationEnergy = (0, 100 MeV) and fCalibrationRange = (0.1, 0.9)
     /// will perform a linear calibration with 0 equal to 0.1 of the range (0.1 * (max - min) + min) and 100
     /// MeV equal to 0.9 of the range. The range is the one corresponding to a Short_t for rawsignal.
+
+    Double_t fTimeStart;  //!
+    Double_t fTimeEnd;    //!
 
    public:
     inline Double_t GetSampling() const { return fSampling; }
@@ -102,6 +105,8 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
 
     any GetInputEvent() const override { return fInputSignalEvent; }
     any GetOutputEvent() const override { return fOutputRawSignalEvent; }
+
+    void InitProcess() override;
 
     TRestEvent* ProcessEvent(TRestEvent* inputEvent) override;
 
