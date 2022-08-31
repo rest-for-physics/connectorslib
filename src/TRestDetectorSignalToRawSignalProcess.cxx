@@ -247,7 +247,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
                 RESTDebug << "Adding data : " << signal->GetData(m) << " to Time Bin : " << timeBin
                           << RESTendl;
-                data[timeBin] += fGain * signal->GetData(m);
+                data[timeBin] += fCalibrationGain * signal->GetData(m) + fCalibrationOffset;
             }
         }
 
@@ -316,9 +316,16 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
     fIntegralThreshold = StringToDouble(GetParameter("integralThreshold", fIntegralThreshold));
     fTriggerFixedStartTime = StringToInteger(GetParameter("triggerFixedStartTime", fTriggerFixedStartTime));
 
-    fGain = StringToDouble(GetParameter("gain", fGain));
+    fCalibrationGain = StringToDouble(GetParameter("gain", fCalibrationGain));
+    fCalibrationOffset = StringToDouble(GetParameter("offset", fCalibrationOffset));
     fCalibrationEnergy = Get2DVectorParameterWithUnits("calibrationEnergy", fCalibrationEnergy);
     fCalibrationRange = Get2DVectorParameterWithUnits("calibrationRange", fCalibrationRange);
+
+    if (IsLinearCalibration()) {
+        fCalibrationGain = (fCalibrationRange.Y() - fCalibrationRange.X()) /
+                           (fCalibrationEnergy.Y() - fCalibrationEnergy.X());
+        fCalibrationOffset = fCalibrationRange.X() - fCalibrationGain * fCalibrationEnergy.X();
+    }
 }
 
 void TRestDetectorSignalToRawSignalProcess::InitProcess() {

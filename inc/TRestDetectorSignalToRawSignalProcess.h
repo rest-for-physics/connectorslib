@@ -57,8 +57,10 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     /// The starting time for the "fixed" trigger mode (can be offset by the trigger delay)
     Int_t fTriggerFixedStartTime = 0;
 
-    /// A factor the data values will be multiplied by at the output signal.
-    Double_t fGain = 100.0;
+    /// fCalibrationGain and fCalibrationOffset define the linear calibration.
+    /// output = input * fCalibrationGain + calibrationOffset
+    Double_t fCalibrationGain = 100.0;
+    Double_t fCalibrationOffset = 0.0;  // adc units
 
     /// This parameter is used by integralWindow trigger mode to define the acquisition window.
     Double_t fIntegralThreshold = 1229.0;
@@ -87,8 +89,11 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     inline Int_t GetTriggerDelay() const { return fTriggerDelay; }
     inline void SetTriggerDelay(Int_t triggerDelay) { fTriggerDelay = triggerDelay; }
 
-    inline Double_t GetGain() const { return fGain; }
-    inline void SetGain(Double_t gain) { fGain = gain; }
+    inline Double_t GetGain() const { return fCalibrationGain; }
+    inline void SetGain(Double_t gain) { fCalibrationGain = gain; }
+
+    inline Double_t GetCalibrationOffset() const { return fCalibrationOffset; }
+    inline void SetCalibrationOffset(Double_t offset) { fCalibrationOffset = offset; }
 
     inline Double_t GetIntegralThreshold() const { return fIntegralThreshold; }
     inline void SetIntegralThreshold(Double_t integralThreshold) { fIntegralThreshold = integralThreshold; }
@@ -124,14 +129,14 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
         RESTMetadata << "Trigger mode : " << fTriggerMode << RESTendl;
         RESTMetadata << "Trigger delay : " << fTriggerDelay << " time units" << RESTendl;
 
-        if (!IsLinearCalibration()) {
-            RESTMetadata << "ADC gain : " << fGain << RESTendl;
-        } else {
+        if (IsLinearCalibration()) {
             RESTMetadata << "Calibration energy : (" << fCalibrationEnergy.X() << ", "
                          << fCalibrationEnergy.Y() << ") keV" << RESTendl;
             RESTMetadata << "Calibration range : (" << fCalibrationRange.X() << ", " << fCalibrationRange.Y()
                          << ")" << RESTendl;
         }
+        RESTMetadata << "ADC Gain : " << fCalibrationGain << RESTendl;
+        RESTMetadata << "ADC Offset : " << fCalibrationOffset << RESTendl;
 
         EndPrintProcess();
     }
