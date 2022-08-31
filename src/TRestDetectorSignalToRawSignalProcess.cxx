@@ -218,14 +218,11 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
         }
     }
 
-    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) {
-        cout << "fTimeStart : " << fTimeStart << " us " << endl;
-        cout << "fTimeEnd : " << fTimeEnd << " us " << endl;
-    }
+    RESTDebug << "fTimeStart : " << fTimeStart << " us " << RESTendl;
+    RESTDebug << "fTimeEnd : " << fTimeEnd << " us " << RESTendl;
 
     for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
-        vector<Double_t> sData(fNPoints);
-        for (int i = 0; i < fNPoints; i++) sData[i] = 0;
+        vector<Double_t> data(fNPoints, 0);
 
         TRestDetectorSignal* signal = fInputSignalEvent->GetSignal(n);
         Int_t signalID = signal->GetSignalID();
@@ -234,8 +231,9 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             Double_t t = signal->GetTime(m);
             Double_t d = signal->GetData(m);
 
-            if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug && n < 3 && m < 5)
+            if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug && n < 3 && m < 5) {
                 cout << "Signal : " << n << " Sample : " << m << " T : " << t << " Data : " << d << endl;
+            }
 
             if (t > fTimeStart && t < fTimeEnd) {
                 // convert physical time (in us) to timeBin
@@ -249,26 +247,38 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
                 RESTDebug << "Adding data : " << signal->GetData(m) << " to Time Bin : " << timeBin
                           << RESTendl;
-                sData[timeBin] += fGain * signal->GetData(m);
+                data[timeBin] += fGain * signal->GetData(m);
             }
         }
-
-        if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning)
-            for (int x = 0; x < fNPoints; x++)
-                if (sData[x] < -32768. || sData[x] > 32768.)
-                    cout << "REST Warning : data is outside short range : " << sData[x] << endl;
 
         TRestRawSignal rawSignal;
         rawSignal.SetSignalID(signalID);
         for (int x = 0; x < fNPoints; x++) {
-            if (sData[x] < -32768. || sData[x] > 32768.) fOutputRawSignalEvent->SetOK(false);
+            double value = round(data[x]);
+            if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
+                if (value < numeric_limits<Short_t>::min() || value > numeric_limits<Short_t>::max()) {
+                    RESTWarning << "value (" << value << ") is outside short range ("
+                                << numeric_limits<Short_t>::min() << ", " << numeric_limits<Short_t>::max()
+                                << ")" << RESTendl;
+                }
+            }
 
-            Short_t value = (Short_t)round(sData[x]);
-            rawSignal.AddPoint(value);
+            if (value < numeric_limits<Short_t>::min()) {
+                value = numeric_limits<Short_t>::min();
+                fOutputRawSignalEvent->SetOK(false);
+            } else if (value > numeric_limits<Short_t>::max()) {
+                value = numeric_limits<Short_t>::max();
+                fOutputRawSignalEvent->SetOK(false);
+            }
+
+            rawSignal.AddPoint((Short_t)value);
         }
 
-        if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) rawSignal.Print();
+        if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) {
+            rawSignal.Print();
+        }
         RESTDebug << "Adding signal to raw signal event" << RESTendl;
+
         fOutputRawSignalEvent->AddSignal(rawSignal);
     }
 
