@@ -222,7 +222,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
     RESTDebug << "fTimeEnd : " << fTimeEnd << " us " << RESTendl;
 
     for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
-        vector<Double_t> data(fNPoints, 0);
+        vector<Double_t> data(fNPoints, fCalibrationOffset);
 
         TRestDetectorSignal* signal = fInputSignalEvent->GetSignal(n);
         Int_t signalID = signal->GetSignalID();
@@ -247,7 +247,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
                 RESTDebug << "Adding data : " << signal->GetData(m) << " to Time Bin : " << timeBin
                           << RESTendl;
-                data[timeBin] += fCalibrationGain * signal->GetData(m) + fCalibrationOffset;
+                data[timeBin] += fCalibrationGain * signal->GetData(m);
             }
         }
 
@@ -270,7 +270,6 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                 value = numeric_limits<Short_t>::max();
                 fOutputRawSignalEvent->SetOK(false);
             }
-
             rawSignal.AddPoint((Short_t)value);
         }
 
@@ -322,9 +321,11 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
     fCalibrationRange = Get2DVectorParameterWithUnits("calibrationRange", fCalibrationRange);
 
     if (IsLinearCalibration()) {
-        fCalibrationGain = (fCalibrationRange.Y() - fCalibrationRange.X()) /
+        const auto range = numeric_limits<Short_t>::max() - numeric_limits<Short_t>::min();
+        fCalibrationGain = range * (fCalibrationRange.Y() - fCalibrationRange.X()) /
                            (fCalibrationEnergy.Y() - fCalibrationEnergy.X());
-        fCalibrationOffset = fCalibrationRange.X() - fCalibrationGain * fCalibrationEnergy.X();
+        fCalibrationOffset = range * (fCalibrationRange.X() - fCalibrationGain * fCalibrationEnergy.X()) +
+                             numeric_limits<Short_t>::min();
     }
 }
 
