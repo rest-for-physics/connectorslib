@@ -183,7 +183,9 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
     if (fInputSignalEvent->GetNumberOfSignals() <= 0) return nullptr;
 
-    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) fOutputRawSignalEvent->PrintEvent();
+    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) {
+        fOutputRawSignalEvent->PrintEvent();
+    }
 
     fOutputRawSignalEvent->SetID(fInputSignalEvent->GetID());
     fOutputRawSignalEvent->SetSubID(fInputSignalEvent->GetSubID());
@@ -289,7 +291,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
     }
 
     RESTDebug << "TRestDetectorSignalToRawSignalProcess. Returning event with N signals "
-          << fOutputRawSignalEvent->GetNumberOfSignals() << RESTendl;
+              << fOutputRawSignalEvent->GetNumberOfSignals() << RESTendl;
 
     return fOutputRawSignalEvent;
 }
@@ -303,6 +305,9 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
     fNPoints = StringToInteger(GetParameter("Npoints", "512"));
     fTriggerMode = GetParameter("triggerMode", "firstDeposit");
     fTriggerDelay = StringToInteger(GetParameter("triggerDelay", 100));
-    fGain = StringToDouble(GetParameter("gain", "100"));
     fIntegralThreshold = StringToDouble(GetParameter("integralThreshold", "1229"));
+
+    fGain = StringToDouble(GetParameter("gain", "100"));
+    fCalibrationEnergy = Get2DVectorParameterWithUnits("calibrationEnergy", fCalibrationEnergy);
+    fCalibrationRange = Get2DVectorParameterWithUnits("calibrationRange", fCalibrationRange);
 }
