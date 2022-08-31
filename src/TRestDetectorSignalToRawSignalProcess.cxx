@@ -223,7 +223,6 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
     for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
         vector<Double_t> data(fNPoints, fCalibrationOffset);
-
         TRestDetectorSignal* signal = fInputSignalEvent->GetSignal(n);
         Int_t signalID = signal->GetSignalID();
 
@@ -249,6 +248,30 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                           << RESTendl;
                 data[timeBin] += fCalibrationGain * signal->GetData(m);
             }
+        }
+
+        if (IsShapingEnabled()) {
+            const auto shapingFunction = [](Double_t t) -> Double_t {
+                if (t <= 0) {
+                    return 0;
+                }
+                // function is normalized such that its absolute maximum is 1.0
+                // max is at x = 1.1664004483744728
+                return TMath::Exp(-3.0 * t) * TMath::Power(t, 3.0) * TMath::Sin(t) * 22.68112123672292;
+            };
+
+            vector<Double_t> dataAfterShaping(fNPoints, fCalibrationOffset);
+            for (int i = 0; i < fNPoints; i++) {
+                const Double_t value = data[i] - fCalibrationOffset;
+                if (value <= 0) {
+                    // Only positive values are possible, 0 means no signal in this bin
+                    continue;
+                }
+                for (int j = 0; j < fNPoints; j++) {
+                    dataAfterShaping[j] += value * shapingFunction(((j - i) * fSampling) / fShapingTime);
+                }
+            }
+            data = dataAfterShaping;
         }
 
         TRestRawSignal rawSignal;
@@ -313,7 +336,7 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
     fSampling = GetDblParameterWithUnits("sampling", fSampling);
     fTriggerDelay = StringToInteger(GetParameter("triggerDelay", fTriggerDelay));
     fIntegralThreshold = StringToDouble(GetParameter("integralThreshold", fIntegralThreshold));
-    fTriggerFixedStartTime = StringToInteger(GetParameter("triggerFixedStartTime", fTriggerFixedStartTime));
+    fTriggerFixedStartTime = GetDblParameterWithUnits("triggerFixedStartTime", fTriggerFixedStartTime);
 
     fCalibrationGain = StringToDouble(GetParameter("gain", fCalibrationGain));
     fCalibrationOffset = StringToDouble(GetParameter("offset", fCalibrationOffset));
@@ -327,6 +350,8 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
         fCalibrationOffset = range * (fCalibrationRange.X() - fCalibrationGain * fCalibrationEnergy.X()) +
                              numeric_limits<Short_t>::min();
     }
+
+    fShapingTime = GetDblParameterWithUnits("shapingTime", fShapingTime);
 }
 
 void TRestDetectorSignalToRawSignalProcess::InitProcess() {

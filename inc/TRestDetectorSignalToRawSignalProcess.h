@@ -73,6 +73,10 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     /// will perform a linear calibration with 0 equal to 0.1 of the range (0.1 * (max - min) + min) and 100
     /// MeV equal to 0.9 of the range. The range is the one corresponding to a Short_t for rawsignal.
 
+    /// If defined ( > 0 ) we will compute the sin shaping of the signal, this is done in this process to
+    /// avoid artifacts in the signal (e.g. signals not getting cut when they should)
+    Double_t fShapingTime = 0.0;  // us
+
     Double_t fTimeStart;  //!
     Double_t fTimeEnd;    //!
 
@@ -98,11 +102,14 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     inline Double_t GetIntegralThreshold() const { return fIntegralThreshold; }
     inline void SetIntegralThreshold(Double_t integralThreshold) { fIntegralThreshold = integralThreshold; }
 
+    inline Double_t GetShapingTime() const { return fShapingTime; }
+    inline void SetShapingTime(Double_t shapingTime) { fShapingTime = shapingTime; }
+
+    inline bool IsShapingEnabled() const { return fShapingTime > 0; }
+
     inline bool IsLinearCalibration() const {
-        if (fCalibrationEnergy.Mod() != 0 && fCalibrationRange.Mod() != 0) {
-            return true;
-        }
-        return false;  // use the gain factor
+        // Will return true if two points have been given for calibration
+        return (fCalibrationEnergy.Mod() != 0 && fCalibrationRange.Mod() != 0);
     }
 
     inline TVector2 GetCalibrationEnergy() const { return fCalibrationEnergy; }
@@ -137,6 +144,10 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
         }
         RESTMetadata << "ADC Gain : " << fCalibrationGain << RESTendl;
         RESTMetadata << "ADC Offset : " << fCalibrationOffset << RESTendl;
+
+        if (IsShapingEnabled()) {
+            RESTMetadata << "Shaping time : " << fShapingTime << " us" << RESTendl;
+        }
 
         EndPrintProcess();
     }
