@@ -301,8 +301,13 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 /// TRestDetectorSignalToRawSignalProcess metadata section
 ///
 void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
+    auto nPoints = GetParameter("nPoints");
+    if (nPoints == PARAMETER_NOT_FOUND_STR) {
+        nPoints = GetParameter("Npoints", fNPoints);
+    }
+    fNPoints = StringToInteger(nPoints);
+
     fSampling = GetDblParameterWithUnits("sampling");
-    fNPoints = StringToInteger(GetParameter("Npoints", "512"));
     fTriggerMode = GetParameter("triggerMode", "firstDeposit");
     fTriggerDelay = StringToInteger(GetParameter("triggerDelay", 100));
     fIntegralThreshold = StringToDouble(GetParameter("integralThreshold", "1229"));
