@@ -54,6 +54,9 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     /// The number of time bins the time start is delayed in the resulting output signal.
     Int_t fTriggerDelay = 100;
 
+    /// The starting time for the "fixed" trigger mode (can be offset by the trigger delay)
+    Int_t fTriggerFixedStartTime = 0;
+
     /// A factor the data values will be multiplied by at the output signal.
     Double_t fGain = 100.0;
 

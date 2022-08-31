@@ -200,42 +200,22 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
         fTimeStart = fInputSignalEvent->GetMinTime() - fTriggerDelay * fSampling;
         fTimeEnd = fInputSignalEvent->GetMinTime() + (fNPoints - fTriggerDelay) * fSampling;
     } else if (fTriggerMode == "integralThreshold") {
-        Double_t maxT = fInputSignalEvent->GetMaxTime();
-        Double_t minT = fInputSignalEvent->GetMinTime();
+        bool thresholdReached = false;
+        for (Double_t t = fInputSignalEvent->GetMinTime() - fNPoints * fSampling;
+             t <= fInputSignalEvent->GetMaxTime() + fNPoints * fSampling; t = t + 0.5) {
+            Double_t energy = fInputSignalEvent->GetIntegralWithTime(t, t + (fSampling * fNPoints) / 2.);
 
-        for (Double_t t = minT - fNPoints * fSampling; t <= maxT + fNPoints * fSampling; t = t + 0.5) {
-            Double_t en = fInputSignalEvent->GetIntegralWithTime(t, t + (fSampling * fNPoints) / 2.);
-
-            if (en > fIntegralThreshold) {
+            if (energy > fIntegralThreshold) {
                 fTimeStart = t - fTriggerDelay * fSampling;
                 fTimeEnd = t + (fNPoints - fTriggerDelay) * fSampling;
+                thresholdReached = true;
             }
         }
-    } else {
-        if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
-            cout << "REST WARNING. TRestDetectorSignalToRawSignalProcess. fTriggerMode not "
-                    "recognized!"
-                 << endl;
-            cout << "Setting fTriggerMode to firstDeposit" << endl;
+        if (!thresholdReached) {
+            RESTWarning << "Integral threshold for trigger not reached" << RESTendl;
+            fTimeStart = 0;
+            fTimeEnd = fNPoints * fSampling;
         }
-
-        fTriggerMode = "firstDeposit";
-
-        fTimeStart = fInputSignalEvent->GetMinTime() - fTriggerDelay * fSampling;
-        fTimeEnd = fInputSignalEvent->GetMinTime() + (fNPoints - fTriggerDelay) * fSampling;
-    }
-
-    if (std::isnan(fTimeStart)) {
-        if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
-            cout << endl;
-            cout << "REST WARNING. TRestDetectorSignalToRawSignalProcess. fTimeStart was not "
-                    "defined."
-                 << endl;
-            cout << "Setting fTimeStart = 0. fTimeEnd = fNPoints * fSampling" << endl;
-            cout << endl;
-        }
-
-        fTimeEnd = fNPoints * fSampling;
     }
 
     if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) {
@@ -247,12 +227,12 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
         vector<Double_t> sData(fNPoints);
         for (int i = 0; i < fNPoints; i++) sData[i] = 0;
 
-        TRestDetectorSignal* sgnl = fInputSignalEvent->GetSignal(n);
-        Int_t signalID = sgnl->GetSignalID();
+        TRestDetectorSignal* signal = fInputSignalEvent->GetSignal(n);
+        Int_t signalID = signal->GetSignalID();
 
-        for (int m = 0; m < sgnl->GetNumberOfPoints(); m++) {
-            Double_t t = sgnl->GetTime(m);
-            Double_t d = sgnl->GetData(m);
+        for (int m = 0; m < signal->GetNumberOfPoints(); m++) {
+            Double_t t = signal->GetTime(m);
+            Double_t d = signal->GetData(m);
 
             if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug && n < 3 && m < 5)
                 cout << "Signal : " << n << " Sample : " << m << " T : " << t << " Data : " << d << endl;
@@ -267,8 +247,9 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                         timeBin = 0;
                     }
 
-                RESTDebug << "Adding data : " << sgnl->GetData(m) << " to Time Bin : " << timeBin << RESTendl;
-                sData[timeBin] += fGain * sgnl->GetData(m);
+                RESTDebug << "Adding data : " << signal->GetData(m) << " to Time Bin : " << timeBin
+                          << RESTendl;
+                sData[timeBin] += fGain * signal->GetData(m);
             }
         }
 
@@ -277,18 +258,18 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                 if (sData[x] < -32768. || sData[x] > 32768.)
                     cout << "REST Warning : data is outside short range : " << sData[x] << endl;
 
-        TRestRawSignal rSgnl;
-        rSgnl.SetSignalID(signalID);
+        TRestRawSignal rawSignal;
+        rawSignal.SetSignalID(signalID);
         for (int x = 0; x < fNPoints; x++) {
             if (sData[x] < -32768. || sData[x] > 32768.) fOutputRawSignalEvent->SetOK(false);
 
             Short_t value = (Short_t)round(sData[x]);
-            rSgnl.AddPoint(value);
+            rawSignal.AddPoint(value);
         }
 
-        if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) rSgnl.Print();
+        if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) rawSignal.Print();
         RESTDebug << "Adding signal to raw signal event" << RESTendl;
-        fOutputRawSignalEvent->AddSignal(rSgnl);
+        fOutputRawSignalEvent->AddSignal(rawSignal);
     }
 
     RESTDebug << "TRestDetectorSignalToRawSignalProcess. Returning event with N signals "
@@ -309,7 +290,7 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
     fNPoints = StringToInteger(nPoints);
 
     fTriggerMode = GetParameter("triggerMode", fTriggerMode);
-    const set<string> validTriggerModes = {"firstDeposit", "integralThreshold"};
+    const set<string> validTriggerModes = {"firstDeposit", "integralThreshold", "fixed"};
     if (validTriggerModes.count(fTriggerMode.Data()) == 0) {
         RESTError << "Trigger mode set to: '" << fTriggerMode
                   << "' which is not a valid trigger mode. Please use one of the following trigger modes: ";
@@ -323,10 +304,16 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
     fSampling = GetDblParameterWithUnits("sampling", fSampling);
     fTriggerDelay = StringToInteger(GetParameter("triggerDelay", fTriggerDelay));
     fIntegralThreshold = StringToDouble(GetParameter("integralThreshold", fIntegralThreshold));
+    fTriggerFixedStartTime = StringToInteger(GetParameter("triggerFixedStartTime", fTriggerFixedStartTime));
 
     fGain = StringToDouble(GetParameter("gain", fGain));
     fCalibrationEnergy = Get2DVectorParameterWithUnits("calibrationEnergy", fCalibrationEnergy);
     fCalibrationRange = Get2DVectorParameterWithUnits("calibrationRange", fCalibrationRange);
 }
 
-void TRestDetectorSignalToRawSignalProcess::InitProcess() {}
+void TRestDetectorSignalToRawSignalProcess::InitProcess() {
+    if (fTriggerMode == "fixed") {
+        fTimeStart = fTriggerFixedStartTime - fTriggerDelay * fSampling;
+        fTimeEnd = fTimeStart + fNPoints * fSampling;
+    }
+}
