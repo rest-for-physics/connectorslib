@@ -199,8 +199,8 @@ TRestEvent* TRestGeant4ToDetectorSignalVetoProcess::ProcessEvent(TRestEvent* inp
                     cout << "Distance to readout should never be negative" << endl;
                     exit(1);
                 }
-                const double hitTriggerTime = distance / fDriftVelocity + hits.GetTime(i);
-                if (hitTriggerTime == 0 || triggerTime < hitTriggerTime) {
+                const double hitTriggerTime = distance / fDriftVelocity + hits.GetTime(i);  // in us
+                if (triggerTime == 0 || hitTriggerTime < triggerTime) {
                     triggerTime = hitTriggerTime;
                 }
             }
