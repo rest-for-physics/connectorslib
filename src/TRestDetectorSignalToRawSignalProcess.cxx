@@ -238,11 +238,12 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                 // convert physical time (in us) to timeBin
                 Int_t timeBin = (Int_t)round((t - fTimeStart) / fSampling);
 
-                if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning)
+                if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
                     if (timeBin < 0 || timeBin > fNPoints) {
                         cout << "Time bin out of range!!! bin value : " << timeBin << endl;
                         timeBin = 0;
                     }
+                }
 
                 RESTDebug << "Adding data : " << signal->GetData(m) << " to Time Bin : " << timeBin
                           << RESTendl;
