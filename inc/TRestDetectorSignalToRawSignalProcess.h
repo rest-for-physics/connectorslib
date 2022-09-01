@@ -24,9 +24,8 @@
 #define RestCore_TRestDetectorSignalToRawSignalProcess
 
 #include <TRestDetectorSignalEvent.h>
+#include <TRestEventProcess.h>
 #include <TRestRawSignalEvent.h>
-
-#include "TRestEventProcess.h"
 
 //! A process to convert a TRestDetectorSignalEvent into a TRestRawSignalEvent
 class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
@@ -165,6 +164,6 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     // Destructor
     ~TRestDetectorSignalToRawSignalProcess();
 
-    ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 2);
+    ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 3);
 };
 #endif
