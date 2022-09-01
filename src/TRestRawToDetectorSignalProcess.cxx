@@ -159,21 +159,20 @@ TRestEvent* TRestRawToDetectorSignalProcess::ProcessEvent(TRestEvent* inputEvent
     }
 
     for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
-        TRestDetectorSignal sgnl;
-        sgnl.Initialize();
-        TRestRawSignal* rawSgnl = fInputSignalEvent->GetSignal(n);
-        sgnl.SetID(rawSgnl->GetID());
+        TRestDetectorSignal signal;
+        TRestRawSignal* rawSignal = fInputSignalEvent->GetSignal(n);
+        signal.SetID(rawSignal->GetID());
 
         if (fZeroSuppression) {
-            ZeroSuppresion(rawSgnl, sgnl);
+            ZeroSuppresion(rawSignal, signal);
         } else {
-            for (int p = 0; p < rawSgnl->GetNumberOfPoints(); p++)
-                if (rawSgnl->GetData(p) > fThreshold)
-                    sgnl.NewPoint(fTriggerStarts + fSampling * p, fGain * rawSgnl->GetData(p));
+            for (int p = 0; p < rawSignal->GetNumberOfPoints(); p++)
+                if (rawSignal->GetData(p) > fThreshold)
+                    signal.NewPoint(fTriggerStarts + fSampling * p, fGain * rawSignal->GetData(p));
         }
 
-        if (sgnl.GetNumberOfPoints() > 0)
-            fOutputSignalEvent->AddSignal(sgnl);
+        if (signal.GetNumberOfPoints() > 0)
+            fOutputSignalEvent->AddSignal(signal);
         else
             rejectedSignal++;
     }
