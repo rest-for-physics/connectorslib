@@ -24,9 +24,8 @@
 #define RestCore_TRestDetectorSignalToRawSignalProcess
 
 #include <TRestDetectorSignalEvent.h>
+#include <TRestEventProcess.h>
 #include <TRestRawSignalEvent.h>
-
-#include "TRestEventProcess.h"
 
 //! A process to convert a TRestDetectorSignalEvent into a TRestRawSignalEvent
 class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
@@ -52,13 +51,33 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     TString fTriggerMode = "firstDeposit";
 
     /// The number of time bins the time start is delayed in the resulting output signal.
-    Int_t fTriggerDelay = 100;  // ns
+    Int_t fTriggerDelay = 100;
 
-    /// A factor the data values will be multiplied by at the output signal.
-    Double_t fGain = 100.0;
+    /// The starting time for the "fixed" trigger mode (can be offset by the trigger delay)
+    Int_t fTriggerFixedStartTime = 0;
+
+    /// fCalibrationGain and fCalibrationOffset define the linear calibration.
+    /// output = input * fCalibrationGain + calibrationOffset
+    Double_t fCalibrationGain = 100.0;
+    Double_t fCalibrationOffset = 0.0;  // adc units
 
     /// This parameter is used by integralWindow trigger mode to define the acquisition window.
     Double_t fIntegralThreshold = 1229.0;
+
+    /// two distinct energy values used for calibration
+    TVector2 fCalibrationEnergy = TVector2(0.0, 0.0);
+    /// position in the range corresponding to the energy in 'fCalibrationEnergy'. Values between 0 and 1
+    TVector2 fCalibrationRange = TVector2(0.0, 0.0);
+    /// Usage: fCalibrationEnergy = (0, 100 MeV) and fCalibrationRange = (0.1, 0.9)
+    /// will perform a linear calibration with 0 equal to 0.1 of the range (0.1 * (max - min) + min) and 100
+    /// MeV equal to 0.9 of the range. The range is the one corresponding to a Short_t for rawsignal.
+
+    /// If defined ( > 0 ) we will compute the sin shaping of the signal, this is done in this process to
+    /// avoid artifacts in the signal (e.g. signals not getting cut when they should)
+    Double_t fShapingTime = 0.0;  // us
+
+    Double_t fTimeStart;  //!
+    Double_t fTimeEnd;    //!
 
    public:
     inline Double_t GetSampling() const { return fSampling; }
@@ -73,14 +92,35 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     inline Int_t GetTriggerDelay() const { return fTriggerDelay; }
     inline void SetTriggerDelay(Int_t triggerDelay) { fTriggerDelay = triggerDelay; }
 
-    inline Double_t GetGain() const { return fGain; }
-    inline void SetGain(Double_t gain) { fGain = gain; }
+    inline Double_t GetGain() const { return fCalibrationGain; }
+    inline void SetGain(Double_t gain) { fCalibrationGain = gain; }
+
+    inline Double_t GetCalibrationOffset() const { return fCalibrationOffset; }
+    inline void SetCalibrationOffset(Double_t offset) { fCalibrationOffset = offset; }
 
     inline Double_t GetIntegralThreshold() const { return fIntegralThreshold; }
     inline void SetIntegralThreshold(Double_t integralThreshold) { fIntegralThreshold = integralThreshold; }
 
+    inline Double_t GetShapingTime() const { return fShapingTime; }
+    inline void SetShapingTime(Double_t shapingTime) { fShapingTime = shapingTime; }
+
+    inline bool IsShapingEnabled() const { return fShapingTime > 0; }
+
+    inline bool IsLinearCalibration() const {
+        // Will return true if two points have been given for calibration
+        return (fCalibrationEnergy.Mod() != 0 && fCalibrationRange.Mod() != 0);
+    }
+
+    inline TVector2 GetCalibrationEnergy() const { return fCalibrationEnergy; }
+    inline void SetCalibrationEnergy(TVector2 calibrationEnergy) { fCalibrationEnergy = calibrationEnergy; }
+
+    inline TVector2 GetCalibrationRange() const { return fCalibrationRange; }
+    inline void SetCalibrationRange(TVector2 calibrationRange) { fCalibrationRange = calibrationRange; }
+
     any GetInputEvent() const override { return fInputSignalEvent; }
     any GetOutputEvent() const override { return fOutputRawSignalEvent; }
+
+    void InitProcess() override;
 
     TRestEvent* ProcessEvent(TRestEvent* inputEvent) override;
 
@@ -94,7 +134,19 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
         RESTMetadata << "Points per channel : " << fNPoints << RESTendl;
         RESTMetadata << "Trigger mode : " << fTriggerMode << RESTendl;
         RESTMetadata << "Trigger delay : " << fTriggerDelay << " time units" << RESTendl;
-        RESTMetadata << "ADC gain : " << fGain << RESTendl;
+
+        if (IsLinearCalibration()) {
+            RESTMetadata << "Calibration energy : (" << fCalibrationEnergy.X() << ", "
+                         << fCalibrationEnergy.Y() << ") keV" << RESTendl;
+            RESTMetadata << "Calibration range : (" << fCalibrationRange.X() << ", " << fCalibrationRange.Y()
+                         << ")" << RESTendl;
+        }
+        RESTMetadata << "ADC Gain : " << fCalibrationGain << RESTendl;
+        RESTMetadata << "ADC Offset : " << fCalibrationOffset << RESTendl;
+
+        if (IsShapingEnabled()) {
+            RESTMetadata << "Shaping time : " << fShapingTime << " us" << RESTendl;
+        }
 
         EndPrintProcess();
     }
@@ -112,6 +164,6 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     // Destructor
     ~TRestDetectorSignalToRawSignalProcess();
 
-    ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 2);
+    ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 3);
 };
 #endif

@@ -82,11 +82,11 @@
 /// \htmlonly <style>div.image img[src="trigger.png"]{width:500px;}</style> \endhtmlonly
 ///
 /// The following figure shows the integralThreshold trigger definition for a NLDBD
-/// event. tStart and tEnd define the acquision window, centered on the time
-/// when the signal integral is above the threshold defined. tStart has been
+/// event. fTimeStart and fTimeEnd define the acquisition window, centered on the time
+/// when the signal integral is above the threshold defined. fTimeStart has been
 /// shifted by a triggerDelay = 60 samples * 200ns
 ///
-/// ![An ilustration of the trigger definition](trigger.png)
+/// ![An illustration of the trigger definition](trigger.png)
 ///
 /// * **triggerDelay**: The time start obtained by the trigger mode
 /// definition can be shifted using this parameter. The shift is
@@ -113,7 +113,9 @@
 ///
 /// <hr>
 ///
+
 #include "TRestDetectorSignalToRawSignalProcess.h"
+
 using namespace std;
 
 ClassImp(TRestDetectorSignalToRawSignalProcess);
@@ -181,115 +183,130 @@ void TRestDetectorSignalToRawSignalProcess::Initialize() {
 TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inputEvent) {
     fInputSignalEvent = (TRestDetectorSignalEvent*)inputEvent;
 
-    if (fInputSignalEvent->GetNumberOfSignals() <= 0) return nullptr;
+    if (fInputSignalEvent->GetNumberOfSignals() <= 0) {
+        return nullptr;
+    }
 
-    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) fOutputRawSignalEvent->PrintEvent();
+    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) {
+        fOutputRawSignalEvent->PrintEvent();
+    }
 
     fOutputRawSignalEvent->SetID(fInputSignalEvent->GetID());
     fOutputRawSignalEvent->SetSubID(fInputSignalEvent->GetSubID());
     fOutputRawSignalEvent->SetTimeStamp(fInputSignalEvent->GetTimeStamp());
     fOutputRawSignalEvent->SetSubEventTag(fInputSignalEvent->GetSubEventTag());
 
-    // The time event window is defined (tStart, tEnd)
-    Double_t tStart = std::numeric_limits<double>::quiet_NaN();
-    Double_t tEnd = 10000;
     if (fTriggerMode == "firstDeposit") {
-        tStart = fInputSignalEvent->GetMinTime() - fTriggerDelay * fSampling;
-        tEnd = fInputSignalEvent->GetMinTime() + (fNPoints - fTriggerDelay) * fSampling;
+        fTimeStart = fInputSignalEvent->GetMinTime() - fTriggerDelay * fSampling;
+        fTimeEnd = fInputSignalEvent->GetMinTime() + (fNPoints - fTriggerDelay) * fSampling;
     } else if (fTriggerMode == "integralThreshold") {
-        Double_t maxT = fInputSignalEvent->GetMaxTime();
-        Double_t minT = fInputSignalEvent->GetMinTime();
+        bool thresholdReached = false;
+        for (Double_t t = fInputSignalEvent->GetMinTime() - fNPoints * fSampling;
+             t <= fInputSignalEvent->GetMaxTime() + fNPoints * fSampling; t = t + 0.5) {
+            Double_t energy = fInputSignalEvent->GetIntegralWithTime(t, t + (fSampling * fNPoints) / 2.);
 
-        for (Double_t t = minT - fNPoints * fSampling; t <= maxT + fNPoints * fSampling; t = t + 0.5) {
-            Double_t en = fInputSignalEvent->GetIntegralWithTime(t, t + (fSampling * fNPoints) / 2.);
-
-            if (en > fIntegralThreshold) {
-                tStart = t - fTriggerDelay * fSampling;
-                tEnd = t + (fNPoints - fTriggerDelay) * fSampling;
+            if (energy > fIntegralThreshold) {
+                fTimeStart = t - fTriggerDelay * fSampling;
+                fTimeEnd = t + (fNPoints - fTriggerDelay) * fSampling;
+                thresholdReached = true;
             }
         }
-    } else {
-        if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
-            cout << "REST WARNING. TRestDetectorSignalToRawSignalProcess. fTriggerMode not "
-                    "recognized!"
-                 << endl;
-            cout << "Setting fTriggerMode to firstDeposit" << endl;
+        if (!thresholdReached) {
+            RESTWarning << "Integral threshold for trigger not reached" << RESTendl;
+            fTimeStart = 0;
+            fTimeEnd = fNPoints * fSampling;
         }
-
-        fTriggerMode = "firstDeposit";
-
-        tStart = fInputSignalEvent->GetMinTime() - fTriggerDelay * fSampling;
-        tEnd = fInputSignalEvent->GetMinTime() + (fNPoints - fTriggerDelay) * fSampling;
     }
 
-    if (std::isnan(tStart)) {
-        if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
-            cout << endl;
-            cout << "REST WARNING. TRestDetectorSignalToRawSignalProcess. tStart was not "
-                    "defined."
-                 << endl;
-            cout << "Setting tStart = 0. tEnd = fNPoints * fSampling" << endl;
-            cout << endl;
-        }
-
-        tEnd = fNPoints * fSampling;
-    }
-
-    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) {
-        cout << "tStart : " << tStart << " us " << endl;
-        cout << "tEnd : " << tEnd << " us " << endl;
-    }
+    RESTDebug << "fTimeStart : " << fTimeStart << " us " << RESTendl;
+    RESTDebug << "fTimeEnd : " << fTimeEnd << " us " << RESTendl;
 
     for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
-        vector<Double_t> sData(fNPoints);
-        for (int i = 0; i < fNPoints; i++) sData[i] = 0;
+        vector<Double_t> data(fNPoints, fCalibrationOffset);
+        TRestDetectorSignal* signal = fInputSignalEvent->GetSignal(n);
+        Int_t signalID = signal->GetSignalID();
 
-        TRestDetectorSignal* sgnl = fInputSignalEvent->GetSignal(n);
-        Int_t signalID = sgnl->GetSignalID();
+        for (int m = 0; m < signal->GetNumberOfPoints(); m++) {
+            Double_t t = signal->GetTime(m);
+            Double_t d = signal->GetData(m);
 
-        for (int m = 0; m < sgnl->GetNumberOfPoints(); m++) {
-            Double_t t = sgnl->GetTime(m);
-            Double_t d = sgnl->GetData(m);
-
-            if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug && n < 3 && m < 5)
+            if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug && n < 3 && m < 5) {
                 cout << "Signal : " << n << " Sample : " << m << " T : " << t << " Data : " << d << endl;
+            }
 
-            if (t > tStart && t < tEnd) {
+            if (t > fTimeStart && t < fTimeEnd) {
                 // convert physical time (in us) to timeBin
-                Int_t timeBin = (Int_t)round((t - tStart) / fSampling);
+                Int_t timeBin = (Int_t)round((t - fTimeStart) / fSampling);
 
-                if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning)
+                if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
                     if (timeBin < 0 || timeBin > fNPoints) {
                         cout << "Time bin out of range!!! bin value : " << timeBin << endl;
                         timeBin = 0;
                     }
+                }
 
-                RESTDebug << "Adding data : " << sgnl->GetData(m) << " to Time Bin : " << timeBin << RESTendl;
-                sData[timeBin] += fGain * sgnl->GetData(m);
+                RESTDebug << "Adding data : " << signal->GetData(m) << " to Time Bin : " << timeBin
+                          << RESTendl;
+                data[timeBin] += fCalibrationGain * signal->GetData(m);
             }
         }
 
-        if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning)
-            for (int x = 0; x < fNPoints; x++)
-                if (sData[x] < -32768. || sData[x] > 32768.)
-                    cout << "REST Warning : data is outside short range : " << sData[x] << endl;
+        if (IsShapingEnabled()) {
+            const auto shapingFunction = [](Double_t t) -> Double_t {
+                if (t <= 0) {
+                    return 0;
+                }
+                // function is normalized such that its absolute maximum is 1.0
+                // max is at x = 1.1664004483744728
+                return TMath::Exp(-3.0 * t) * TMath::Power(t, 3.0) * TMath::Sin(t) * 22.68112123672292;
+            };
 
-        TRestRawSignal rSgnl;
-        rSgnl.SetSignalID(signalID);
-        for (int x = 0; x < fNPoints; x++) {
-            if (sData[x] < -32768. || sData[x] > 32768.) fOutputRawSignalEvent->SetOK(false);
-
-            Short_t value = (Short_t)round(sData[x]);
-            rSgnl.AddPoint(value);
+            vector<Double_t> dataAfterShaping(fNPoints, fCalibrationOffset);
+            for (int i = 0; i < fNPoints; i++) {
+                const Double_t value = data[i] - fCalibrationOffset;
+                if (value <= 0) {
+                    // Only positive values are possible, 0 means no signal in this bin
+                    continue;
+                }
+                for (int j = 0; j < fNPoints; j++) {
+                    dataAfterShaping[j] += value * shapingFunction(((j - i) * fSampling) / fShapingTime);
+                }
+            }
+            data = dataAfterShaping;
         }
 
-        if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) rSgnl.Print();
+        TRestRawSignal rawSignal;
+        rawSignal.SetSignalID(signalID);
+        for (int x = 0; x < fNPoints; x++) {
+            double value = round(data[x]);
+            if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
+                if (value < numeric_limits<Short_t>::min() || value > numeric_limits<Short_t>::max()) {
+                    RESTWarning << "value (" << value << ") is outside short range ("
+                                << numeric_limits<Short_t>::min() << ", " << numeric_limits<Short_t>::max()
+                                << ")" << RESTendl;
+                }
+            }
+
+            if (value < numeric_limits<Short_t>::min()) {
+                value = numeric_limits<Short_t>::min();
+                fOutputRawSignalEvent->SetOK(false);
+            } else if (value > numeric_limits<Short_t>::max()) {
+                value = numeric_limits<Short_t>::max();
+                fOutputRawSignalEvent->SetOK(false);
+            }
+            rawSignal.AddPoint((Short_t)value);
+        }
+
+        if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) {
+            rawSignal.Print();
+        }
         RESTDebug << "Adding signal to raw signal event" << RESTendl;
-        fOutputRawSignalEvent->AddSignal(rSgnl);
+
+        fOutputRawSignalEvent->AddSignal(rawSignal);
     }
 
     RESTDebug << "TRestDetectorSignalToRawSignalProcess. Returning event with N signals "
-          << fOutputRawSignalEvent->GetNumberOfSignals() << RESTendl;
+              << fOutputRawSignalEvent->GetNumberOfSignals() << RESTendl;
 
     return fOutputRawSignalEvent;
 }
@@ -299,10 +316,48 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 /// TRestDetectorSignalToRawSignalProcess metadata section
 ///
 void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
-    fSampling = GetDblParameterWithUnits("sampling");
-    fNPoints = StringToInteger(GetParameter("Npoints", "512"));
-    fTriggerMode = GetParameter("triggerMode", "firstDeposit");
-    fTriggerDelay = StringToInteger(GetParameter("triggerDelay", 100));
-    fGain = StringToDouble(GetParameter("gain", "100"));
-    fIntegralThreshold = StringToDouble(GetParameter("integralThreshold", "1229"));
+    auto nPoints = GetParameter("nPoints");
+    if (nPoints == PARAMETER_NOT_FOUND_STR) {
+        nPoints = GetParameter("Npoints", fNPoints);
+    }
+    fNPoints = StringToInteger(nPoints);
+
+    fTriggerMode = GetParameter("triggerMode", fTriggerMode);
+    const set<string> validTriggerModes = {"firstDeposit", "integralThreshold", "fixed"};
+    if (validTriggerModes.count(fTriggerMode.Data()) == 0) {
+        RESTError << "Trigger mode set to: '" << fTriggerMode
+                  << "' which is not a valid trigger mode. Please use one of the following trigger modes: ";
+        for (const auto& triggerMode : validTriggerModes) {
+            RESTError << triggerMode << " ";
+        }
+        RESTError << RESTendl;
+        exit(1);
+    }
+
+    fSampling = GetDblParameterWithUnits("sampling", fSampling);
+    fTriggerDelay = StringToInteger(GetParameter("triggerDelay", fTriggerDelay));
+    fIntegralThreshold = StringToDouble(GetParameter("integralThreshold", fIntegralThreshold));
+    fTriggerFixedStartTime = GetDblParameterWithUnits("triggerFixedStartTime", fTriggerFixedStartTime);
+
+    fCalibrationGain = StringToDouble(GetParameter("gain", fCalibrationGain));
+    fCalibrationOffset = StringToDouble(GetParameter("offset", fCalibrationOffset));
+    fCalibrationEnergy = Get2DVectorParameterWithUnits("calibrationEnergy", fCalibrationEnergy);
+    fCalibrationRange = Get2DVectorParameterWithUnits("calibrationRange", fCalibrationRange);
+
+    if (IsLinearCalibration()) {
+        const auto range = numeric_limits<Short_t>::max() - numeric_limits<Short_t>::min();
+        fCalibrationGain = range * (fCalibrationRange.Y() - fCalibrationRange.X()) /
+                           (fCalibrationEnergy.Y() - fCalibrationEnergy.X());
+        fCalibrationOffset = range * (fCalibrationRange.X() - fCalibrationGain * fCalibrationEnergy.X()) +
+                             numeric_limits<Short_t>::min();
+    }
+
+    fShapingTime = GetDblParameterWithUnits("shapingTime", fShapingTime);
+}
+
+void TRestDetectorSignalToRawSignalProcess::InitProcess() {
+    if (fTriggerMode == "fixed") {
+        fTimeStart = fTriggerFixedStartTime - fTriggerDelay * fSampling;
+        fTimeEnd = fTimeStart + fNPoints * fSampling;
+    }
 }
