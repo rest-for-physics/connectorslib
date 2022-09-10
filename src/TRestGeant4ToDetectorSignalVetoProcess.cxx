@@ -1,10 +1,6 @@
 
 #include "TRestGeant4ToDetectorSignalVetoProcess.h"
 
-#include <fmt/color.h>
-#include <fmt/core.h>
-
-using namespace fmt;
 using namespace std;
 
 ClassImp(TRestGeant4ToDetectorSignalVetoProcess);
@@ -277,15 +273,6 @@ void TRestGeant4ToDetectorSignalVetoProcess::InitFromConfigFile() {
     fDriftVelocity = GetDblParameterWithUnits("driftVelocity", fDriftVelocity);
 }
 
-// TODO: Find how to place this so that we don't need to copy it in every source file
-template <>
-struct fmt::formatter<TVector3> : formatter<string> {
-    auto format(TVector3 c, format_context& ctx) {
-        string s = fmt::format("({:0.3f}, {:0.3f}, {:0.3f})", c.X(), c.Y(), c.Z());
-        return formatter<string>::format(s, ctx);
-    }
-};
-
 void TRestGeant4ToDetectorSignalVetoProcess::PrintMetadata() {
     BeginPrintProcess();
 
@@ -317,7 +304,9 @@ void TRestGeant4ToDetectorSignalVetoProcess::PrintMetadata() {
         const auto& vetoName = fVetoVolumes[i];
         const auto& vetoPosition = geometryInfo.GetPosition(vetoName);
 
-        print(" - Veto volume: {} - name: '{}' - position: {} mm\n", i, vetoName, vetoPosition);
+        cout << TString::Format(" - Veto volume: %d - name: '%s' - position: %s mm\n", i, vetoName.Data(),
+                                VectorToString(vetoPosition).c_str())
+             << endl;
 
         if (fVetoDetectorVolumes.empty()) {
             continue;
@@ -326,21 +315,23 @@ void TRestGeant4ToDetectorSignalVetoProcess::PrintMetadata() {
         const auto& vetoDetectorName = fVetoDetectorVolumes[i];
         const auto& vetoDetectorPosition = geometryInfo.GetPosition(vetoDetectorName);
 
-        print("   Veto detector name: '{}' - position: {} mm\n", vetoDetectorName, vetoDetectorPosition);
+        cout << TString::Format("   Veto detector name: '%s' - position: %s mm\n", vetoDetectorName.Data(),
+                                VectorToString(vetoDetectorPosition).c_str());
 
-        print("   Boundary position: {} mm - direction: {}\n", fVetoDetectorBoundaryPosition.at(vetoName),
-              fVetoDetectorBoundaryDirection.at(vetoName));
+        cout << TString::Format("   Boundary position: %s mm - direction: %s\n",
+                                VectorToString(fVetoDetectorBoundaryPosition.at(vetoName)).c_str(),
+                                VectorToString(fVetoDetectorBoundaryDirection.at(vetoName)).c_str());
     }
 
     if (!fDriftEnabled) {
-        print("Drift is not enabled\n");
+        cout << "Drift is not enabled" << endl;
     } else {
-        print("Drift is enabled\n");
-        print(" - Drift volume: {}\n", fDriftVolume);
-        print(" - Drift readout volume: {}\n", fDriftReadoutVolume);
-        print(" - Drift readout offset: {}\n", fDriftReadoutOffset);
-        print(" - Drift readout normal: {}\n", fDriftReadoutNormalDirection);
-        print(" - Drift velocity: {} mm/us\n", fDriftVelocity);
+        cout << "Drift is enabled" << endl;
+        cout << " - Drift volume: " << fDriftVolume << endl;
+        cout << " - Drift readout volume: " << fDriftReadoutVolume << endl;
+        cout << " - Drift readout offset: " << fDriftReadoutOffset << " mm" << endl;
+        cout << " - Drift readout normal: " << VectorToString(fDriftReadoutNormalDirection) << endl;
+        cout << " - Drift velocity: " << fDriftVelocity << " mm/us" << endl;
     }
 
     EndPrintProcess();
