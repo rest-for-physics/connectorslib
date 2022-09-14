@@ -20,7 +20,7 @@ defaults:
 
 jobs:
   framework-validation:
-    uses: rest-for-physics/framework/.github/workflows/validation.yml@lobis-prepare-for-multithreading # TODO: master
+    uses: rest-for-physics/framework/.github/workflows/validation.yml@master
   
   libCheck:
     name: Validate library
