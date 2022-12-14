@@ -139,7 +139,7 @@ Int_t TRestDetectorHitsToTrackFastProcess::FindTracks(TRestHits* hits) {
     vector<TRestVolumeHits> volHit(nTracksFound);
 
     double nan = numeric_limits<double>::quiet_NaN();
-    for (int h = 0; h < hits->GetNumberOfHits(); h++) {
+    for (unsigned int h = 0; h < hits->GetNumberOfHits(); h++) {
         Double_t x = hits->GetX(h);
         Double_t y = hits->GetY(h);
         Double_t z = hits->GetZ(h);

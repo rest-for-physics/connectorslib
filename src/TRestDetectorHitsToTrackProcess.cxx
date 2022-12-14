@@ -159,7 +159,8 @@ TRestEvent* TRestDetectorHitsToTrackProcess::ProcessEvent(TRestEvent* inputEvent
 
     if (fTrackEvent->GetNumberOfTracks() == 0) return nullptr;
 
-    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) fTrackEvent->PrintOnlyTracks();
+    if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug)
+        fTrackEvent->PrintOnlyTracks();
 
     fTrackEvent->SetLevels();
 
@@ -193,8 +194,8 @@ Int_t TRestDetectorHitsToTrackProcess::FindTracks(TRestHits* hits) {
         // for every point in Q
         for (unsigned int q = 0; q < Q.size(); q++) {
             // we look for the neighbours
-            for (int j = 0; j < hits->GetNumberOfHits(); j++) {
-                if (j != Q[q]) {
+            for (unsigned int j = 0; j < hits->GetNumberOfHits(); j++) {
+                if ((int)j != Q[q]) {
                     if (hits->GetDistance2(Q[q], j) < fClusterDistance2) P.push_back(j);
                 }
             }
@@ -248,7 +249,8 @@ Int_t TRestDetectorHitsToTrackProcess::FindTracks(TRestHits* hits) {
         track->SetVolumeHits(volHit);
         volHit.RemoveHits();
 
-        RESTDebug << "Adding track : id=" << track->GetTrackID() << " parent : " << track->GetParentID() << RESTendl;
+        RESTDebug << "Adding track : id=" << track->GetTrackID() << " parent : " << track->GetParentID()
+                  << RESTendl;
         fTrackEvent->AddTrack(track);
         nTracksFound++;
 

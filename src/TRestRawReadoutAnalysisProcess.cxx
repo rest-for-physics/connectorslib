@@ -44,8 +44,8 @@ void TRestRawReadoutAnalysisProcess::InitProcess() {
             TRestDetectorReadoutModule* mod = fReadout->GetReadoutModuleWithID(iter->first);
             if (mod == nullptr) {
                 RESTWarning << "REST Warning(TRestRawReadoutAnalysisProcess): readout "
-                           "module with id "
-                        << iter->first << " not found!" << RESTendl;
+                               "module with id "
+                            << iter->first << " not found!" << RESTendl;
             } else {
                 fModuleHitMaps[iter->first] =
                     new TH2D((TString) "Hitmap_M" + ToString(iter->first),
@@ -196,8 +196,8 @@ TRestEvent* TRestRawReadoutAnalysisProcess::ProcessEvent(TRestEvent* inputEvent)
                 // << endl; cout << endl;
 
                 RESTDebug << "TRestRawReadoutAnalysisProcess. Adding point to hitmap of "
-                         "module : "
-                      << mod1 << RESTendl;
+                             "module : "
+                          << mod1 << RESTendl;
                 RESTDebug << "Position on module(X, Y) : (" << x << ", " << y << ")" << RESTendl;
                 RESTDebug << "Absolute position:(X, Y) : (" << firstx << ", " << firsty << ")" << RESTendl;
             }
@@ -349,7 +349,7 @@ void TRestRawReadoutAnalysisProcess::InitFromConfigFile() {
 
     string moduleHist = GetParameter("modulesHist", "");
     auto histdef = Split(moduleHist, ":");
-    for (int i = 0; i < histdef.size(); i++) {
+    for (unsigned int i = 0; i < histdef.size(); i++) {
         fModuleHitMaps[StringToInteger(histdef[i])] = nullptr;
         fModuleActivityX[StringToInteger(histdef[i])] = nullptr;
         fModuleActivityY[StringToInteger(histdef[i])] = nullptr;

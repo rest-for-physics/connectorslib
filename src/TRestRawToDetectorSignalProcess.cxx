@@ -189,7 +189,7 @@ void TRestRawToDetectorSignalProcess::ZeroSuppresion(TRestRawSignal* rawSignal, 
                                              fNPointsOverThreshold, 512);
 
     std::vector<Int_t> pOver = rawSignal->GetPointsOverThreshold();
-    for (int n = 0; n < pOver.size(); n++) {
+    for (unsigned int n = 0; n < pOver.size(); n++) {
         int j = pOver[n];
         sgnl.NewPoint(fTriggerStarts + fSampling * j, fGain * rawSignal->GetData(j));
     }
