@@ -48,13 +48,14 @@ void TRestTrackToDetectorHitsProcess::InitProcess() {}
 TRestEvent* TRestTrackToDetectorHitsProcess::ProcessEvent(TRestEvent* inputEvent) {
     fInputTrackEvent = (TRestTrackEvent*)inputEvent;
 
-    if (this->GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) fInputTrackEvent->PrintOnlyTracks();
+    if (this->GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug)
+        fInputTrackEvent->PrintOnlyTracks();
 
     for (int n = 0; n < fInputTrackEvent->GetNumberOfTracks(); n++)
         if (fInputTrackEvent->GetLevel(n) == fTrackLevel) {
             TRestHits* hits = fInputTrackEvent->GetTrack(n)->GetHits();
 
-            for (int h = 0; h < hits->GetNumberOfHits(); h++)
+            for (unsigned int h = 0; h < hits->GetNumberOfHits(); h++)
                 fOutputHitsEvent->AddHit(hits->GetX(h), hits->GetY(h), hits->GetZ(h), hits->GetEnergy(h),
                                          hits->GetTime(h), hits->GetType(h));
         }

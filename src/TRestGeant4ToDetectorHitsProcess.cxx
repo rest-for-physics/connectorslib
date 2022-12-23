@@ -148,7 +148,7 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
     /* {{{ Debug output */
     RESTDebug << "Active volumes available in TRestGeant4Metadata" << RESTendl;
     RESTDebug << "-------------------------------------------" << RESTendl;
-    for (int n = 0; n < fG4Metadata->GetNumberOfActiveVolumes(); n++)
+    for (unsigned int n = 0; n < fG4Metadata->GetNumberOfActiveVolumes(); n++)
         RESTDebug << "Volume id : " << n << " name : " << fG4Metadata->GetActiveVolumeName(n) << RESTendl;
     RESTDebug << RESTendl;
 
@@ -157,7 +157,7 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
     if (fVolumeSelection.size() == 0)
         RESTDebug << "all" << RESTendl;
     else {
-        for (int n = 0; n < fVolumeSelection.size(); n++) {
+        for (unsigned int n = 0; n < fVolumeSelection.size(); n++) {
             RESTDebug << "" << RESTendl;
             RESTDebug << " - " << fVolumeSelection[n] << RESTendl;
         }
@@ -165,7 +165,8 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
     }
 
     if (fVolumeSelection.size() > 0 && fVolumeSelection.size() != fVolumeId.size())
-        RESTWarning << "TRestGeant4ToDetectorHitsProcess. Not all volumes were properly identified!" << RESTendl;
+        RESTWarning << "TRestGeant4ToDetectorHitsProcess. Not all volumes were properly identified!"
+                    << RESTendl;
 
     if (fVolumeId.size() > 0) {
         RESTDebug << "TRestGeant4HitsProcess volumes identified : ";
@@ -173,7 +174,7 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
         if (fVolumeSelection.size() == 0)
             RESTDebug << "all" << RESTendl;
         else
-            for (int n = 0; n < fVolumeSelection.size(); n++) {
+            for (unsigned int n = 0; n < fVolumeSelection.size(); n++) {
                 RESTDebug << "" << RESTendl;
                 RESTDebug << " - " << fVolumeSelection[n] << RESTendl;
             }
@@ -203,10 +204,10 @@ TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* inputEven
     fHitsEvent->SetTimeStamp(fG4Event->GetTimeStamp());
     fHitsEvent->SetState(fG4Event->isOk());
 
-    for (int i = 0; i < fG4Event->GetNumberOfTracks(); i++) {
+    for (unsigned int i = 0; i < fG4Event->GetNumberOfTracks(); i++) {
         const auto& track = fG4Event->GetTrack(i);
         const auto& hits = track.GetHits();
-        for (int j = 0; j < track.GetNumberOfHits(); j++) {
+        for (unsigned int j = 0; j < track.GetNumberOfHits(); j++) {
             const auto energy = hits.GetEnergy(j);
             for (const auto& volumeID : fVolumeId) {
                 if (hits.GetVolumeId(j) == volumeID && energy > 0) {
