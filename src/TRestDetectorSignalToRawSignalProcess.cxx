@@ -36,11 +36,11 @@
 /// information loss when transferring the signal data to the raw-signal data.
 /// To minimize the impact, the maximum data value of the output signals should
 /// be high enough, and adjusted to the maximum value of a Short_t, being
-/// this value 32768. The *gain* parameter may serve to re-adjust the
+/// this value 32767. The *gain* parameter may serve to re-adjust the
 /// amplitude of the output data array.
 ///
 /// \warning If the value assigned to a data point in the output rawsignal
-/// event exceeds 32768 it will cause an overflow, and the event data will
+/// event exceeds 32767 it will cause an overflow, and the event data will
 /// be corrupted. If the verboseLevel of the process is warning, an output
 /// message will prevent the user. The event status will be invalid.
 ///
@@ -62,7 +62,7 @@
 /// * **sampling**: It is the sampling time of the resulting raw signal
 /// output data. Time units must be specified (ns, us, ms)".
 ///
-/// * **Npoints**: The number of points of the resulting raw signals.
+/// * **nPoints**: The number of points of the resulting raw signals.
 ///
 /// * **triggerMode**: It defines how the start time is fixed. The
 /// different options are:
@@ -74,9 +74,13 @@
 ///     deposit. The time at which the value of this integral is above
 ///     the value provided at the **integralThreshold** parameter will
 ///     be defined as the center of the acquisition window.
+///   - *fixed*: User manually sets the time corresponding to the bin 0 via the **triggerFixedStartTime**
+///     parameter. It is affected by the **triggerDelay** parameter.
 ///
 /// * **integralThreshold**: It defines the value to be used in the
 ///     triggerThreshold method. This parameter is not used otherwise.
+///
+/// * **triggerFixedStartTime**: It defines the time (with units) of bin 0 when used with *fixed* trigger mode
 ///
 ///
 /// \htmlonly <style>div.image img[src="trigger.png"]{width:500px;}</style> \endhtmlonly
@@ -95,9 +99,19 @@
 /// * **gain**: Each data point from the resulting raw signal will be
 /// multiplied by this factor before performing the conversion to
 /// Short_t. Each value in the raw output signal should be between
-/// -32768 and 32768, resulting event data will be corrupted otherwise.
+/// -32768 and 32767, resulting event data will be corrupted otherwise.
 /// The state of the event will be set to false fOk=false.
 ///
+/// * **offset**: Value to add to all amplitudes (position of zero level)
+///
+/// * **calibrationEnergy**: Pair of energies used for linear calibration (alternative to setting gain/offset)
+/// * **calibrationRange**: Pair of numbers between 0.0 and 1.0 to define linear calibration.
+/// They correspond to the values of energy set by *calibrationEnergy*.
+/// 0.0 corresponds to the minimum of the signal range (-32768 for Short_t) and 1.0 to the maximum (32767 for
+/// Short_t)
+///
+/// * **shapingTime**: shaping time in time units. If set the signal will be shaped by sin shaper.
+/// We allow shaping in this process to avoid artifacts produced if shaping the signal after digitalization
 ///
 ///--------------------------------------------------------------------------
 ///

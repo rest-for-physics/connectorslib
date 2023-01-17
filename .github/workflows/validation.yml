@@ -29,7 +29,7 @@ jobs:
       image: ghcr.io/lobis/root-geant4-garfield:rest-for-physics
     steps:
       - uses: actions/checkout@v3
-      - run:  python3 pipeline/validateLibrary.py .
+      - run: python3 pipeline/validateLibrary.py .
 
   build-connectorslib:
     name: Build only connectorslib
