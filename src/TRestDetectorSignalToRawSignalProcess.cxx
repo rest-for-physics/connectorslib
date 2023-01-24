@@ -360,4 +360,12 @@ void TRestDetectorSignalToRawSignalProcess::InitProcess() {
         fTimeStart = fTriggerFixedStartTime - fTriggerDelay * fSampling;
         fTimeEnd = fTimeStart + fNPoints * fSampling;
     }
+
+    if (fTriggerMode != "notDefined") {
+        if (fNPoints == -1) {
+            RESTError << "TRestDetectorSignalToRawSignalProcess. Parameter NPoints has not been defined!"
+                      << RESTendl;
+            exit(1);
+        }
+    }
 }

@@ -48,7 +48,7 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     Int_t fNPoints = 512;
 
     /// It is used to define the way the time start will be fixed
-    TString fTriggerMode = "firstDeposit";
+    TString fTriggerMode = "notDefined";
 
     /// The number of time bins the time start is delayed in the resulting output signal.
     Int_t fTriggerDelay = 100;
