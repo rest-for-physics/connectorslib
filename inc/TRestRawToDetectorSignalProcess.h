@@ -90,10 +90,10 @@ class TRestRawToDetectorSignalProcess : public TRestEventProcess {
         RESTMetadata << "Gain : " << fGain << RESTendl;
 
         if (fZeroSuppression) {
-            RESTMetadata << "Base line range definition : ( " << fBaseLineRange.X() << " , " << fBaseLineRange.Y()
-                     << " ) " << RESTendl;
-            RESTMetadata << "Integral range : ( " << fIntegralRange.X() << " , " << fIntegralRange.Y() << " ) "
-                     << RESTendl;
+            RESTMetadata << "Base line range definition : ( " << fBaseLineRange.X() << " , "
+                         << fBaseLineRange.Y() << " ) " << RESTendl;
+            RESTMetadata << "Integral range : ( " << fIntegralRange.X() << " , " << fIntegralRange.Y()
+                         << " ) " << RESTendl;
             RESTMetadata << "Point Threshold : " << fPointThreshold << " sigmas" << RESTendl;
             RESTMetadata << "Signal threshold : " << fSignalThreshold << " sigmas" << RESTendl;
             RESTMetadata << "Number of points over threshold : " << fNPointsOverThreshold << RESTendl;

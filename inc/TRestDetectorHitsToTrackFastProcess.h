@@ -53,8 +53,8 @@ class TRestDetectorHitsToTrackFastProcess : public TRestEventProcess {
 
         RESTMetadata << " Cell resolution : " << fCellResolution << " mm " << RESTendl;
         RESTMetadata << " Net size : " << fNetSize << " mm " << RESTendl;
-        RESTMetadata << " Net origin : ( " << fNetOrigin.X() << " , " << fNetOrigin.Y() << " , " << fNetOrigin.Z()
-                 << " ) mm " << RESTendl;
+        RESTMetadata << " Net origin : ( " << fNetOrigin.X() << " , " << fNetOrigin.Y() << " , "
+                     << fNetOrigin.Z() << " ) mm " << RESTendl;
         RESTMetadata << " Number of nodes (per axis) : " << fNodes << RESTendl;
 
         EndPrintProcess();
