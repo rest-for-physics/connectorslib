@@ -29,7 +29,7 @@ jobs:
       image: ghcr.io/lobis/root-geant4-garfield:rest-for-physics
     steps:
       - uses: actions/checkout@v3
-      - run:  python3 pipeline/validateLibrary.py .
+      - run: python3 pipeline/validateLibrary.py .
 
   build-connectorslib:
     name: Build only connectorslib
@@ -43,6 +43,10 @@ jobs:
         with:
           cmake-flags: "-DCMAKE_INSTALL_PREFIX=${{ env.REST_PATH }} -DCMAKE_BUILD_TYPE=${{ env.CMAKE_BUILD_TYPE }} -DREST_WELCOME=ON -DRESTLIB_CONNECTORS=ON"
           branch: ${{ env.BRANCH_NAME }}
+      - name: Verify pre-commit config files match
+        run: |
+          cd $GITHUB_WORKSPACE
+          python ${{ env.REST_PATH }}/scripts/validatePreCommitConfig.py
       - name: Load REST libraries
         run: |
           source ${{ env.REST_PATH }}/thisREST.sh
