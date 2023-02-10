@@ -1,17 +1,13 @@
 name: Validation
 
 on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
-  release:
-
   workflow_dispatch:
+  workflow_call:
 
 env:
   CMAKE_BUILD_TYPE: Release
   REST_PATH: /rest/connectorslib/install
+  CONNECTORS_LIB_PATH: connectorslib
   BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
 
 defaults:
@@ -19,17 +15,19 @@ defaults:
     shell: bash
 
 jobs:
-  framework-validation:
-    uses: rest-for-physics/framework/.github/workflows/validation.yml@master
-  
+
   libCheck:
     name: Validate library
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/lobis/root-geant4-garfield:rest-for-physics
     steps:
-      - uses: actions/checkout@v3
-      - run:  python3 pipeline/validateLibrary.py .
+      - uses: rest-for-physics/framework/.github/actions/checkout@submodule-validation
+        with:
+          branch: ${{ env.BRANCH_NAME }}
+          repository: rest-for-physics/connectorslib
+          path: ${{ env.CONNECTORS_LIB_PATH }}
+      - run: python3 ${{ env.CONNECTORS_LIB_PATH }}/pipeline/validateLibrary.py .
 
   build-connectorslib:
     name: Build only connectorslib
