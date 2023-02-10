@@ -14,7 +14,7 @@
 
 #include <TH1D.h>
 
-//#include <TCanvas.h>
+// #include <TCanvas.h>
 
 #include <TRestDetectorGas.h>
 #include <TRestDetectorHitsEvent.h>

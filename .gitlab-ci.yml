@@ -28,4 +28,3 @@ Validate Library:
   except:
     variables:
       - $CRONJOB == "YES"
-
