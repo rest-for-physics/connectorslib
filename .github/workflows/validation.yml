@@ -1,17 +1,13 @@
 name: Validation
 
 on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
-  release:
-
   workflow_dispatch:
+  workflow_call:
 
 env:
   CMAKE_BUILD_TYPE: Release
   REST_PATH: /rest/connectorslib/install
+  CONNECTORS_LIB_PATH: connectorslib
   BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
 
 defaults:
@@ -19,17 +15,35 @@ defaults:
     shell: bash
 
 jobs:
-  framework-validation:
-    uses: rest-for-physics/framework/.github/workflows/validation.yml@master
-
   libCheck:
     name: Validate library
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/lobis/root-geant4-garfield:rest-for-physics
     steps:
-      - uses: actions/checkout@v3
-      - run: python3 pipeline/validateLibrary.py .
+      - uses: rest-for-physics/framework/.github/actions/checkout@submodule-validation
+        with:
+          branch: ${{ env.BRANCH_NAME }}
+          repository: rest-for-physics/connectorslib
+          path: ${{ env.CONNECTORS_LIB_PATH }}
+      - run: python3 ${{ env.CONNECTORS_LIB_PATH }}/pipeline/validateLibrary.py .
+
+  precommit-config:
+    name: Validate pre-commit config
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/lobis/root-geant4-garfield:rest-for-physics
+    steps:
+      - name: Checkout connectorslib
+        uses: rest-for-physics/framework/.github/actions/checkout@submodule-validation
+        with:
+          branch: ${{ env.BRANCH_NAME }}
+          repository: rest-for-physics/connectorslib
+          path: ${{ env.CONNECTORS_LIB_PATH }}
+      - name: Verify pre-commit config files match
+        run: |
+          cd ${{ env.CONNECTORS_LIB_PATH }}
+          curl https://raw.githubusercontent.com/rest-for-physics/framework/master/scripts/validatePreCommitConfig.py | python
 
   build-connectorslib:
     name: Build only connectorslib
@@ -37,16 +51,11 @@ jobs:
     container:
       image: ghcr.io/lobis/root-geant4-garfield:rest-for-physics
     steps:
-      - uses: actions/checkout@v3
       - name: Build and install
         uses: rest-for-physics/framework/.github/actions/build@master
         with:
           cmake-flags: "-DCMAKE_INSTALL_PREFIX=${{ env.REST_PATH }} -DCMAKE_BUILD_TYPE=${{ env.CMAKE_BUILD_TYPE }} -DREST_WELCOME=ON -DRESTLIB_CONNECTORS=ON"
           branch: ${{ env.BRANCH_NAME }}
-      - name: Verify pre-commit config files match
-        run: |
-          cd $GITHUB_WORKSPACE
-          curl https://raw.githubusercontent.com/rest-for-physics/framework/master/scripts/validatePreCommitConfig.py | python
       - name: Load REST libraries
         run: |
           source ${{ env.REST_PATH }}/thisREST.sh
