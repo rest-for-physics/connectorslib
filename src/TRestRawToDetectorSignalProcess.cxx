@@ -55,6 +55,10 @@
 /// * **signalThreshold**: The number of sigmas a set of consecutive points
 /// identified over threshold must be over the baseline fluctuations to be
 /// finally considered a physical signal.
+/// * **signalSmoothing**: Perform smoothing of the signal before saving as
+/// a TRestDetectorSignalEvent
+/// * **averagingPoints**: In case smoothing is performed set the number of
+/// points to be averaged to perform the smoothing
 ///
 /// List of observables:
 ///
@@ -69,7 +73,8 @@
 /// // A raw signal with 200ns binning will be translated to a
 /// // TRestDetectorSignalEvent. The new signal will start at time=20us, and its
 /// // amplitude will be reduced a factor 50. If zeroSuppression is true it will
-/// // perform
+/// // perform the substraction of the points out of the range of interest. A
+/// // smoothing of the signal will be performed using 3 averaging points.
 ///
 /// <TRestRawToDetectorSignalProcess name="rsTos" title"Raw signal to signal">
 ///     <parameter name="sampling" value="0.2" units="us" />
@@ -81,6 +86,8 @@
 ///     <parameter name="pointThreshold" value="3"/>
 ///     <parameter name="signalThreshold" value="7"/>
 ///     <parameter name="nPointsOverThreshold" value="7"/>
+///     <parameter name="signalSmoothing" value="false"/>
+///     <parameter name="averagingPoints" value="3"/>
 ///     <observable name="NSignalsRejected" value="ON"/>
 ///
 /// </TRestRawToDetectorSignalProcess>
@@ -119,6 +126,7 @@
 /// <hr>
 ///
 #include "TRestRawToDetectorSignalProcess.h"
+#include "TRestSignalAnalysis.h"
 using namespace std;
 
 ClassImp(TRestRawToDetectorSignalProcess);
@@ -163,18 +171,17 @@ TRestEvent* TRestRawToDetectorSignalProcess::ProcessEvent(TRestEvent* inputEvent
         TRestRawSignal* rawSignal = fInputSignalEvent->GetSignal(n);
         signal.SetID(rawSignal->GetID());
 
-        if (fZeroSuppression) {
-            ZeroSuppresion(rawSignal, signal);
+        if (fSignalSmoothing) {
+            ProcessSignalSmoothed(rawSignal, signal);
         } else {
-            for (int p = 0; p < rawSignal->GetNumberOfPoints(); p++)
-                if (rawSignal->GetData(p) > fThreshold)
-                    signal.NewPoint(fTriggerStarts + fSampling * p, fGain * rawSignal->GetData(p));
+            ProcessSignal(rawSignal, signal);
         }
 
-        if (signal.GetNumberOfPoints() > 0)
+        if (signal.GetNumberOfPoints() > 0) {
             fOutputSignalEvent->AddSignal(signal);
-        else
+        } else {
             rejectedSignal++;
+        }
     }
 
     SetObservableValue("NSignalsRejected", rejectedSignal);
@@ -184,13 +191,48 @@ TRestEvent* TRestRawToDetectorSignalProcess::ProcessEvent(TRestEvent* inputEvent
     return fOutputSignalEvent;
 }
 
-void TRestRawToDetectorSignalProcess::ZeroSuppresion(TRestRawSignal* rawSignal, TRestDetectorSignal& sgnl) {
-    rawSignal->InitializePointsOverThreshold(TVector2(fPointThreshold, fSignalThreshold),
-                                             fNPointsOverThreshold, 512);
+///////////////////////////////////////////////
+/// \brief This function performs the smoothing
+/// of the TRestRawSignalEvent before transforming
+/// on a TRestDetectorSignalEvent
+///
+void TRestRawToDetectorSignalProcess::ProcessSignalSmoothed(TRestRawSignal* rawSignal,
+                                                            TRestDetectorSignal& sgnl) {
+    auto smoothed = rawSignal->GetSignalSmoothed(fAveragingPoints);
+    const double baseline = rawSignal->GetBaseLine();
+    const double baselineSigma = rawSignal->GetBaseLineSigma();
+    if (fZeroSuppression) {
+        auto pOver = TRestSignalAnalysis::GetPointsOverThreshold(
+            smoothed, fIntegralRange, TVector2(fPointThreshold, fSignalThreshold), fNPointsOverThreshold, 512,
+            baseline, baselineSigma);
+        for (const auto& j : pOver) {
+            sgnl.NewPoint(fTriggerStarts + fSampling * j, fGain * smoothed[j] - baseline);
+        }
+    } else {
+        for (int p = 0; p < smoothed.size(); p++) {
+            const double data = smoothed[p] - baseline;
+            if (data > fThreshold) sgnl.NewPoint(fTriggerStarts + fSampling * p, fGain * data);
+        }
+    }
+}
 
-    std::vector<Int_t> pOver = rawSignal->GetPointsOverThreshold();
-    for (unsigned int n = 0; n < pOver.size(); n++) {
-        int j = pOver[n];
-        sgnl.NewPoint(fTriggerStarts + fSampling * j, fGain * rawSignal->GetData(j));
+///////////////////////////////////////////////
+/// \brief This function transform a TRestRawSignalEvent
+/// into a TRestDetectorSignalEvent without
+/// any processing, despite Zero suppression
+///
+void TRestRawToDetectorSignalProcess::ProcessSignal(TRestRawSignal* rawSignal, TRestDetectorSignal& sgnl) {
+    if (fZeroSuppression) {
+        rawSignal->InitializePointsOverThreshold(TVector2(fPointThreshold, fSignalThreshold),
+                                                 fNPointsOverThreshold, 512);
+
+        auto pOver = rawSignal->GetPointsOverThreshold();
+        for (const auto& j : pOver) {
+            sgnl.NewPoint(fTriggerStarts + fSampling * j, fGain * rawSignal->GetData(j));
+        }
+    } else {
+        for (int p = 0; p < rawSignal->GetNumberOfPoints(); p++)
+            if (rawSignal->GetData(p) > fThreshold)
+                sgnl.NewPoint(fTriggerStarts + fSampling * p, fGain * rawSignal->GetData(p));
     }
 }
