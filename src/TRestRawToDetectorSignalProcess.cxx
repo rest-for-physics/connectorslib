@@ -209,7 +209,7 @@ void TRestRawToDetectorSignalProcess::ProcessSignalSmoothed(TRestRawSignal* rawS
             sgnl.NewPoint(fTriggerStarts + fSampling * j, fGain * smoothed[j] - baseline);
         }
     } else {
-        for (int p = 0; p < smoothed.size(); p++) {
+        for (size_t p = 0; p < smoothed.size(); p++) {
             const double data = smoothed[p] - baseline;
             if (data > fThreshold) sgnl.NewPoint(fTriggerStarts + fSampling * p, fGain * data);
         }
