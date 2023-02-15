@@ -126,6 +126,7 @@
 /// <hr>
 ///
 #include "TRestRawToDetectorSignalProcess.h"
+
 #include "TRestSignalAnalysis.h"
 using namespace std;
 
