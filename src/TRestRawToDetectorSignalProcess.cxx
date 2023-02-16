@@ -205,8 +205,8 @@ void TRestRawToDetectorSignalProcess::ProcessSignalSmoothed(TRestRawSignal* rawS
         auto pOver = TRestSignalAnalysis::GetPointsOverThreshold(
             smoothed, fIntegralRange, TVector2(fPointThreshold, fSignalThreshold), fNPointsOverThreshold, 512,
             baseline, baselineSigma);
-        for (const auto& j : pOver) {
-            sgnl.NewPoint(fTriggerStarts + fSampling * j, fGain * smoothed[j] - baseline);
+        for (const auto& [j, data] : pOver) {
+            sgnl.NewPoint(fTriggerStarts + fSampling * j, fGain * data);
         }
     } else {
         for (size_t p = 0; p < smoothed.size(); p++) {
@@ -227,8 +227,8 @@ void TRestRawToDetectorSignalProcess::ProcessSignal(TRestRawSignal* rawSignal, T
                                                  fNPointsOverThreshold, 512);
 
         auto pOver = rawSignal->GetPointsOverThreshold();
-        for (const auto& j : pOver) {
-            sgnl.NewPoint(fTriggerStarts + fSampling * j, fGain * rawSignal->GetData(j));
+        for (const auto& [j, data] : pOver) {
+            sgnl.NewPoint(fTriggerStarts + fSampling * j, fGain * data);
         }
     } else {
         for (int p = 0; p < rawSignal->GetNumberOfPoints(); p++)
