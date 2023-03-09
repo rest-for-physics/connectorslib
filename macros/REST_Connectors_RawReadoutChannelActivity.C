@@ -1,9 +1,16 @@
+<<<<<<< HEAD
 //*******************************************************************************************************
 //*** Description: This macro receives as input two variable names that correspond to a file with the raw data
 //*** and the file with the readout.
 //*** It creates readout channel activity plots for X and Y directions and for AGET ID.
 //***
 //**********************************************************************************************************
+=======
+#include <cstdio>
+#include <cstdlib>
+
+#include "TFile.h"
+>>>>>>> 17936907cce53737e2be2b7ad000d82f0e72d3dc
 
 Int_t REST_Connectors_RawReadoutChannelActivity(string fName, TString fReadout) {
     //// Readout ////
