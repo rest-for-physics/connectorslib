@@ -36,8 +36,6 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     /// A pointer to the specific TRestRawSignalEvent input
     TRestRawSignalEvent* fOutputRawSignalEvent;  //!
 
-    void InitFromConfigFile() override;
-
     void Initialize() override;
 
    protected:
