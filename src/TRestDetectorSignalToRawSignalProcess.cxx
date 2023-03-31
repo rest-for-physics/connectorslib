@@ -178,6 +178,35 @@ void TRestDetectorSignalToRawSignalProcess::Initialize() {
 }
 
 ///////////////////////////////////////////////
+/// \brief Some actions taken before start the event data processing
+///
+void TRestDetectorSignalToRawSignalProcess::InitProcess() {
+    if (fTriggerMode == "fixed") {
+        fTimeStart = fTriggerFixedStartTime - fTriggerDelay * fSampling;
+        fTimeEnd = fTimeStart + fNPoints * fSampling;
+    }
+
+    const set<string> validTriggerModes = {"firstDeposit", "integralThreshold", "fixed"};
+    if (validTriggerModes.count(fTriggerMode.Data()) == 0) {
+        RESTError << "Trigger mode set to: '" << fTriggerMode
+                  << "' which is not a valid trigger mode. Please use one of the following trigger modes: ";
+        for (const auto& triggerMode : validTriggerModes) {
+            RESTError << triggerMode << " ";
+        }
+        RESTError << RESTendl;
+        exit(1);
+    }
+
+    if (IsLinearCalibration()) {
+        const auto range = numeric_limits<Short_t>::max() - numeric_limits<Short_t>::min();
+        fCalibrationGain = range * (fCalibrationRange.Y() - fCalibrationRange.X()) /
+                           (fCalibrationEnergy.Y() - fCalibrationEnergy.X());
+        fCalibrationOffset = range * (fCalibrationRange.X() - fCalibrationGain * fCalibrationEnergy.X()) +
+                             numeric_limits<Short_t>::min();
+    }
+}
+
+///////////////////////////////////////////////
 /// \brief The main processing event function
 ///
 TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inputEvent) {
@@ -309,55 +338,4 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
               << fOutputRawSignalEvent->GetNumberOfSignals() << RESTendl;
 
     return fOutputRawSignalEvent;
-}
-
-///////////////////////////////////////////////
-/// \brief Function reading input parameters from the RML
-/// TRestDetectorSignalToRawSignalProcess metadata section
-///
-void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
-    auto nPoints = GetParameter("nPoints");
-    if (nPoints == PARAMETER_NOT_FOUND_STR) {
-        nPoints = GetParameter("Npoints", fNPoints);
-    }
-    fNPoints = StringToInteger(nPoints);
-
-    fTriggerMode = GetParameter("triggerMode", fTriggerMode);
-    const set<string> validTriggerModes = {"firstDeposit", "integralThreshold", "fixed"};
-    if (validTriggerModes.count(fTriggerMode.Data()) == 0) {
-        RESTError << "Trigger mode set to: '" << fTriggerMode
-                  << "' which is not a valid trigger mode. Please use one of the following trigger modes: ";
-        for (const auto& triggerMode : validTriggerModes) {
-            RESTError << triggerMode << " ";
-        }
-        RESTError << RESTendl;
-        exit(1);
-    }
-
-    fSampling = GetDblParameterWithUnits("sampling", fSampling);
-    fTriggerDelay = StringToInteger(GetParameter("triggerDelay", fTriggerDelay));
-    fIntegralThreshold = StringToDouble(GetParameter("integralThreshold", fIntegralThreshold));
-    fTriggerFixedStartTime = GetDblParameterWithUnits("triggerFixedStartTime", fTriggerFixedStartTime);
-
-    fCalibrationGain = StringToDouble(GetParameter("gain", fCalibrationGain));
-    fCalibrationOffset = StringToDouble(GetParameter("offset", fCalibrationOffset));
-    fCalibrationEnergy = Get2DVectorParameterWithUnits("calibrationEnergy", fCalibrationEnergy);
-    fCalibrationRange = Get2DVectorParameterWithUnits("calibrationRange", fCalibrationRange);
-
-    if (IsLinearCalibration()) {
-        const auto range = numeric_limits<Short_t>::max() - numeric_limits<Short_t>::min();
-        fCalibrationGain = range * (fCalibrationRange.Y() - fCalibrationRange.X()) /
-                           (fCalibrationEnergy.Y() - fCalibrationEnergy.X());
-        fCalibrationOffset = range * (fCalibrationRange.X() - fCalibrationGain * fCalibrationEnergy.X()) +
-                             numeric_limits<Short_t>::min();
-    }
-
-    fShapingTime = GetDblParameterWithUnits("shapingTime", fShapingTime);
-}
-
-void TRestDetectorSignalToRawSignalProcess::InitProcess() {
-    if (fTriggerMode == "fixed") {
-        fTimeStart = fTriggerFixedStartTime - fTriggerDelay * fSampling;
-        fTimeEnd = fTimeStart + fNPoints * fSampling;
-    }
 }

@@ -138,18 +138,21 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
     fG4Metadata = GetMetadata<TRestGeant4Metadata>();
 
     for (unsigned int n = 0; n < fVolumeSelection.size(); n++) {
-        if (fG4Metadata->GetActiveVolumeID(fVolumeSelection[n]) >= 0)
+        if (fG4Metadata->GetActiveVolumeID(fVolumeSelection[n]) >= 0) {
             fVolumeId.push_back(fG4Metadata->GetActiveVolumeID(fVolumeSelection[n]));
-        else if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning)
+        } else if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning)
             cout << "TRestGeant4ToDetectorHitsProcess. volume name : " << fVolumeSelection[n]
                  << " not found and will not be added." << endl;
     }
 
-    /* {{{ Debug output */
+    sort(fVolumeId.begin(), fVolumeId.end());
+    fVolumeId.erase(unique(fVolumeId.begin(), fVolumeId.end()), fVolumeId.end());
+
     RESTDebug << "Active volumes available in TRestGeant4Metadata" << RESTendl;
     RESTDebug << "-------------------------------------------" << RESTendl;
-    for (unsigned int n = 0; n < fG4Metadata->GetNumberOfActiveVolumes(); n++)
+    for (unsigned int n = 0; n < fG4Metadata->GetNumberOfActiveVolumes(); n++) {
         RESTDebug << "Volume id : " << n << " name : " << fG4Metadata->GetActiveVolumeName(n) << RESTendl;
+    }
     RESTDebug << RESTendl;
 
     RESTDebug << "TRestGeant4HitsProcess volumes enabled in RML : ";
@@ -180,7 +183,6 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
             }
         RESTDebug << " " << RESTendl;
     }
-    /* }}} */
 }
 
 ///////////////////////////////////////////////
@@ -246,8 +248,9 @@ void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
 void TRestGeant4ToDetectorHitsProcess::PrintMetadata() {
     BeginPrintProcess();
 
-    for (unsigned int n = 0; n < fVolumeSelection.size(); n++)
+    for (unsigned int n = 0; n < fVolumeSelection.size(); n++) {
         RESTMetadata << "Volume added : " << fVolumeSelection[n] << RESTendl;
+    }
 
     EndPrintProcess();
 }
