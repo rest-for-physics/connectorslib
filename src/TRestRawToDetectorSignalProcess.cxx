@@ -117,6 +117,8 @@
 ///             Javier Galan
 /// 2022-January: Adding ZeroSuppression method
 ///             JuanAn Garcia
+/// 2023-April: Added new method to process smoothed data
+///             JuanAn Garcia
 ///
 /// \class      TRestRawToDetectorSignalProcess
 /// \author     Javier Gracia
