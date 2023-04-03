@@ -129,7 +129,7 @@
 ///
 #include "TRestRawToDetectorSignalProcess.h"
 
-#include "TRestSignalAnalysis.h"
+#include "TRestPulseShapeAnalysis.h"
 using namespace std;
 
 ClassImp(TRestRawToDetectorSignalProcess);
@@ -201,12 +201,12 @@ TRestEvent* TRestRawToDetectorSignalProcess::ProcessEvent(TRestEvent* inputEvent
 ///
 void TRestRawToDetectorSignalProcess::ProcessSignalSmoothed(TRestRawSignal* rawSignal,
                                                             TRestDetectorSignal& sgnl) {
-    auto smoothed = TRestSignalAnalysis::GetSignalSmoothed(rawSignal->GetData(), fAveragingPoints);
+    auto smoothed = TRestPulseShapeAnalysis::GetSignalSmoothed(rawSignal->GetData(), fAveragingPoints);
     const double baselineSigma = rawSignal->GetBaseLineSigma();
     if (fZeroSuppression) {
-        auto pOver = TRestSignalAnalysis::GetPointsOverThreshold(smoothed, fIntegralRange,
-                                                                 TVector2(fPointThreshold, fSignalThreshold),
-                                                                 fNPointsOverThreshold, 512, baselineSigma);
+        auto pOver = TRestPulseShapeAnalysis::GetPointsOverThreshold(
+            smoothed, fIntegralRange, TVector2(fPointThreshold, fSignalThreshold), fNPointsOverThreshold, 512,
+            baselineSigma);
         for (const auto& [j, data] : pOver) {
             sgnl.NewPoint(fTriggerStarts + fSampling * j, fGain * data);
         }
