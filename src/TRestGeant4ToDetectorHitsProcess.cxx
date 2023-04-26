@@ -23,7 +23,7 @@
 //////////////////////////////////////////////////////////////////////////
 /// This process allows to select the GDML geometry volumes (defined in
 /// TRestGeant4Metadata) that will be transferred to the TRestDetectorHitsEvent by
-/// using the `<addVolume` key inside the process definition.
+/// using the `<volume` key inside the process definition.
 ///
 /// The following example shows how to include the process into
 /// `TRestProcessRunner` RML definition. In this particular example we
@@ -33,12 +33,12 @@
 /// \code
 ///
 /// <addProcess type="TRestGeant4ToDetectorHitsProcess" name="g4ToHits" value="ON">
-///     <addVolume name="gas" />
-///     <addVolume name="vessel" />
+///     <volume name="gas"/>
+///     <volume name="vessel"/>
 /// </addProcess>
 /// \endcode
 ///
-/// If no volumes are defined using the `<addVolume` key, **all volumes will
+/// If no volumes are defined using the `<volume` key, **all volumes will
 /// be active**, and all hits will be transferred to the TRestDetectorHitsEvent output.
 ///
 ///--------------------------------------------------------------------------
@@ -243,7 +243,15 @@ void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
     }
 
     set<string> volumesToAdd;
-    TiXmlElement *volumeDefinition = GetElement("addVolume");
+    TiXmlElement *volumeDefinition = GetElement("volume");
+    if (volumeDefinition == nullptr) {
+        volumeDefinition = GetElement("addVolume");
+        if (volumeDefinition != nullptr) {
+            RESTWarning
+                    << "TRestGeant4ToDetectorHitsProcess. 'addVolume' tag is deprecated. Please use 'volume' instead."
+                    << RESTendl;
+        }
+    }
     while (volumeDefinition != nullptr) {
         const auto userVolume = GetFieldValue("name", volumeDefinition);
         if (userVolume == "Not defined") {
