@@ -242,13 +242,13 @@ void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
                     << RESTendl;
     }
 
-    size_t position = 0;
-    string addVolumeDefinition;
-
-    while (!(addVolumeDefinition = GetKEYDefinition("addVolume", position)).empty()) {
-        set<string> volumesToAdd;
-
-        const auto userVolume = GetFieldValue("name", addVolumeDefinition);
+    set<string> volumesToAdd;
+    TiXmlElement *volumeDefinition = GetElement("addVolume");
+    while (volumeDefinition != nullptr) {
+        const auto userVolume = GetFieldValue("name", volumeDefinition);
+        if (userVolume == "Not defined") {
+            RESTError << "TRestGeant4ToDetectorHitsProcess. No name defined for volume" << RESTendl;
+        }
         if (fGeant4Metadata != nullptr) {
             const auto &geometryInfo = fGeant4Metadata->GetGeant4GeometryInfo();
 
@@ -272,10 +272,12 @@ void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
             volumesToAdd.insert(userVolume);
         }
 
-        for (const auto &volume: volumesToAdd) {
-            if (find(fVolumeSelection.begin(), fVolumeSelection.end(), volume) == fVolumeSelection.end()) {
-                fVolumeSelection.emplace_back(volume);
-            }
+        volumeDefinition = GetNextElement(volumeDefinition);
+    }
+
+    for (const auto &volume: volumesToAdd) {
+        if (find(fVolumeSelection.begin(), fVolumeSelection.end(), volume) == fVolumeSelection.end()) {
+            fVolumeSelection.emplace_back(volume);
         }
     }
 }
