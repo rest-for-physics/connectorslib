@@ -80,7 +80,7 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
     // Destructor
     ~TRestGeant4ToDetectorHitsProcess() override;
 
-    ClassDefOverride(TRestGeant4ToDetectorHitsProcess, 1);  // Transform a TRestGeant4Event event to a
+    ClassDefOverride(TRestGeant4ToDetectorHitsProcess, 2);  // Transform a TRestGeant4Event event to a
                                                             // TRestDetectorHitsEvent (hits-collection event)
 };
 
