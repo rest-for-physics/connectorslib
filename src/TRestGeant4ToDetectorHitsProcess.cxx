@@ -82,7 +82,7 @@ TRestGeant4ToDetectorHitsProcess::TRestGeant4ToDetectorHitsProcess() { Initializ
 ///
 /// \param configFilename A const char* giving the path to an RML file.
 ///
-TRestGeant4ToDetectorHitsProcess::TRestGeant4ToDetectorHitsProcess(const char *configFilename) {
+TRestGeant4ToDetectorHitsProcess::TRestGeant4ToDetectorHitsProcess(const char* configFilename) {
     Initialize();
 
     if (LoadConfigFromFile(configFilename)) LoadDefaultConfig();
@@ -126,7 +126,7 @@ void TRestGeant4ToDetectorHitsProcess::Initialize() {
 /// \param name The name of the specific metadata. It will be used to find the
 /// corresponding TRestGeant4ToDetectorHitsProcess section inside the RML.
 ///
-void TRestGeant4ToDetectorHitsProcess::LoadConfig(const string &configFilename, const string &name) {
+void TRestGeant4ToDetectorHitsProcess::LoadConfig(const string& configFilename, const string& name) {
     if (LoadConfigFromFile(configFilename, name)) LoadDefaultConfig();
 }
 
@@ -137,7 +137,7 @@ void TRestGeant4ToDetectorHitsProcess::LoadConfig(const string &configFilename, 
 void TRestGeant4ToDetectorHitsProcess::InitProcess() {
     fGeant4Metadata = GetMetadata<TRestGeant4Metadata>();
 
-    for (const auto &userVolume: fVolumeSelection) {
+    for (const auto& userVolume : fVolumeSelection) {
         if (fGeant4Metadata->GetActiveVolumeID(userVolume) >= 0) {
             fVolumeId.push_back(fGeant4Metadata->GetActiveVolumeID(userVolume));
         } else if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning)
@@ -160,7 +160,7 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
     if (fVolumeSelection.empty())
         RESTDebug << "all" << RESTendl;
     else {
-        for (const auto &volume: fVolumeSelection) {
+        for (const auto& volume : fVolumeSelection) {
             RESTDebug << "" << RESTendl;
             RESTDebug << " - " << volume << RESTendl;
         }
@@ -177,7 +177,7 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
         if (fVolumeSelection.empty())
             RESTDebug << "all" << RESTendl;
         else
-            for (const auto &volume: fVolumeSelection) {
+            for (const auto& volume : fVolumeSelection) {
                 RESTDebug << "" << RESTendl;
                 RESTDebug << " - " << volume << RESTendl;
             }
@@ -188,8 +188,8 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
 ///////////////////////////////////////////////
 /// \brief The main processing event function
 ///
-TRestEvent *TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent *inputEvent) {
-    fGeant4Event = (TRestGeant4Event *) inputEvent;
+TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* inputEvent) {
+    fGeant4Event = (TRestGeant4Event*)inputEvent;
 
     if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Extreme) {
         cout << "------ TRestGeant4ToDetectorHitsProcess --- Printing Input Event --- START ----" << endl;
@@ -207,11 +207,11 @@ TRestEvent *TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent *inputEven
     fHitsEvent->SetState(fGeant4Event->isOk());
 
     for (unsigned int i = 0; i < fGeant4Event->GetNumberOfTracks(); i++) {
-        const auto &track = fGeant4Event->GetTrack(i);
-        const auto &hits = track.GetHits();
+        const auto& track = fGeant4Event->GetTrack(i);
+        const auto& hits = track.GetHits();
         for (unsigned int j = 0; j < track.GetNumberOfHits(); j++) {
             const auto energy = hits.GetEnergy(j);
-            for (const auto &volumeID: fVolumeId) {
+            for (const auto& volumeID : fVolumeId) {
                 if (hits.GetVolumeId(j) == volumeID && energy > 0) {
                     fHitsEvent->AddHit(hits.GetX(j), hits.GetY(j), hits.GetZ(j), energy);
                 }
@@ -243,13 +243,13 @@ void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
     }
 
     set<string> volumesToAdd;
-    TiXmlElement *volumeDefinition = GetElement("volume");
+    TiXmlElement* volumeDefinition = GetElement("volume");
     if (volumeDefinition == nullptr) {
         volumeDefinition = GetElement("addVolume");
         if (volumeDefinition != nullptr) {
-            RESTWarning
-                    << "TRestGeant4ToDetectorHitsProcess. 'addVolume' tag is deprecated. Please use 'volume' instead."
-                    << RESTendl;
+            RESTWarning << "TRestGeant4ToDetectorHitsProcess. 'addVolume' tag is deprecated. Please use "
+                           "'volume' instead."
+                        << RESTendl;
         }
     }
     while (volumeDefinition != nullptr) {
@@ -258,22 +258,20 @@ void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
             RESTError << "TRestGeant4ToDetectorHitsProcess. No name defined for volume" << RESTendl;
         }
         if (fGeant4Metadata != nullptr) {
-            const auto &geometryInfo = fGeant4Metadata->GetGeant4GeometryInfo();
+            const auto& geometryInfo = fGeant4Metadata->GetGeant4GeometryInfo();
 
-            auto physicalVolumes =
-                    geometryInfo.GetAllPhysicalVolumesMatchingExpression(userVolume);
+            auto physicalVolumes = geometryInfo.GetAllPhysicalVolumesMatchingExpression(userVolume);
             if (physicalVolumes.empty()) {
-                const auto logicalVolumes =
-                        geometryInfo.GetAllLogicalVolumesMatchingExpression(userVolume);
-                for (const auto &logicalVolume: logicalVolumes) {
-                    for (const auto &physicalVolume:
-                            geometryInfo.GetAllPhysicalVolumesFromLogical(logicalVolume)) {
+                const auto logicalVolumes = geometryInfo.GetAllLogicalVolumesMatchingExpression(userVolume);
+                for (const auto& logicalVolume : logicalVolumes) {
+                    for (const auto& physicalVolume :
+                         geometryInfo.GetAllPhysicalVolumesFromLogical(logicalVolume)) {
                         physicalVolumes.push_back(
-                                geometryInfo.GetAlternativeNameFromGeant4PhysicalName(physicalVolume));
+                            geometryInfo.GetAlternativeNameFromGeant4PhysicalName(physicalVolume));
                     }
                 }
             }
-            for (const auto &physicalVolume: physicalVolumes) {
+            for (const auto& physicalVolume : physicalVolumes) {
                 volumesToAdd.insert(physicalVolume.Data());
             }
         } else {
@@ -283,7 +281,7 @@ void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
         volumeDefinition = GetNextElement(volumeDefinition);
     }
 
-    for (const auto &volume: volumesToAdd) {
+    for (const auto& volume : volumesToAdd) {
         if (find(fVolumeSelection.begin(), fVolumeSelection.end(), volume) == fVolumeSelection.end()) {
             fVolumeSelection.emplace_back(volume);
         }
@@ -296,7 +294,7 @@ void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
 void TRestGeant4ToDetectorHitsProcess::PrintMetadata() {
     BeginPrintProcess();
 
-    for (const auto &volume: fVolumeSelection) {
+    for (const auto& volume : fVolumeSelection) {
         RESTMetadata << "Volume added : " << volume << RESTendl;
     }
 
