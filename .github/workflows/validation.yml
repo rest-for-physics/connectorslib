@@ -19,7 +19,7 @@ jobs:
     name: Validate library
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/lobis/root-geant4-garfield:rest-for-physics
+      image: ghcr.io/rest-for-physics/root-garfield:latest
     steps:
       - uses: rest-for-physics/framework/.github/actions/checkout@master
         with:
@@ -32,7 +32,7 @@ jobs:
     name: Validate pre-commit config
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/lobis/root-geant4-garfield:rest-for-physics
+      image: ghcr.io/rest-for-physics/root-garfield:latest
     steps:
       - name: Checkout connectorslib
         uses: rest-for-physics/framework/.github/actions/checkout@master
@@ -49,7 +49,7 @@ jobs:
     name: Build only connectorslib
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/lobis/root-geant4-garfield:rest-for-physics
+      image: ghcr.io/rest-for-physics/root-garfield:latest
     steps:
       - name: Build and install
         uses: rest-for-physics/framework/.github/actions/build@master
