@@ -59,7 +59,7 @@ class TRestRawToDetectorSignalProcess : public TRestEventProcess {
     TVector2 fBaseLineRange = TVector2(5, 55);
 
     /// The ADC range used for integral definition and signal identification
-    TVector2 fIntegralRange = TVector2(10, 500);
+    TVector2 fAnalysisRange = TVector2(10, 500);
 
     /// Number of sigmas over baseline fluctuation to accept a point is over threshold.
     Double_t fPointThreshold = 3;
@@ -90,10 +90,17 @@ class TRestRawToDetectorSignalProcess : public TRestEventProcess {
         RESTMetadata << "Gain : " << fGain << RESTendl;
 
         if (fZeroSuppression) {
+<<<<<<< Updated upstream
             RESTMetadata << "Base line range definition : ( " << fBaseLineRange.X() << " , "
                          << fBaseLineRange.Y() << " ) " << RESTendl;
             RESTMetadata << "Integral range : ( " << fIntegralRange.X() << " , " << fIntegralRange.Y()
                          << " ) " << RESTendl;
+=======
+            RESTMetadata << "Base line range definition : ( " << fBaseLineRange.X() << " , "
+                         << fBaseLineRange.Y() << " ) " << RESTendl;
+            RESTMetadata << "Integral range : ( " << fAnalysisRange.X() << " , " << fAnalysisRange.Y()
+                         << " ) " << RESTendl;
+>>>>>>> Stashed changes
             RESTMetadata << "Point Threshold : " << fPointThreshold << " sigmas" << RESTendl;
             RESTMetadata << "Signal threshold : " << fSignalThreshold << " sigmas" << RESTendl;
             RESTMetadata << "Number of points over threshold : " << fNPointsOverThreshold << RESTendl;
@@ -117,6 +124,6 @@ class TRestRawToDetectorSignalProcess : public TRestEventProcess {
     // Destructor
     ~TRestRawToDetectorSignalProcess();
 
-    ClassDefOverride(TRestRawToDetectorSignalProcess, 2);
+    ClassDefOverride(TRestRawToDetectorSignalProcess, 3);
 };
 #endif

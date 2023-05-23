@@ -155,7 +155,7 @@ TRestEvent* TRestRawToDetectorSignalProcess::ProcessEvent(TRestEvent* inputEvent
 
     if (fZeroSuppression) {
         fInputSignalEvent->SetBaseLineRange(fBaseLineRange);
-        fInputSignalEvent->SetRange(fIntegralRange);
+        fInputSignalEvent->SetRange(fAnalysisRange);
     }
 
     for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
