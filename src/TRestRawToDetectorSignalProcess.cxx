@@ -46,7 +46,7 @@
 /// * **zeroSuppression**: If true, performs zero suppression of the data
 /// * **baselineRange**: A 2D-vector definning the range, in number of bins,
 /// where the baseline properties will be calculated.
-/// * **integralRange**: A 2D-vector definning the time window, in number of bins,
+/// * **analysisRange**: A 2D-vector definning the time window, in number of bins,
 /// where the signal will be considered.
 /// * **pointThreshold**: The number of sigmas over the baseline flunctuations to
 /// consider a point is over the threshold.
@@ -77,7 +77,7 @@
 ///     <parameter name="gain" value="1/50." />
 ///     <parameter name="zeroSuppression" value="true"/>
 ///     <parameter name="baseLineRange" value="(20,140)"/>
-///     <parameter name="integralRange" value="(150,450)"/>
+///     <parameter name="analysisRange" value="(150,450)"/>
 ///     <parameter name="pointThreshold" value="3"/>
 ///     <parameter name="signalThreshold" value="7"/>
 ///     <parameter name="nPointsOverThreshold" value="7"/>
