@@ -1,4 +1,4 @@
-### Perhaps this could be a common cmake macro inside framework
+# Perhaps this could be a common cmake macro inside framework
 execute_process(
     COMMAND git describe --abbrev=0 --tags
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
@@ -6,7 +6,7 @@ execute_process(
     ERROR_VARIABLE gitstatuserr)
 
 string(REPLACE "\n" "" LibraryVersion ${LibraryVersion})
-message( "Connectors library version: ${LibraryVersion}")
+message("Connectors library version: ${LibraryVersion}")
 add_definitions(-DLIBRARY_VERSION="${LibraryVersion}")
 
 set(excludes)
