@@ -1,4 +1,4 @@
-set(LibraryVersion "1.3")
+set_library_version(LibraryVersion)
 add_definitions(-DLIBRARY_VERSION="${LibraryVersion}")
 
 set(excludes)
