@@ -24,10 +24,12 @@
 #define RestCore_TRestGeant4ToDetectorHitsProcess
 
 #include <TRestDetectorHitsEvent.h>
+#include <TRestEventProcess.h>
 #include <TRestGeant4Event.h>
 #include <TRestGeant4Metadata.h>
 
-#include "TRestEventProcess.h"
+#include <string>
+#include <vector>
 
 /// A process to transform a *TRestGeant4Event* into a *TRestDetectorHitsEvent*.
 class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
