@@ -175,6 +175,7 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
         RESTDebug << "TRestGeant4ToDetectorHitsProcess. Volume " << volume << " selected." << RESTendl;
     }
 
+    fVolumeId.clear();
     for (unsigned int n = 0; n < fVolumeSelection.size(); n++) {
         if (fG4Metadata->GetActiveVolumeID(fVolumeSelection[n]) >= 0) {
             fVolumeId.push_back(fG4Metadata->GetActiveVolumeID(fVolumeSelection[n]));
@@ -185,6 +186,11 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
 
     sort(fVolumeId.begin(), fVolumeId.end());
     fVolumeId.erase(unique(fVolumeId.begin(), fVolumeId.end()), fVolumeId.end());
+
+    for (size_t i = 0; i < fVolumeId.size(); i++) {
+        RESTInfo << "TRestGeant4ToDetectorHitsProcess. Volume id : " << fVolumeId[i]
+                 << " name : " << fG4Metadata->GetActiveVolumeName(fVolumeId[i]) << RESTendl;
+    }
 
     RESTDebug << "Active volumes available in TRestGeant4Metadata" << RESTendl;
     RESTDebug << "-------------------------------------------" << RESTendl;
@@ -229,6 +235,8 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
 TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* inputEvent) {
     fG4Event = (TRestGeant4Event*)inputEvent;
 
+    fG4Event->InitializeReferences(GetRunInfo());
+
     if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Extreme) {
         cout << "------ TRestGeant4ToDetectorHitsProcess --- Printing Input Event --- START ----" << endl;
         fG4Event->PrintEvent();
@@ -244,22 +252,24 @@ TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* inputEven
     fHitsEvent->SetTimeStamp(fG4Event->GetTimeStamp());
     fHitsEvent->SetState(fG4Event->isOk());
 
-    for (unsigned int i = 0; i < fG4Event->GetNumberOfTracks(); i++) {
-        const auto& track = fG4Event->GetTrack(i);
+    for (const auto& track : fG4Event->GetTracks()) {
         const auto& hits = track.GetHits();
-        for (unsigned int j = 0; j < track.GetNumberOfHits(); j++) {
-            const auto energy = hits.GetEnergy(j);
+        for (unsigned int i = 0; i < track.GetNumberOfHits(); i++) {
+            const auto energy = hits.GetEnergy(i);
             if (energy <= 0) {
                 continue;
             }
+            const TVector3& position = hits.GetPosition(i);
             if (fVolumeId.empty()) {
                 // if no volume is selected, all hits are added
-                fHitsEvent->AddHit(hits.GetX(j), hits.GetY(j), hits.GetZ(j), energy);
+                fHitsEvent->AddHit(position.X(), position.Y(), position.Z(), energy);
             } else {
-                for (const auto& volumeID : fVolumeId) {
-                    if (hits.GetVolumeId(j) == volumeID) {
-                        fHitsEvent->AddHit(hits.GetX(j), hits.GetY(j), hits.GetZ(j), energy);
-                    }
+                // const auto volumeId = hits.GetVolumeId(i);
+                const auto volumeName = hits.GetVolumeName(i);
+                const auto volumeId = fG4Metadata->GetActiveVolumeID(volumeName);
+                // cout << "volumeName : " << volumeName << " volumeId : " << volumeId << endl;
+                if (find(fVolumeId.begin(), fVolumeId.end(), volumeId) != fVolumeId.end()) {
+                    fHitsEvent->AddHit(position.X(), position.Y(), position.Z(), energy);
                 }
             }
         }
