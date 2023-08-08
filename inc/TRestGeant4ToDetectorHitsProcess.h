@@ -33,10 +33,10 @@
 class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
    private:
     /// A pointer to the input TRestGeant4Event
-    TRestGeant4Event* fG4Event;  //!
+    TRestGeant4Event* fGeant4Event;  //!
 
     /// A pointer to the Geant4 simulation conditions stored in TRestGeant4Metadata
-    TRestGeant4Metadata* fG4Metadata;  //!
+    TRestGeant4Metadata* fGeant4Metadata;  //!
 
     /// A pointer to the output TRestDetectorHitsEvent
     TRestDetectorHitsEvent* fHitsEvent;  //!
@@ -57,7 +57,8 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
     // add here the members of your event process
 
    public:
-    any GetInputEvent() const override { return fG4Event; }
+    any GetInputEvent() const override { return fGeant4Event; }
+
     any GetOutputEvent() const override { return fHitsEvent; }
 
     void InitProcess() override;
@@ -69,15 +70,18 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
     void PrintMetadata() override;
 
     /// Returns the name of this process
-    const char* GetProcessName() const override { return "g4toHitsEvent"; }
+    const char* GetProcessName() const override { return "geant4toHits"; }
 
     // Constructor
     TRestGeant4ToDetectorHitsProcess();
-    TRestGeant4ToDetectorHitsProcess(const char* configFilename);
-    // Destructor
-    ~TRestGeant4ToDetectorHitsProcess();
 
-    ClassDefOverride(TRestGeant4ToDetectorHitsProcess, 1);  // Transform a TRestGeant4Event event to a
+    explicit TRestGeant4ToDetectorHitsProcess(const char* configFilename);
+
+    // Destructor
+    ~TRestGeant4ToDetectorHitsProcess() override;
+
+    ClassDefOverride(TRestGeant4ToDetectorHitsProcess, 2);  // Transform a TRestGeant4Event event to a
                                                             // TRestDetectorHitsEvent (hits-collection event)
 };
+
 #endif
