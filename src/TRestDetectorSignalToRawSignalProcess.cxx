@@ -32,10 +32,10 @@
 ///
 /// This process produces the sampling of a TRestDetectorSignalEvent into a
 /// TRestRawSignalEvent. TRestDetectorSignal contains Float_t data values, while
-/// TResRawSignal contains Short_t values. Thats why there might be some
+/// TResRawSignal contains UShort_t values. Thats why there might be some
 /// information loss when transferring the signal data to the raw-signal data.
 /// To minimize the impact, the maximum data value of the output signals should
-/// be high enough, and adjusted to the maximum value of a Short_t, being
+/// be high enough, and adjusted to the maximum value of a UShort_t, being
 /// this value 32767. The *gain* parameter may serve to re-adjust the
 /// amplitude of the output data array.
 ///
@@ -98,8 +98,8 @@
 ///
 /// * **gain**: Each data point from the resulting raw signal will be
 /// multiplied by this factor before performing the conversion to
-/// Short_t. Each value in the raw output signal should be between
-/// -32768 and 32767, resulting event data will be corrupted otherwise.
+/// UShort_t. Each value in the raw output signal should be between
+/// 0 and 65535, resulting event data will be corrupted otherwise.
 /// The state of the event will be set to false fOk=false.
 ///
 /// * **offset**: Value to add to all amplitudes (position of zero level)
@@ -107,8 +107,8 @@
 /// * **calibrationEnergy**: Pair of energies used for linear calibration (alternative to setting gain/offset)
 /// * **calibrationRange**: Pair of numbers between 0.0 and 1.0 to define linear calibration.
 /// They correspond to the values of energy set by *calibrationEnergy*.
-/// 0.0 corresponds to the minimum of the signal range (-32768 for Short_t) and 1.0 to the maximum (32767 for
-/// Short_t)
+/// 0.0 corresponds to the minimum of the signal range (0 for UShort_t) and 1.0 to the maximum (65535 for
+/// UShort_t)
 ///
 /// * **shapingTime**: shaping time in time units. If set the signal will be shaped by sin + undershoot
 /// shaper. We allow shaping in this process to avoid artifacts produced if shaping the signal after
@@ -305,21 +305,21 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
         for (int x = 0; x < fNPoints; x++) {
             double value = round(data[x]);
             if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
-                if (value < numeric_limits<Short_t>::min() || value > numeric_limits<Short_t>::max()) {
+                if (value < numeric_limits<UShort_t>::min() || value > numeric_limits<UShort_t>::max()) {
                     RESTWarning << "value (" << value << ") is outside short range ("
-                                << numeric_limits<Short_t>::min() << ", " << numeric_limits<Short_t>::max()
+                                << numeric_limits<UShort_t>::min() << ", " << numeric_limits<UShort_t>::max()
                                 << ")" << RESTendl;
                 }
             }
 
-            if (value < numeric_limits<Short_t>::min()) {
-                value = numeric_limits<Short_t>::min();
+            if (value < numeric_limits<UShort_t>::min()) {
+                value = numeric_limits<UShort_t>::min();
                 fOutputRawSignalEvent->SetOK(false);
-            } else if (value > numeric_limits<Short_t>::max()) {
-                value = numeric_limits<Short_t>::max();
+            } else if (value > numeric_limits<UShort_t>::max()) {
+                value = numeric_limits<UShort_t>::max();
                 fOutputRawSignalEvent->SetOK(false);
             }
-            rawSignal.AddPoint((Short_t)value);
+            rawSignal.AddPoint(value);
         }
 
         if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) {
@@ -370,11 +370,11 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
     fCalibrationRange = Get2DVectorParameterWithUnits("calibrationRange", fCalibrationRange);
 
     if (IsLinearCalibration()) {
-        const auto range = numeric_limits<Short_t>::max() - numeric_limits<Short_t>::min();
+        const auto range = numeric_limits<UShort_t>::max() - numeric_limits<UShort_t>::min();
         fCalibrationGain = range * (fCalibrationRange.Y() - fCalibrationRange.X()) /
                            (fCalibrationEnergy.Y() - fCalibrationEnergy.X());
         fCalibrationOffset = range * (fCalibrationRange.X() - fCalibrationGain * fCalibrationEnergy.X()) +
-                             numeric_limits<Short_t>::min();
+                             numeric_limits<UShort_t>::min();
     }
 
     fShapingTime = GetDblParameterWithUnits("shapingTime", fShapingTime);
