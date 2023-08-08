@@ -37,6 +37,7 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     TRestRawSignalEvent* fOutputRawSignalEvent;  //!
 
     void Initialize() override;
+    void InitFromConfigFile() override;
 
    protected:
     /// The sampling time from the binned raw output signal
