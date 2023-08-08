@@ -223,16 +223,17 @@ TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* inputEven
                 continue;
             }
             const TVector3& position = hits.GetPosition(i);
+            const double time = hits.GetTime(i);
             if (fVolumeId.empty()) {
                 // if no volume is selected, all hits are added
-                fHitsEvent->AddHit(position.X(), position.Y(), position.Z(), energy);
+                fHitsEvent->AddHit(position.X(), position.Y(), position.Z(), energy, time);
             } else {
                 // const auto volumeId = hits.GetVolumeId(i);
                 const auto volumeName = hits.GetVolumeName(i);
                 const auto volumeId = fGeant4Metadata->GetActiveVolumeID(volumeName);
                 // cout << "volumeName : " << volumeName << " volumeId : " << volumeId << endl;
                 if (find(fVolumeId.begin(), fVolumeId.end(), volumeId) != fVolumeId.end()) {
-                    fHitsEvent->AddHit(position.X(), position.Y(), position.Z(), energy);
+                    fHitsEvent->AddHit(position.X(), position.Y(), position.Z(), energy, time);
                 }
             }
         }
