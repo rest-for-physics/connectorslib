@@ -32,15 +32,15 @@
 ///
 /// This process produces the sampling of a TRestDetectorSignalEvent into a
 /// TRestRawSignalEvent. TRestDetectorSignal contains Float_t data values, while
-/// TResRawSignal contains Short_t values. Thats why there might be some
+/// TResRawSignal contains UShort_t values. That's why there might be some
 /// information loss when transferring the signal data to the raw-signal data.
 /// To minimize the impact, the maximum data value of the output signals should
-/// be high enough, and adjusted to the maximum value of a Short_t, being
-/// this value 32768. The *gain* parameter may serve to re-adjust the
+/// be high enough, and adjusted to the maximum value of a UShort_t, being
+/// this value 65535. The *gain* parameter may serve to re-adjust the
 /// amplitude of the output data array.
 ///
 /// \warning If the value assigned to a data point in the output rawsignal
-/// event exceeds 32768 it will cause an overflow, and the event data will
+/// event exceeds 65535 it will cause an overflow, and the event data will
 /// be corrupted. If the verboseLevel of the process is warning, an output
 /// message will prevent the user. The event status will be invalid.
 ///
@@ -94,10 +94,9 @@
 ///
 /// * **gain**: Each data point from the resulting raw signal will be
 /// multiplied by this factor before performing the conversion to
-/// Short_t. Each value in the raw output signal should be between
-/// -32768 and 32768, resulting event data will be corrupted otherwise.
+/// UShort_t. Each value in the raw output signal should be between
+/// 0 and 65535, resulting event data will be corrupted otherwise.
 /// The state of the event will be set to false fOk=false.
-///
 ///
 ///--------------------------------------------------------------------------
 ///
@@ -309,21 +308,21 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
         for (int x = 0; x < fNPoints; x++) {
             double value = round(data[x]);
             if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
-                if (value < numeric_limits<Short_t>::min() || value > numeric_limits<Short_t>::max()) {
+                if (value < numeric_limits<UShort_t>::min() || value > numeric_limits<UShort_t>::max()) {
                     RESTWarning << "value (" << value << ") is outside short range ("
-                                << numeric_limits<Short_t>::min() << ", " << numeric_limits<Short_t>::max()
+                                << numeric_limits<UShort_t>::min() << ", " << numeric_limits<UShort_t>::max()
                                 << ")" << RESTendl;
                 }
             }
 
-            if (value < numeric_limits<Short_t>::min()) {
-                value = numeric_limits<Short_t>::min();
+            if (value < numeric_limits<UShort_t>::min()) {
+                value = numeric_limits<UShort_t>::min();
                 fOutputRawSignalEvent->SetOK(false);
-            } else if (value > numeric_limits<Short_t>::max()) {
-                value = numeric_limits<Short_t>::max();
+            } else if (value > numeric_limits<UShort_t>::max()) {
+                value = numeric_limits<UShort_t>::max();
                 fOutputRawSignalEvent->SetOK(false);
             }
-            rawSignal.AddPoint((Short_t)value);
+            rawSignal.AddPoint((UShort_t)value);
         }
 
         if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) {
