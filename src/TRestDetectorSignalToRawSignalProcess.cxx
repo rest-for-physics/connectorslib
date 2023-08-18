@@ -283,7 +283,8 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                 }
                 // function is normalized such that its absolute maximum is 1.0
                 // max is at x = 1.1664004483744728
-                return sinShaper(t) - 1.0 * sinShaper(t - 1);
+                // return sinShaper(t) - 1.0 * sinShaper(t - 1); // to add undershoot
+                return sinShaper(t);
             };
 
             vector<Double_t> dataAfterShaping(fNPoints, fCalibrationOffset);
