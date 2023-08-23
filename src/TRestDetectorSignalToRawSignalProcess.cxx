@@ -76,6 +76,8 @@
 ///     be defined as the center of the acquisition window.
 ///   - *fixed*: User manually sets the time corresponding to the bin 0 via the **triggerFixedStartTime**
 ///     parameter. It is affected by the **triggerDelay** parameter.
+///   - *observable*: User manually sets the time corresponding to the bin 0 via the
+///   **triggerModeObservableName**
 ///
 /// * **integralThreshold**: It defines the value to be used in the
 ///     triggerThreshold method. This parameter is not used otherwise.
@@ -230,8 +232,13 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
         if (!thresholdReached) {
             RESTWarning << "Integral threshold for trigger not reached" << RESTendl;
             fTimeStart = 0;
-            fTimeEnd = fNPoints * fSampling;
+            fTimeEnd = fTimeStart + fNPoints * fSampling;
         }
+    } else if (fTriggerMode == "observable") {
+        const auto obs = GetObservableValue<double>(fTriggerModeObservableName);
+
+        fTimeStart = obs - fTriggerDelay * fSampling;
+        fTimeEnd = fTimeStart + fNPoints * fSampling;
     }
 
     RESTDebug << "fTimeStart : " << fTimeStart << " us " << RESTendl;
@@ -349,7 +356,7 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
     fNPoints = StringToInteger(nPoints);
 
     fTriggerMode = GetParameter("triggerMode", fTriggerMode);
-    const set<string> validTriggerModes = {"firstDeposit", "integralThreshold", "fixed"};
+    const set<string> validTriggerModes = {"firstDeposit", "integralThreshold", "fixed", "observable"};
     if (validTriggerModes.count(fTriggerMode.Data()) == 0) {
         RESTError << "Trigger mode set to: '" << fTriggerMode
                   << "' which is not a valid trigger mode. Please use one of the following trigger modes: ";
@@ -370,6 +377,14 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
     fCalibrationEnergy = Get2DVectorParameterWithUnits("calibrationEnergy", fCalibrationEnergy);
     fCalibrationRange = Get2DVectorParameterWithUnits("calibrationRange", fCalibrationRange);
 
+    if (fTriggerMode == "observable") {
+        fTriggerModeObservableName = GetParameter("triggerModeObservableName", "");
+        if (fTriggerModeObservableName == "") {
+            RESTError << "You need to set 'triggerModeObservableName' to a valid analysis tree observable"
+                      << RESTendl;
+            exit(1);
+        }
+    }
     if (IsLinearCalibration()) {
         const auto range = numeric_limits<Short_t>::max() - numeric_limits<Short_t>::min();
         fCalibrationGain = range * (fCalibrationRange.Y() - fCalibrationRange.X()) /

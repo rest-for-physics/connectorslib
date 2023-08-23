@@ -55,6 +55,9 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     /// The starting time for the "fixed" trigger mode (can be offset by the trigger delay)
     Int_t fTriggerFixedStartTime = 0;
 
+    /// The name of the observable used to define the trigger mode (i.e. g4Ana_sensitiveVolumeFirstHitTime)
+    std::string fTriggerModeObservableName;
+
     /// fCalibrationGain and fCalibrationOffset define the linear calibration.
     /// output = input * fCalibrationGain + calibrationOffset
     Double_t fCalibrationGain = 100.0;
