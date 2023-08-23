@@ -357,7 +357,7 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
 
     fTriggerMode = GetParameter("triggerMode", fTriggerMode);
     const set<string> validTriggerModes = {"firstDeposit", "integralThreshold", "fixed", "observable"};
-    if (validTriggerModes.count(fTriggerMode.Data()) == 0) {
+    if (validTriggerModes.count(fTriggerMode) == 0) {
         RESTError << "Trigger mode set to: '" << fTriggerMode
                   << "' which is not a valid trigger mode. Please use one of the following trigger modes: ";
         for (const auto& triggerMode : validTriggerModes) {

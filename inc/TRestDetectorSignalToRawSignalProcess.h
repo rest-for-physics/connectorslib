@@ -47,7 +47,7 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     Int_t fNPoints = 512;
 
     /// It is used to define the way the time start will be fixed
-    TString fTriggerMode = "firstDeposit";
+    std::string fTriggerMode = "firstDeposit";
 
     /// The number of time bins the time start is delayed in the resulting output signal.
     Int_t fTriggerDelay = 100;
@@ -88,8 +88,8 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     inline Int_t GetNPoints() const { return fNPoints; }
     inline void SetNPoints(Int_t nPoints) { fNPoints = nPoints; }
 
-    inline TString GetTriggerMode() const { return fTriggerMode; }
-    inline void SetTriggerMode(const TString& triggerMode) { fTriggerMode = triggerMode; }
+    inline std::string GetTriggerMode() const { return fTriggerMode; }
+    inline void SetTriggerMode(const std::string& triggerMode) { fTriggerMode = triggerMode; }
 
     inline Int_t GetTriggerDelay() const { return fTriggerDelay; }
     inline void SetTriggerDelay(Int_t triggerDelay) { fTriggerDelay = triggerDelay; }
@@ -166,6 +166,6 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     // Destructor
     ~TRestDetectorSignalToRawSignalProcess();
 
-    ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 3);
+    ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 4);
 };
 #endif
