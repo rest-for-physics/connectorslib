@@ -166,7 +166,7 @@ TRestEvent* TRestRawToDetectorSignalProcess::ProcessEvent(TRestEvent* inputEvent
         if (fZeroSuppression) {
             ZeroSuppresion(rawSignal, signal);
         } else {
-            for (int p = 0; p < rawSignal->GetNumberOfPoints(); p++)
+            for (int p = 0; p < int(rawSignal->GetNumberOfPoints()); p++)
                 if (rawSignal->GetData(p) > fThreshold)
                     signal.NewPoint(fTriggerStarts + fSampling * p, fGain * rawSignal->GetData(p));
         }
