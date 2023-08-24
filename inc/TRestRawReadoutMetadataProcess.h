@@ -12,16 +12,20 @@
 
 class TRestRawReadoutMetadataProcess : public TRestEventProcess {
    private:
-    TRestRawSignalEvent* fSignalEvent;  //!
-    TRestDetectorReadout* fReadout;     //!
+    TRestRawSignalEvent* fSignalEvent = nullptr;  //!
+    TRestDetectorReadout* fReadout = nullptr;     //!
 
    public:
     any GetInputEvent() const override { return fSignalEvent; }
     any GetOutputEvent() const override { return fSignalEvent; }
 
     void InitProcess() override;
+    TRestEvent* ProcessEvent(TRestEvent* inputEvent) override { return inputEvent; }
+    void EndProcess() override {}
 
     const char* GetProcessName() const override { return "readoutMetadata"; }
+
+    explicit TRestRawReadoutMetadataProcess(const char* configFilename){};
 
     TRestRawReadoutMetadataProcess() = default;
     ~TRestRawReadoutMetadataProcess() = default;

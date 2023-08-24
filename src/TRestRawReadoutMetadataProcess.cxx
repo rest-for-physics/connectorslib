@@ -42,6 +42,18 @@ void TRestRawReadoutMetadata::InitializeFromReadout(TRestDetectorReadout* readou
 }
 
 void TRestRawReadoutMetadataProcess::InitProcess() {
-    //
-    //
+    fReadout = GetMetadata<TRestDetectorReadout>();
+    if (!fReadout) {
+        cerr << "TRestRawReadoutMetadataProcess::InitProcess: readout is null" << endl;
+        exit(1);
+    }
+
+    TRestRawReadoutMetadata* metadata = GetMetadata<TRestRawReadoutMetadata>();
+    if (!metadata) {
+        metadata = new TRestRawReadoutMetadata();
+
+        metadata->InitializeFromReadout(fReadout);
+
+        metadata->Write("readoutRawMetadata", TObject::kOverwrite);
+    }
 }
