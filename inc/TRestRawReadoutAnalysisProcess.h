@@ -13,9 +13,6 @@
 #define RestCore_TRestRawReadoutAnalysisProcess
 
 #include <TH1D.h>
-
-// #include <TCanvas.h>
-
 #include <TRestDetectorGas.h>
 #include <TRestDetectorHitsEvent.h>
 #include <TRestDetectorReadout.h>
@@ -44,7 +41,6 @@ class TRestRawReadoutAnalysisProcess : public TRestEventProcess {
     std::map<int, TH1D*> fModuleActivityY;  //! [MM id, channel activity]
     std::map<int, TH2D*> fModuleBSLSigmaX;  //! [MM id, channel activity]
     std::map<int, TH2D*> fModuleBSLSigmaY;  //! [MM id, channel activity]
-                                            //
 
    public:
     any GetInputEvent() const override { return fSignalEvent; }

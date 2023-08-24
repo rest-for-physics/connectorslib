@@ -1,0 +1,10 @@
+//
+// Created by lobis on 24-Aug-23.
+//
+
+#ifndef REST_TRESTRAWREADOUTMETADATAPROCESS_H
+#define REST_TRESTRAWREADOUTMETADATAPROCESS_H
+
+#include <TRestRawReadoutMetadata.h>
+
+#endif  // REST_TRESTRAWREADOUTMETADATAPROCESS_H
