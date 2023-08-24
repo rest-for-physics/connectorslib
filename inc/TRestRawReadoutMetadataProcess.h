@@ -10,10 +10,15 @@
 #include <TRestRawReadoutMetadata.h>
 #include <TRestRawSignalEvent.h>
 
+#include <atomic>
+
 class TRestRawReadoutMetadataProcess : public TRestEventProcess {
    private:
-    TRestRawSignalEvent* fSignalEvent = nullptr;  //!
-    TRestDetectorReadout* fReadout = nullptr;     //!
+    TRestRawSignalEvent* fSignalEvent = nullptr;       //!
+    TRestDetectorReadout* fReadout;                    //!
+    static TRestRawReadoutMetadata* fReadoutMetadata;  //! // made static to avoid problems with MT
+   private:
+    static std::mutex fMetadataMutex;  //!
 
    public:
     any GetInputEvent() const override { return fSignalEvent; }

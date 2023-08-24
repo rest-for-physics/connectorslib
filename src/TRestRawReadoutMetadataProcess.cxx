@@ -8,9 +8,14 @@
 #include <TRestRawPeaksFinderProcess.h>
 #include <TRestRawReadoutMetadata.h>
 
+#include <mutex>
+
 using namespace std;
 
 ClassImp(TRestRawReadoutMetadataProcess);
+
+TRestRawReadoutMetadata* TRestRawReadoutMetadataProcess::fReadoutMetadata = nullptr;
+mutex TRestRawReadoutMetadataProcess::fMetadataMutex = {};
 
 void TRestRawReadoutMetadata::InitializeFromReadout(TRestDetectorReadout* readout) {
     if (!readout) {
@@ -62,16 +67,20 @@ void TRestRawReadoutMetadataProcess::InitProcess() {
         exit(1);
     }
 
-    TRestRawReadoutMetadata* metadata = GetMetadata<TRestRawReadoutMetadata>();
-    if (!metadata) {
-        metadata = new TRestRawReadoutMetadata();
+    std::lock_guard<std::mutex> lock(fMetadataMutex);
 
-        metadata->InitializeFromReadout(fReadout);
+    if (!fReadoutMetadata) {
+        fReadoutMetadata = GetMetadata<TRestRawReadoutMetadata>();
+        if (!fReadoutMetadata) {
+            fReadoutMetadata = new TRestRawReadoutMetadata();
+            fReadoutMetadata->InitializeFromReadout(fReadout);
+        }
 
-        metadata->Write("readoutRawMetadata", TObject::kOverwrite);
+        fReadoutMetadata->Write("readoutRawMetadata", TObject::kOverwrite);
+        // write only if it's the main thread
     }
 
-    TRestRawPeaksFinderProcess::Metadata = metadata;
+    TRestRawPeaksFinderProcess::Metadata = fReadoutMetadata;
 }
 
 TRestEvent* TRestRawReadoutMetadataProcess::ProcessEvent(TRestEvent* inputEvent) {
