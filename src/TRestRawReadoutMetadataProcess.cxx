@@ -54,22 +54,6 @@ void TRestRawReadoutMetadata::InitializeFromReadout(TRestDetectorReadout* readou
     }
 }
 
-std::string TRestRawReadoutMetadata::GetChannelType(UShort_t channel) const {
-    if (fChannelInfo.find(channel) == fChannelInfo.end()) {
-        cerr << "TRestRawReadoutMetadata::GetChannelType: channel " << channel << " not found" << endl;
-        return {};
-    }
-    return fChannelInfo.at(channel).type;
-}
-
-std::string TRestRawReadoutMetadata::GetChannelName(UShort_t channel) const {
-    if (fChannelInfo.find(channel) == fChannelInfo.end()) {
-        cerr << "TRestRawReadoutMetadata::GetChannelName: channel " << channel << " not found" << endl;
-        return {};
-    }
-    return fChannelInfo.at(channel).name;
-}
-
 void TRestRawReadoutMetadataProcess::InitProcess() {
     fReadout = GetMetadata<TRestDetectorReadout>();
     if (!fReadout) {
