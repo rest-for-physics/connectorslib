@@ -5,6 +5,7 @@
 #include "TRestRawReadoutMetadataProcess.h"
 
 #include <TRestDetectorReadout.h>
+#include <TRestRawPeaksFinderProcess.h>
 #include <TRestRawReadoutMetadata.h>
 
 using namespace std;
@@ -69,6 +70,8 @@ void TRestRawReadoutMetadataProcess::InitProcess() {
 
         metadata->Write("readoutRawMetadata", TObject::kOverwrite);
     }
+
+    TRestRawPeaksFinderProcess::Metadata = metadata;
 }
 
 TRestEvent* TRestRawReadoutMetadataProcess::ProcessEvent(TRestEvent* inputEvent) {
