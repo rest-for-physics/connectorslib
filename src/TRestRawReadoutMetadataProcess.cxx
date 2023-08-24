@@ -5,8 +5,7 @@
 #include "TRestRawReadoutMetadataProcess.h"
 
 #include <TRestDetectorReadout.h>
-
-#include "TRestRawReadoutMetadata.h"
+#include <TRestRawReadoutMetadata.h>
 
 using namespace std;
 
