@@ -39,6 +39,20 @@ void TRestRawReadoutMetadata::InitializeFromReadout(TRestDetectorReadout* readou
             }
         }
     }
+
+    // verify names are unique
+    map<string, int> namesCount;
+    for (const auto& channel : fChannelInfo) {
+        const auto& info = channel.second;
+        namesCount[info.name]++;
+    }
+    for (const auto& name : namesCount) {
+        if (name.second > 1) {
+            cerr << "TRestRawReadoutMetadata::InitializeFromReadout: channel name " << name.first
+                 << " is not unique" << endl;
+            exit(1);
+        }
+    }
 }
 
 void TRestRawReadoutMetadataProcess::InitProcess() {
