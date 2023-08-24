@@ -20,7 +20,7 @@ class TRestRawReadoutMetadataProcess : public TRestEventProcess {
     any GetOutputEvent() const override { return fSignalEvent; }
 
     void InitProcess() override;
-    TRestEvent* ProcessEvent(TRestEvent* inputEvent) override { return inputEvent; }
+    TRestEvent* ProcessEvent(TRestEvent* inputEvent) override;
     void EndProcess() override {}
 
     const char* GetProcessName() const override { return "readoutMetadata"; }

@@ -70,3 +70,9 @@ void TRestRawReadoutMetadataProcess::InitProcess() {
         metadata->Write("readoutRawMetadata", TObject::kOverwrite);
     }
 }
+
+TRestEvent* TRestRawReadoutMetadataProcess::ProcessEvent(TRestEvent* inputEvent) {
+    fSignalEvent = dynamic_cast<TRestRawSignalEvent*>(inputEvent);
+
+    return inputEvent;
+}
