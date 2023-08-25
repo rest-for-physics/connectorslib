@@ -214,6 +214,9 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
     fOutputRawSignalEvent->SetTimeStamp(fInputSignalEvent->GetTimeStamp());
     fOutputRawSignalEvent->SetSubEventTag(fInputSignalEvent->GetSubEventTag());
 
+    double timeStartVeto = 0;
+    double timeEndVeto = timeStartVeto + fNPoints * fSamplingVeto;
+
     if (fTriggerMode == "firstDeposit") {
         fTimeStart = fInputSignalEvent->GetMinTime() - fTriggerDelay * fSampling;
         fTimeEnd = fInputSignalEvent->GetMinTime() + (fNPoints - fTriggerDelay) * fSampling;
@@ -239,15 +242,46 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
         fTimeStart = obs - fTriggerDelay * fSampling;
         fTimeEnd = fTimeStart + fNPoints * fSampling;
+
+        timeStartVeto = obs - fTriggerDelay * fSamplingVeto;
+        timeEndVeto = timeStartVeto + fNPoints * fSamplingVeto;
+    } else if (fTriggerMode == "fixed") {
+        fTimeStart = fTriggerFixedStartTime - fTriggerDelay * fSampling;
+        fTimeEnd = fTimeStart + fNPoints * fSampling;
+
+        timeStartVeto = fTriggerFixedStartTime - fTriggerDelay * fSamplingVeto;
+        timeEndVeto = timeStartVeto + fNPoints * fSamplingVeto;
     }
 
     RESTDebug << "fTimeStart : " << fTimeStart << " us " << RESTendl;
     RESTDebug << "fTimeEnd : " << fTimeEnd << " us " << RESTendl;
 
+    // TODO: time offset may not be working correctly
+    // TODO: event drawing not working correctly (some signals are clipped)
+
     for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
-        vector<Double_t> data(fNPoints, fCalibrationOffset);
         TRestDetectorSignal* signal = fInputSignalEvent->GetSignal(n);
         Int_t signalID = signal->GetSignalID();
+
+        double sampling = fSampling;
+        double shapingTime = fShapingTime;
+        double calibrationGain = fCalibrationGain;
+        double calibrationOffset = fCalibrationOffset;
+        double timeStart = fTimeStart;
+        double timeEnd = fTimeEnd;
+
+        if (signal->GetSignalType() == "veto") {
+            sampling = fSamplingVeto;
+            shapingTime = fShapingTimeVeto;
+            calibrationGain = fCalibrationGainVeto;
+            calibrationOffset = fCalibrationOffsetVeto;
+            timeStart = timeStartVeto;
+            timeEnd = timeEndVeto;
+        } else {
+            // continue;
+        }
+
+        vector<Double_t> data(fNPoints, calibrationOffset);
 
         for (int m = 0; m < signal->GetNumberOfPoints(); m++) {
             Double_t t = signal->GetTime(m);
@@ -257,9 +291,9 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                 cout << "Signal : " << n << " Sample : " << m << " T : " << t << " Data : " << d << endl;
             }
 
-            if (t > fTimeStart && t < fTimeEnd) {
+            if (t > timeStart && t < timeEnd) {
                 // convert physical time (in us) to timeBin
-                Int_t timeBin = (Int_t)round((t - fTimeStart) / fSampling);
+                Int_t timeBin = (Int_t)round((t - timeStart) / sampling);
 
                 if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
                     if (timeBin < 0 || timeBin > fNPoints) {
@@ -270,7 +304,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
                 RESTDebug << "Adding data : " << signal->GetData(m) << " to Time Bin : " << timeBin
                           << RESTendl;
-                data[timeBin] += fCalibrationGain * signal->GetData(m);
+                data[timeBin] += calibrationGain * signal->GetData(m);
             }
         }
 
@@ -294,15 +328,15 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                 return sinShaper(t);
             };
 
-            vector<Double_t> dataAfterShaping(fNPoints, fCalibrationOffset);
+            vector<Double_t> dataAfterShaping(fNPoints, calibrationOffset);
             for (int i = 0; i < fNPoints; i++) {
-                const Double_t value = data[i] - fCalibrationOffset;
+                const Double_t value = data[i] - calibrationOffset;
                 if (value <= 0) {
                     // Only positive values are possible, 0 means no signal in this bin
                     continue;
                 }
                 for (int j = 0; j < fNPoints; j++) {
-                    dataAfterShaping[j] += value * shapingFunction(((j - i) * fSampling) / fShapingTime);
+                    dataAfterShaping[j] += value * shapingFunction(((j - i) * sampling) / shapingTime);
                 }
             }
             data = dataAfterShaping;
@@ -367,15 +401,24 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
         exit(1);
     }
 
-    fSampling = GetDblParameterWithUnits("sampling", fSampling);
     fTriggerDelay = StringToInteger(GetParameter("triggerDelay", fTriggerDelay));
     fIntegralThreshold = StringToDouble(GetParameter("integralThreshold", fIntegralThreshold));
     fTriggerFixedStartTime = GetDblParameterWithUnits("triggerFixedStartTime", fTriggerFixedStartTime);
 
+    fSampling = GetDblParameterWithUnits("sampling", fSampling);
+    fShapingTime = GetDblParameterWithUnits("shapingTime", fShapingTime);
     fCalibrationGain = StringToDouble(GetParameter("gain", fCalibrationGain));
     fCalibrationOffset = StringToDouble(GetParameter("offset", fCalibrationOffset));
     fCalibrationEnergy = Get2DVectorParameterWithUnits("calibrationEnergy", fCalibrationEnergy);
     fCalibrationRange = Get2DVectorParameterWithUnits("calibrationRange", fCalibrationRange);
+
+    // load veto parameters
+    fSamplingVeto = GetDblParameterWithUnits("samplingVeto", fSamplingVeto);
+    fShapingTimeVeto = GetDblParameterWithUnits("shapingTimeVeto", fShapingTimeVeto);
+    fCalibrationGainVeto = StringToDouble(GetParameter("gainVeto", fCalibrationGainVeto));
+    fCalibrationOffsetVeto = StringToDouble(GetParameter("offsetVeto", fCalibrationOffsetVeto));
+    fCalibrationEnergyVeto = Get2DVectorParameterWithUnits("calibrationEnergyVeto", fCalibrationEnergyVeto);
+    fCalibrationRangeVeto = Get2DVectorParameterWithUnits("calibrationRangeVeto", fCalibrationRangeVeto);
 
     if (fTriggerMode == "observable") {
         fTriggerModeObservableName = GetParameter("triggerModeObservableName", "");
@@ -393,12 +436,20 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
                              numeric_limits<Short_t>::min();
     }
 
-    fShapingTime = GetDblParameterWithUnits("shapingTime", fShapingTime);
+    cout << "CalibrationGain : " << fCalibrationGain << endl;
+    cout << "CalibrationOffset : " << fCalibrationOffset << endl;
+
+    if (IsLinearCalibrationVeto()) {
+        const auto range = numeric_limits<Short_t>::max() - numeric_limits<Short_t>::min();
+        fCalibrationGainVeto = range * (fCalibrationRangeVeto.Y() - fCalibrationRangeVeto.X()) /
+                               (fCalibrationEnergyVeto.Y() - fCalibrationEnergyVeto.X());
+        fCalibrationOffsetVeto =
+            range * (fCalibrationRangeVeto.X() - fCalibrationGainVeto * fCalibrationEnergyVeto.X()) +
+            numeric_limits<Short_t>::min();
+    }
+
+    cout << "CalibrationGainVeto : " << fCalibrationGainVeto << endl;
+    cout << "CalibrationOffsetVeto : " << fCalibrationOffsetVeto << endl;
 }
 
-void TRestDetectorSignalToRawSignalProcess::InitProcess() {
-    if (fTriggerMode == "fixed") {
-        fTimeStart = fTriggerFixedStartTime - fTriggerDelay * fSampling;
-        fTimeEnd = fTimeStart + fNPoints * fSampling;
-    }
-}
+void TRestDetectorSignalToRawSignalProcess::InitProcess() {}

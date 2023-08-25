@@ -81,6 +81,14 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     Double_t fTimeStart;  //!
     Double_t fTimeEnd;    //!
 
+    // veto specific parameters (may use different shaping times, energy calibration, etc.)
+    Double_t fShapingTimeVeto = fShapingTime;  // us
+    Double_t fSamplingVeto = fSampling;        // ns
+    Double_t fCalibrationGainVeto = fCalibrationGain;
+    Double_t fCalibrationOffsetVeto = fCalibrationOffset;
+    TVector2 fCalibrationEnergyVeto = fCalibrationEnergy;
+    TVector2 fCalibrationRangeVeto = fCalibrationRange;
+
    public:
     inline Double_t GetSampling() const { return fSampling; }
     inline void SetSampling(Double_t sampling) { fSampling = sampling; }
@@ -109,6 +117,11 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     inline bool IsShapingEnabled() const { return fShapingTime > 0; }
 
     inline bool IsLinearCalibration() const {
+        // Will return true if two points have been given for calibration
+        return (fCalibrationEnergy.Mod() != 0 && fCalibrationRange.Mod() != 0);
+    }
+
+    inline bool IsLinearCalibrationVeto() const {
         // Will return true if two points have been given for calibration
         return (fCalibrationEnergy.Mod() != 0 && fCalibrationRange.Mod() != 0);
     }
@@ -166,6 +179,6 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     // Destructor
     ~TRestDetectorSignalToRawSignalProcess();
 
-    ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 4);
+    ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 5);
 };
 #endif
