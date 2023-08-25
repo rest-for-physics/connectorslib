@@ -40,6 +40,11 @@ void TRestRawReadoutMetadata::InitializeFromReadout(TRestDetectorReadout* readou
                 ChannelInfo info;
                 info.type = channel->GetChannelType();
                 info.name = channel->GetChannelName();
+                const auto daqId = channel->GetDaqID();
+                if (info.name.empty()) {
+                    info.name = "ch_" + to_string(daqId);
+                }
+
                 fChannelInfo[channel->GetChannelId()] = info;
             }
         }
