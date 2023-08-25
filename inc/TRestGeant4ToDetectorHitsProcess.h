@@ -49,6 +49,8 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
     /// The geometry volume names to be transferred to TRestDetectorHitsEvent
     std::vector<TString> fVolumeSelection;
 
+    std::map<std::string, REST_HitType> fHitTypes;  //!
+
     void InitFromConfigFile() override;
 
     void Initialize() override;

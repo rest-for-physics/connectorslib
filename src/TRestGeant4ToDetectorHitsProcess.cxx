@@ -228,12 +228,14 @@ TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* inputEven
                 // if no volume is selected, all hits are added
                 fHitsEvent->AddHit(position.X(), position.Y(), position.Z(), energy, time);
             } else {
-                // const auto volumeId = hits.GetVolumeId(i);
-                const auto volumeName = hits.GetVolumeName(i);
+                const string volumeName = hits.GetVolumeName(i).Data();
                 const auto volumeId = fGeant4Metadata->GetActiveVolumeID(volumeName);
+
                 // cout << "volumeName : " << volumeName << " volumeId : " << volumeId << endl;
                 if (find(fVolumeId.begin(), fVolumeId.end(), volumeId) != fVolumeId.end()) {
-                    fHitsEvent->AddHit(position.X(), position.Y(), position.Z(), energy, time);
+                    const REST_HitType type = fHitTypes.at(volumeName);
+
+                    fHitsEvent->AddHit(position, energy, time, type);
                 }
             }
         }
@@ -271,6 +273,12 @@ void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
     }
     while (volumeDefinition != nullptr) {
         const auto userVolume = GetFieldValue("name", volumeDefinition);
+        const auto typeName = GetFieldValue("type", volumeDefinition);
+        REST_HitType type = XYZ;
+        if (typeName == "veto") {
+            type = VETO;
+        }
+
         if (userVolume == "Not defined") {
             RESTError << "TRestGeant4ToDetectorHitsProcess. No name defined for volume" << RESTendl;
         }
@@ -290,9 +298,11 @@ void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
             }
             for (const auto& physicalVolume : physicalVolumes) {
                 volumesToAdd.insert(physicalVolume.Data());
+                fHitTypes[physicalVolume.Data()] = type;
             }
         } else {
             volumesToAdd.insert(userVolume);
+            fHitTypes[userVolume] = type;
         }
 
         volumeDefinition = GetNextElement(volumeDefinition);
