@@ -65,6 +65,14 @@ void TRestRawReadoutMetadata::InitializeFromReadout(TRestDetectorReadout* readou
     }
 }
 
+bool TRestRawReadoutMetadata::IsChannelType(UShort_t channel, const std::string& type) const {
+    const auto it = fChannelInfo.find(channel);
+    if (it == fChannelInfo.end()) {
+        return false;
+    }
+    return it->second.type == type;
+}
+
 void TRestRawReadoutMetadataProcess::InitProcess() {
     fReadout = GetMetadata<TRestDetectorReadout>();
     if (!fReadout) {
