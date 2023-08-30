@@ -115,8 +115,8 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     inline TVector2 GetCalibrationRange() const { return fCalibrationRange; }
     inline void SetCalibrationRange(TVector2 calibrationRange) { fCalibrationRange = calibrationRange; }
 
-    any GetInputEvent() const override { return fInputSignalEvent; }
-    any GetOutputEvent() const override { return fOutputRawSignalEvent; }
+    RESTValue GetInputEvent() const override { return fInputSignalEvent; }
+    RESTValue GetOutputEvent() const override { return fOutputRawSignalEvent; }
 
     void InitProcess() override;
 
