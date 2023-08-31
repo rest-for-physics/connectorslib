@@ -32,22 +32,22 @@ void TRestRawReadoutMetadata::InitializeFromReadout(TRestDetectorReadout* readou
             for (unsigned int channelIndex = 0; channelIndex < module->GetNumberOfChannels();
                  channelIndex++) {
                 const auto channel = module->GetChannel(channelIndex);
-                const UShort_t channelId = channel->GetChannelId();
+                const UShort_t channelDaqId = channel->GetDaqID();
                 // check if channel id is already in the map
-                if (fChannelInfo.find(channelId) != fChannelInfo.end()) {
-                    cerr << "TRestRawReadoutMetadata::InitializeFromReadout: channel id " << channelId
+                if (fChannelInfo.find(channelDaqId) != fChannelInfo.end()) {
+                    cerr << "TRestRawReadoutMetadata::InitializeFromReadout: channel id " << channelDaqId
                          << " already in the map. Channels on the readout should be unique" << endl;
                     exit(1);
                 }
                 ChannelInfo info;
                 info.type = channel->GetChannelType();
                 info.name = channel->GetChannelName();
-                info.daqId = channel->GetDaqID();
+                info.channelId = channel->GetChannelId();
                 if (info.name.empty()) {
-                    info.name = "daqid" + to_string(info.daqId);
+                    info.name = "daqid" + to_string(info.channelId);
                 }
 
-                fChannelInfo[channel->GetChannelId()] = info;
+                fChannelInfo[channel->GetDaqID()] = info;
             }
         }
     }
@@ -60,13 +60,13 @@ void TRestRawReadoutMetadata::InitializeFromReadout(TRestDetectorReadout* readou
         exit(1);
     }
 
-    set<int> daqIds;
+    set<int> channelIds;
     for (const auto& channel : fChannelInfo) {
         const auto& info = channel.second;
-        daqIds.insert(info.daqId);
+        channelIds.insert(info.channelId);
     }
-    if (daqIds.size() != fChannelInfo.size()) {
-        cerr << "TRestRawReadoutMetadata::InitializeFromReadout: daq ids are not unique" << endl;
+    if (channelIds.size() != fChannelInfo.size()) {
+        cerr << "TRestRawReadoutMetadata::InitializeFromReadout: channel ids are not unique" << endl;
         exit(1);
     }
     map<string, int> namesCount;
@@ -83,11 +83,11 @@ void TRestRawReadoutMetadata::InitializeFromReadout(TRestDetectorReadout* readou
     }
 }
 
-Int_t TRestRawReadoutMetadata::GetDaqIdForChannelId(UShort_t channel) const {
+Int_t TRestRawReadoutMetadata::GetChannelIdForChannelDaqId(UShort_t channel) const {
     if (fChannelInfo.find(channel) == fChannelInfo.end()) {
         return -1;
     }
-    return fChannelInfo.at(channel).daqId;
+    return fChannelInfo.at(channel).channelId;
 }
 
 void TRestRawReadoutMetadataProcess::InitProcess() {
