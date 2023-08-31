@@ -40,9 +40,9 @@ void TRestRawReadoutMetadata::InitializeFromReadout(TRestDetectorReadout* readou
                 ChannelInfo info;
                 info.type = channel->GetChannelType();
                 info.name = channel->GetChannelName();
-                const auto daqId = channel->GetDaqID();
+                info.daqId = channel->GetDaqID();
                 if (info.name.empty()) {
-                    info.name = "ch_" + to_string(daqId);
+                    info.name = "daqid" + to_string(info.daqId);
                 }
 
                 fChannelInfo[channel->GetChannelId()] = info;
@@ -65,12 +65,11 @@ void TRestRawReadoutMetadata::InitializeFromReadout(TRestDetectorReadout* readou
     }
 }
 
-bool TRestRawReadoutMetadata::IsChannelType(UShort_t channel, const std::string& type) const {
-    const auto it = fChannelInfo.find(channel);
-    if (it == fChannelInfo.end()) {
-        return false;
+Int_t TRestRawReadoutMetadata::GetDaqIdForChannelId(UShort_t channel) const {
+    if (fChannelInfo.find(channel) == fChannelInfo.end()) {
+        return -1;
     }
-    return it->second.type == type;
+    return fChannelInfo.at(channel).daqId;
 }
 
 void TRestRawReadoutMetadataProcess::InitProcess() {
