@@ -110,6 +110,7 @@ void TRestRawReadoutMetadataProcess::InitProcess() {
         // write only if it's the main thread
     }
 
+    TRestRawReadoutMetadata::Metadata = fReadoutMetadata;
     TRestRawPeaksFinderProcess::Metadata = fReadoutMetadata;
     TRestRawSignalAnalysisProcess::Metadata = fReadoutMetadata;
 }

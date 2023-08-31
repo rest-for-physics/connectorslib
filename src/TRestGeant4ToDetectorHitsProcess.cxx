@@ -224,6 +224,12 @@ TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* inputEven
             }
             const TVector3& position = hits.GetPosition(i);
             const double time = hits.GetTime(i);
+
+            // TODO: add a configurable time cut
+            // this solves problems with negative times appearing
+            if (time > 1.0E10) {
+                continue;
+            }
             if (fVolumeId.empty()) {
                 // if no volume is selected, all hits are added
                 fHitsEvent->AddHit(position.X(), position.Y(), position.Z(), energy, time);

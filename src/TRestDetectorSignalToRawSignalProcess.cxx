@@ -78,6 +78,7 @@
 ///     parameter. It is affected by the **triggerDelay** parameter.
 ///   - *observable*: User manually sets the time corresponding to the bin 0 via the
 ///   **triggerModeObservableName**
+///   - *firstDepositTPC*: Similar to first deposit but only using TPC signals (channels with type "tpc")
 ///
 /// * **integralThreshold**: It defines the value to be used in the
 ///     triggerThreshold method. This parameter is not used otherwise.
@@ -133,6 +134,10 @@
 ///
 
 #include "TRestDetectorSignalToRawSignalProcess.h"
+
+#include <TRestRawReadoutMetadata.h>
+
+#include <limits>
 
 using namespace std;
 
@@ -243,8 +248,64 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
         fTimeStart = obs - fTriggerDelay * fSampling;
         fTimeEnd = fTimeStart + fNPoints * fSampling;
 
-        timeStartVeto = obs - fTriggerDelay * fSamplingVeto;
+        // both signals start at the same time
+        timeStartVeto = fTimeStart;
         timeEndVeto = timeStartVeto + fNPoints * fSamplingVeto;
+    } else if (fTriggerMode == "firstDepositTPC") {
+        fReadout = GetMetadata<TRestDetectorReadout>();
+
+        if (fReadout == nullptr) {
+            cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                 << "TRestDetectorReadout metadata not found" << endl;
+            exit(1);
+        }
+
+        set<const TRestDetectorSignal*> tpcSignals;
+
+        for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
+            TRestDetectorSignal* signal = fInputSignalEvent->GetSignal(n);
+            Int_t signalID = signal->GetSignalID();
+
+            const auto allDaqIds = fReadout->GetAllDaqIds();
+            for (const auto& daqId : allDaqIds) {
+                const auto& channel = fReadout->GetReadoutChannelWithDaqID(daqId);
+                if (channel->GetType() == "tpc") {
+                    tpcSignals.insert(signal);
+                }
+            }
+        }
+
+        if (tpcSignals.size() == 0) {
+            return nullptr;
+        }
+
+        double startTime = std::numeric_limits<Double_t>::max();
+        for (const auto& signal : tpcSignals) {
+            const auto minTime = signal->GetMinTime();
+            if (minTime < startTime) {
+                startTime = minTime;
+            }
+        }
+
+        if (startTime == std::numeric_limits<Double_t>::max()) {
+            return nullptr;
+        }
+
+        startTime = 0;
+        cout << "TPC START TIME AT: " << startTime << endl;
+
+        if (startTime < 0) {
+            cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                 << "TPC start time is negative" << endl;
+            exit(1);
+        }
+
+        fTimeStart = startTime - fTriggerDelay * fSampling;
+        fTimeEnd = fTimeStart + fNPoints * fSampling;
+
+        timeStartVeto = fTimeStart;
+        timeEndVeto = timeStartVeto + fNPoints * fSamplingVeto;
+
     } else if (fTriggerMode == "fixed") {
         fTimeStart = fTriggerFixedStartTime - fTriggerDelay * fSampling;
         fTimeEnd = fTimeStart + fNPoints * fSampling;
@@ -390,7 +451,8 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
     fNPoints = StringToInteger(nPoints);
 
     fTriggerMode = GetParameter("triggerMode", fTriggerMode);
-    const set<string> validTriggerModes = {"firstDeposit", "integralThreshold", "fixed", "observable"};
+    const set<string> validTriggerModes = {"firstDeposit", "integralThreshold", "fixed", "observable",
+                                           "firstDepositTPC"};
     if (validTriggerModes.count(fTriggerMode) == 0) {
         RESTError << "Trigger mode set to: '" << fTriggerMode
                   << "' which is not a valid trigger mode. Please use one of the following trigger modes: ";

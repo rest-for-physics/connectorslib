@@ -23,6 +23,7 @@
 #ifndef RestCore_TRestDetectorSignalToRawSignalProcess
 #define RestCore_TRestDetectorSignalToRawSignalProcess
 
+#include <TRestDetectorReadout.h>
 #include <TRestDetectorSignalEvent.h>
 #include <TRestEventProcess.h>
 #include <TRestRawSignalEvent.h>
@@ -35,6 +36,8 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
 
     /// A pointer to the specific TRestRawSignalEvent input
     TRestRawSignalEvent* fOutputRawSignalEvent;  //!
+
+    TRestDetectorReadout* fReadout = nullptr; //!
 
     void Initialize() override;
     void InitFromConfigFile() override;
