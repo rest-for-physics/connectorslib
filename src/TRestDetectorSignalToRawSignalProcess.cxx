@@ -292,8 +292,6 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
         }
 
         startTime = 0;
-        cout << "TPC START TIME AT: " << startTime << endl;
-
         if (startTime < 0) {
             cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
                  << "TPC start time is negative" << endl;
