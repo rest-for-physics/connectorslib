@@ -52,7 +52,23 @@ void TRestRawReadoutMetadata::InitializeFromReadout(TRestDetectorReadout* readou
         }
     }
 
-    // verify names are unique
+    // verify
+    if (fChannelInfo.empty() || fChannelInfo.size() != readout->GetNumberOfChannels()) {
+        cerr << "TRestRawReadoutMetadata::InitializeFromReadout: channel info is empty or size is different "
+                "from readout number of channels"
+             << endl;
+        exit(1);
+    }
+
+    set<int> daqIds;
+    for (const auto& channel : fChannelInfo) {
+        const auto& info = channel.second;
+        daqIds.insert(info.daqId);
+    }
+    if (daqIds.size() != fChannelInfo.size()) {
+        cerr << "TRestRawReadoutMetadata::InitializeFromReadout: daq ids are not unique" << endl;
+        exit(1);
+    }
     map<string, int> namesCount;
     for (const auto& channel : fChannelInfo) {
         const auto& info = channel.second;
