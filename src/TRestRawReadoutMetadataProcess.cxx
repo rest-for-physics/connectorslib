@@ -53,7 +53,7 @@ void TRestRawReadoutMetadata::InitializeFromReadout(TRestDetectorReadout* readou
     }
 
     // verify
-    if (fChannelInfo.empty() || fChannelInfo.size() != readout->GetNumberOfChannels()) {
+    if (fChannelInfo.empty() || fChannelInfo.size() != (size_t)readout->GetNumberOfChannels()) {
         cerr << "TRestRawReadoutMetadata::InitializeFromReadout: channel info is empty or size is different "
                 "from readout number of channels"
              << endl;
