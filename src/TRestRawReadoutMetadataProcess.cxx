@@ -7,6 +7,7 @@
 #include <TRestDetectorReadout.h>
 #include <TRestRawPeaksFinderProcess.h>
 #include <TRestRawReadoutMetadata.h>
+#include <TRestRawSignalAnalysisProcess.h>
 
 #include <mutex>
 
@@ -15,6 +16,7 @@ using namespace std;
 ClassImp(TRestRawReadoutMetadataProcess);
 
 TRestRawReadoutMetadata* TRestRawReadoutMetadataProcess::fReadoutMetadata = nullptr;
+
 mutex TRestRawReadoutMetadataProcess::fMetadataMutex = {};
 
 void TRestRawReadoutMetadata::InitializeFromReadout(TRestDetectorReadout* readout) {
@@ -93,6 +95,7 @@ void TRestRawReadoutMetadataProcess::InitProcess() {
     }
 
     TRestRawPeaksFinderProcess::Metadata = fReadoutMetadata;
+    TRestRawSignalAnalysisProcess::Metadata = fReadoutMetadata;
 }
 
 TRestEvent* TRestRawReadoutMetadataProcess::ProcessEvent(TRestEvent* inputEvent) {

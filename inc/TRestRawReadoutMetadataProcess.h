@@ -14,9 +14,8 @@
 
 class TRestRawReadoutMetadataProcess : public TRestEventProcess {
    private:
-    TRestRawSignalEvent* fSignalEvent = nullptr;       //!
-    TRestDetectorReadout* fReadout;                    //!
-    static TRestRawReadoutMetadata* fReadoutMetadata;  //! // made static to avoid problems with MT
+    TRestRawSignalEvent* fSignalEvent = nullptr;  //!
+    TRestDetectorReadout* fReadout;               //!
    private:
     static std::mutex fMetadataMutex;  //!
 
@@ -34,6 +33,9 @@ class TRestRawReadoutMetadataProcess : public TRestEventProcess {
 
     TRestRawReadoutMetadataProcess() = default;
     ~TRestRawReadoutMetadataProcess() = default;
+
+    // this is a workaround
+    static TRestRawReadoutMetadata* fReadoutMetadata;  //! // made static to avoid problems with MT
 
     ClassDefOverride(TRestRawReadoutMetadataProcess, 1);
 };
