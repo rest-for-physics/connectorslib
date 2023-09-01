@@ -264,14 +264,16 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
         for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
             TRestDetectorSignal* signal = fInputSignalEvent->GetSignal(n);
+            if (signal->GetSignalType() == "tpc") {
+                tpcSignals.insert(signal);
+            }
+            /*
             const auto allDaqIds = fReadout->GetAllDaqIds();
             for (const auto& daqId : allDaqIds) {
-                // const auto& channel = fReadout->GetReadoutChannelWithDaqID(daqId);
+                const auto& channel = fReadout->GetReadoutChannelWithDaqID(daqId);
                 // TODO: sometimes channel type does not match signal type, why?
-                if (signal->GetSignalType() == "tpc") {
-                    tpcSignals.insert(signal);
-                }
             }
+            */
         }
 
         if (tpcSignals.size() == 0) {
