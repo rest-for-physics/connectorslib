@@ -225,13 +225,9 @@ TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* inputEven
             const TVector3& position = hits.GetPosition(i);
             const double time = hits.GetTime(i);
 
-            // TODO: add a configurable time cut
-            // this solves problems with negative times appearing
-            if (time > 1.0E6) {
-                // continue;
-            }
             if (time < 0) {
-                cerr << "TRestGeant4ToDetectorHitsProcess. Negative time found" << endl;
+                cerr << "TRestGeant4ToDetectorHitsProcess. Negative time found. This should never happen"
+                     << endl;
                 exit(1);
             }
             if (fVolumeId.empty()) {

@@ -224,7 +224,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
     if (fTriggerMode == "firstDeposit") {
         fTimeStart = fInputSignalEvent->GetMinTime() - fTriggerDelay * fSampling;
-        fTimeEnd = fInputSignalEvent->GetMinTime() + (fNPoints - fTriggerDelay) * fSampling;
+        fTimeEnd = fTimeStart + fNPoints * fSampling;
     } else if (fTriggerMode == "integralThreshold") {
         bool thresholdReached = false;
         for (Double_t t = fInputSignalEvent->GetMinTime() - fNPoints * fSampling;
@@ -251,12 +251,12 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
         // both signals start at the same time
         timeStartVeto = fTimeStart;
         timeEndVeto = timeStartVeto + fNPoints * fSamplingVeto;
-    } else if (fTriggerMode == "firstDepositTPC") {
+    } else if (fTriggerMode == "firstDepositTPC" || fTriggerMode == "integralThresholdTPC") {
         fReadout = GetMetadata<TRestDetectorReadout>();
 
         if (fReadout == nullptr) {
             cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
-                 << "TRestDetectorReadout metadata not found" << endl;
+                 << "TRestDetectorReadout metadata not found" << RESTendl;
             exit(1);
         }
 
@@ -277,23 +277,63 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             return nullptr;
         }
 
-        double startTime = std::numeric_limits<float>::max();
-        for (const auto& signal : tpcSignals) {
-            const auto minTime = signal->GetMinTime();
-            if (minTime < startTime) {
-                startTime = minTime;
+        if (fTriggerMode == "firstDepositTPC") {
+            double startTime = std::numeric_limits<float>::max();
+            for (const auto& signal : tpcSignals) {
+                const auto minTime = signal->GetMinTime();
+                if (minTime < startTime) {
+                    startTime = minTime;
+                }
             }
+
+            if (startTime >= std::numeric_limits<float>::max()) {
+                return nullptr;
+            }
+
+            fTimeStart = startTime - fTriggerDelay * fSampling;
+            fTimeEnd = fTimeStart + fNPoints * fSampling;
+
+            timeStartVeto = fTimeStart;
+            timeEndVeto = timeStartVeto + fNPoints * fSamplingVeto;
+        } else if (fTriggerMode == "integralThresholdTPC") {
+            RESTDebug << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                      << "Trigger mode integralThresholdTPC" << RESTendl;
+
+            const double signalIntegralThreshold = 1.0;
+            const double maxTime = fInputSignalEvent->GetMaxTime();
+
+            double t = 0;
+            bool thresholdReached = false;
+            double maxEnergy = 0;
+            while (t < maxTime) {
+                // iterate over number of signals
+                for (const auto& signal : tpcSignals) {
+                    const double energy = signal->GetIntegralWithTime(0, t);
+                    if (energy > maxEnergy) {
+                        maxEnergy = energy;
+                    }
+                    if (maxEnergy > signalIntegralThreshold) {
+                        thresholdReached = true;
+                        break;
+                    }
+                }
+                t += fSampling / 100.0;
+            }
+
+            if (!thresholdReached) {
+                cout << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                     << "Integral threshold for trigger not reached. Maximum energy reached: " << maxEnergy
+                     << endl;
+                return nullptr;
+            }
+
+            double startTime = t;
+            fTimeStart = startTime - fTriggerDelay * fSampling;
+            fTimeEnd = fTimeStart + fNPoints * fSampling;
+
+            timeStartVeto = fTimeStart;
+            timeEndVeto = timeStartVeto + fNPoints * fSamplingVeto;
         }
-
-        if (startTime >= std::numeric_limits<float>::max()) {
-            return nullptr;
-        }
-
-        fTimeStart = startTime - fTriggerDelay * fSampling;
-        fTimeEnd = fTimeStart + fNPoints * fSampling;
-
-        timeStartVeto = fTimeStart;
-        timeEndVeto = timeStartVeto + fNPoints * fSamplingVeto;
 
     } else if (fTriggerMode == "fixed") {
         fTimeStart = fTriggerFixedStartTime - fTriggerDelay * fSampling;
@@ -301,16 +341,23 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
         timeStartVeto = fTriggerFixedStartTime - fTriggerDelay * fSamplingVeto;
         timeEndVeto = timeStartVeto + fNPoints * fSamplingVeto;
+    } else {
+        cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+             << "Trigger mode not recognized" << RESTendl;
+        exit(1);
     }
 
     RESTDebug << "fTimeStart : " << fTimeStart << " us " << RESTendl;
     RESTDebug << "fTimeEnd : " << fTimeEnd << " us " << RESTendl;
 
+    cout << "Start time: " << fTimeStart << " us" << endl;
+
     if (fTimeStart + fTriggerDelay * fSampling < 0) {
         // This means something is wrong (negative times somewhere). This should never happen
         cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
              << "fTimeStart < - fTriggerDelay * fSampling" << endl;
-        exit(1);
+        // exit(1);
+        return nullptr;
     }
 
     // TODO: time offset may not be working correctly
@@ -447,8 +494,8 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
     fNPoints = StringToInteger(nPoints);
 
     fTriggerMode = GetParameter("triggerMode", fTriggerMode);
-    const set<string> validTriggerModes = {"firstDeposit", "integralThreshold", "fixed", "observable",
-                                           "firstDepositTPC"};
+    const set<string> validTriggerModes = {"firstDeposit", "integralThreshold", "fixed",
+                                           "observable",   "firstDepositTPC",   "integralThresholdTPC"};
     if (validTriggerModes.count(fTriggerMode) == 0) {
         RESTError << "Trigger mode set to: '" << fTriggerMode
                   << "' which is not a valid trigger mode. Please use one of the following trigger modes: ";
