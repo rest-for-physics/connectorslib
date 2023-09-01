@@ -138,15 +138,15 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     any GetInputEvent() const override { return fInputSignalEvent; }
     any GetOutputEvent() const override { return fOutputRawSignalEvent; }
 
-    float GetEnergyFromADC(Short_t adc) const;
-    Short_t GetADCFromEnergy(float energy) const;
-    float GetEnergyFromADCVeto(Short_t adc) const;
-    Short_t GetADCFromEnergyVeto(float energy) const;
+    Double_t GetEnergyFromADC(Short_t adc) const;
+    Short_t GetADCFromEnergy(Double_t energy) const;
+    Double_t GetEnergyFromADCVeto(Short_t adc) const;
+    Short_t GetADCFromEnergyVeto(Double_t energy) const;
 
-    float GetTimeFromBin(UShort_t bin) const;
-    UShort_t GetBinFromTime(float time) const;
-    float GetTimeFromBinVeto(UShort_t bin) const;
-    UShort_t GetBinFromTimeVeto(float time) const;
+    Double_t GetTimeFromBin(UShort_t bin) const;
+    UShort_t GetBinFromTime(Double_t time) const;
+    Double_t GetTimeFromBinVeto(UShort_t bin) const;
+    UShort_t GetBinFromTimeVeto(Double_t time) const;
 
     void InitProcess() override;
 

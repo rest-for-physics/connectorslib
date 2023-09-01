@@ -595,34 +595,34 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
 
 void TRestDetectorSignalToRawSignalProcess::InitProcess() {}
 
-float TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC(Short_t adc) const {
+Double_t TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC(Short_t adc) const {
     return fCalibrationGain * adc + fCalibrationOffset;
 }
 
-float TRestDetectorSignalToRawSignalProcess::GetEnergyFromADCVeto(Short_t adc) const {
+Double_t TRestDetectorSignalToRawSignalProcess::GetEnergyFromADCVeto(Short_t adc) const {
     return fCalibrationGainVeto * adc + fCalibrationOffsetVeto;
 }
 
-Short_t TRestDetectorSignalToRawSignalProcess::GetADCFromEnergy(float energy) const {
+Short_t TRestDetectorSignalToRawSignalProcess::GetADCFromEnergy(Double_t energy) const {
     return (Short_t)((energy - fCalibrationOffset) / fCalibrationGain);
 }
 
-Short_t TRestDetectorSignalToRawSignalProcess::GetADCFromEnergyVeto(float energy) const {
+Short_t TRestDetectorSignalToRawSignalProcess::GetADCFromEnergyVeto(Double_t energy) const {
     return (Short_t)((energy - fCalibrationOffsetVeto) / fCalibrationGainVeto);
 }
 
-float TRestDetectorSignalToRawSignalProcess::GetTimeFromBin(UShort_t bin) const {
-    return fTimeStart + bin * fSampling;
+Double_t TRestDetectorSignalToRawSignalProcess::GetTimeFromBin(UShort_t bin) const {
+    return (bin - fTriggerDelay) * fSampling;
 }
 
-float TRestDetectorSignalToRawSignalProcess::GetTimeFromBinVeto(UShort_t bin) const {
-    return fTimeStart + bin * fSamplingVeto;
+Double_t TRestDetectorSignalToRawSignalProcess::GetTimeFromBinVeto(UShort_t bin) const {
+    return (bin - fTriggerDelay) * fSamplingVeto;
 }
 
-UShort_t TRestDetectorSignalToRawSignalProcess::GetBinFromTime(float time) const {
-    return (UShort_t)((time - fTimeStart) / fSampling);
+UShort_t TRestDetectorSignalToRawSignalProcess::GetBinFromTime(Double_t time) const {
+    return (UShort_t)((time + fTriggerDelay * fSampling) / fSampling);
 }
 
-UShort_t TRestDetectorSignalToRawSignalProcess::GetBinFromTimeVeto(float time) const {
-    return (UShort_t)((time - fTimeStart) / fSamplingVeto);
+UShort_t TRestDetectorSignalToRawSignalProcess::GetBinFromTimeVeto(Double_t time) const {
+    return (UShort_t)((time + fTriggerDelay * fSamplingVeto) / fSamplingVeto);
 }
