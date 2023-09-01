@@ -277,7 +277,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             return nullptr;
         }
 
-        double startTime = std::numeric_limits<Double_t>::max();
+        double startTime = std::numeric_limits<float>::max();
         for (const auto& signal : tpcSignals) {
             const auto minTime = signal->GetMinTime();
             if (minTime < startTime) {
@@ -285,11 +285,10 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             }
         }
 
-        if (startTime == std::numeric_limits<Double_t>::max()) {
+        if (startTime == std::numeric_limits<float>::max()) {
             return nullptr;
         }
 
-        startTime = 0;
         if (startTime < 0) {
             cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
                  << "TPC start time is negative" << endl;

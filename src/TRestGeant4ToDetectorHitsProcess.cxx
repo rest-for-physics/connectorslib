@@ -228,7 +228,7 @@ TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* inputEven
             // TODO: add a configurable time cut
             // this solves problems with negative times appearing
             if (time > 1.0E10) {
-                continue;
+                // continue;
             }
             if (fVolumeId.empty()) {
                 // if no volume is selected, all hits are added
