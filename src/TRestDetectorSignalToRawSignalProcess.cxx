@@ -264,8 +264,6 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
         for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
             TRestDetectorSignal* signal = fInputSignalEvent->GetSignal(n);
-            Int_t signalID = signal->GetSignalID();
-
             const auto allDaqIds = fReadout->GetAllDaqIds();
             for (const auto& daqId : allDaqIds) {
                 const auto& channel = fReadout->GetReadoutChannelWithDaqID(daqId);
