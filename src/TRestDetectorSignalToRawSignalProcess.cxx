@@ -250,6 +250,12 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
     RESTDebug << "fTimeStart : " << fTimeStart << " us " << RESTendl;
     RESTDebug << "fTimeEnd : " << fTimeEnd << " us " << RESTendl;
 
+    if (fTimeStart < 0) {
+        // This should never happen
+        cerr << "fTimeStart < 0" << endl;
+        exit(1);
+    }
+
     for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
         vector<Double_t> data(fNPoints, fCalibrationOffset);
         TRestDetectorSignal* signal = fInputSignalEvent->GetSignal(n);
