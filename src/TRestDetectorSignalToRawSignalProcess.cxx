@@ -267,7 +267,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             const auto allDaqIds = fReadout->GetAllDaqIds();
             for (const auto& daqId : allDaqIds) {
                 const auto& channel = fReadout->GetReadoutChannelWithDaqID(daqId);
-                if (channel->GetType() == "tpc") {
+                if (signal->GetSignalType() == "tpc") {
                     tpcSignals.insert(signal);
                 }
             }
@@ -300,7 +300,14 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                       << "Trigger mode integralThresholdTPC" << RESTendl;
 
             const double signalIntegralThreshold = 0.5;  // keV
-            const double maxTime = fInputSignalEvent->GetMaxTime();
+
+            double maxTime = 0;
+            for (const auto& signal : tpcSignals) {
+                const auto maxSignalTime = signal->GetMaxTime();
+                if (maxSignalTime > maxTime) {
+                    maxTime = maxSignalTime;
+                }
+            }
 
             double t = 0;
             bool thresholdReached = false;
@@ -322,18 +329,13 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             }
 
             if (!thresholdReached) {
+                /*
                 cout << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
                      << "Integral threshold for trigger not reached. Maximum energy reached: " << maxEnergy
                      << endl;
+                */
                 return nullptr;
             }
-
-            cout << "Number of TPC signals: " << tpcSignals.size() << endl;
-            cout << "IDS of TPC signals: ";
-            for (const auto& signal : tpcSignals) {
-                cout << signal->GetSignalID() << " ";
-            }
-            cout << endl;
 
             double startTime = t;
             fTimeStart = startTime - fTriggerDelay * fSampling;
@@ -355,10 +357,8 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
         exit(1);
     }
 
-    RESTDebug << "fTimeStart : " << fTimeStart << " us " << RESTendl;
-    RESTDebug << "fTimeEnd : " << fTimeEnd << " us " << RESTendl;
-
-    cout << "Start time: " << fTimeStart << " us" << endl;
+    RESTDebug << "fTimeStart: " << fTimeStart << " us " << RESTendl;
+    RESTDebug << "fTimeEnd: " << fTimeEnd << " us " << RESTendl;
 
     if (fTimeStart + fTriggerDelay * fSampling < 0) {
         // This means something is wrong (negative times somewhere). This should never happen
@@ -400,7 +400,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             Double_t d = signal->GetData(m);
 
             if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug && n < 3 && m < 5) {
-                cout << "Signal : " << n << " Sample : " << m << " T : " << t << " Data : " << d << endl;
+                cout << "Signal: " << n << " Sample: " << m << " T: " << t << " Data: " << d << endl;
             }
 
             if (t > timeStart && t < timeEnd) {
@@ -409,13 +409,12 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
                 if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
                     if (timeBin < 0 || timeBin > fNPoints) {
-                        cout << "Time bin out of range!!! bin value : " << timeBin << endl;
+                        cout << "Time bin out of range!!! bin value: " << timeBin << endl;
                         timeBin = 0;
                     }
                 }
 
-                RESTDebug << "Adding data : " << signal->GetData(m) << " to Time Bin : " << timeBin
-                          << RESTendl;
+                RESTDebug << "Adding data: " << signal->GetData(m) << " to Time Bin: " << timeBin << RESTendl;
                 data[timeBin] += calibrationGain * signal->GetData(m);
             }
         }
@@ -549,8 +548,8 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
                              numeric_limits<Short_t>::min();
     }
 
-    cout << "CalibrationGain : " << fCalibrationGain << endl;
-    cout << "CalibrationOffset : " << fCalibrationOffset << endl;
+    cout << "CalibrationGain: " << fCalibrationGain << endl;
+    cout << "CalibrationOffset: " << fCalibrationOffset << endl;
 
     if (IsLinearCalibrationVeto()) {
         const auto range = numeric_limits<Short_t>::max() - numeric_limits<Short_t>::min();
@@ -561,8 +560,8 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
             numeric_limits<Short_t>::min();
     }
 
-    cout << "CalibrationGainVeto : " << fCalibrationGainVeto << endl;
-    cout << "CalibrationOffsetVeto : " << fCalibrationOffsetVeto << endl;
+    cout << "CalibrationGainVeto: " << fCalibrationGainVeto << endl;
+    cout << "CalibrationOffsetVeto: " << fCalibrationOffsetVeto << endl;
 }
 
 void TRestDetectorSignalToRawSignalProcess::InitProcess() {}
