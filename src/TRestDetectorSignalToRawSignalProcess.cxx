@@ -285,14 +285,8 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             }
         }
 
-        if (startTime == std::numeric_limits<float>::max()) {
+        if (startTime >= std::numeric_limits<float>::max()) {
             return nullptr;
-        }
-
-        if (startTime < 0) {
-            cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
-                 << "TPC start time is negative" << endl;
-            exit(1);
         }
 
         fTimeStart = startTime - fTriggerDelay * fSampling;
@@ -311,6 +305,13 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
     RESTDebug << "fTimeStart : " << fTimeStart << " us " << RESTendl;
     RESTDebug << "fTimeEnd : " << fTimeEnd << " us " << RESTendl;
+
+    if (fTimeStart + fTriggerDelay * fSampling < 0) {
+        // This means something is wrong (negative times somewhere). This should never happen
+        cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+             << "fTimeStart < - fTriggerDelay * fSampling" << endl;
+        exit(1);
+    }
 
     // TODO: time offset may not be working correctly
     // TODO: event drawing not working correctly (some signals are clipped)
