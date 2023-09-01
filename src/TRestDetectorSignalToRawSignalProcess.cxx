@@ -250,9 +250,10 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
     RESTDebug << "fTimeStart : " << fTimeStart << " us " << RESTendl;
     RESTDebug << "fTimeEnd : " << fTimeEnd << " us " << RESTendl;
 
-    if (fTimeStart < 0) {
-        // This should never happen
-        cerr << "fTimeStart < 0" << endl;
+    if (fTimeStart + fTriggerDelay * fSampling < 0) {
+        // This means something is wrong (negative times somewhere). This should never happen
+        cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+             << "fTimeStart < - fTriggerDelay * fSampling" << endl;
         exit(1);
     }
 
