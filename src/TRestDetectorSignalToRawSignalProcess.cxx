@@ -266,7 +266,8 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             TRestDetectorSignal* signal = fInputSignalEvent->GetSignal(n);
             const auto allDaqIds = fReadout->GetAllDaqIds();
             for (const auto& daqId : allDaqIds) {
-                const auto& channel = fReadout->GetReadoutChannelWithDaqID(daqId);
+                // const auto& channel = fReadout->GetReadoutChannelWithDaqID(daqId);
+                // TODO: sometimes channel type does not match signal type, why?
                 if (signal->GetSignalType() == "tpc") {
                     tpcSignals.insert(signal);
                 }
@@ -325,7 +326,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                     thresholdReached = true;
                     break;
                 }
-                t += fSampling / 100.0;
+                t += fSampling;
             }
 
             if (!thresholdReached) {
@@ -364,8 +365,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
         // This means something is wrong (negative times somewhere). This should never happen
         cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
              << "fTimeStart < - fTriggerDelay * fSampling" << endl;
-        // exit(1);
-        return nullptr;
+        exit(1);
     }
 
     // TODO: time offset may not be working correctly
