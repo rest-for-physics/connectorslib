@@ -294,23 +294,48 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             fTimeStart = startTime - fTriggerDelay * fSampling;
             fTimeEnd = fTimeStart + fNPoints * fSampling;
 
-            timeStartVeto = fTimeStart;
+            timeStartVeto = startTime - fTriggerDelay * fSamplingVeto;
             timeEndVeto = timeStartVeto + fNPoints * fSamplingVeto;
+
         } else if (fTriggerMode == "integralThresholdTPC") {
             RESTDebug << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
                       << "Trigger mode integralThresholdTPC" << RESTendl;
 
             const double signalIntegralThreshold = 0.5;  // keV
+            double totalEnergy = 0;
+            for (const auto& signal : tpcSignals) {
+                totalEnergy += signal->GetIntegral();
+            }
+            if (totalEnergy < signalIntegralThreshold) {
+                return nullptr;
+            }
 
             double maxTime = 0;
+            double minTime = std::numeric_limits<float>::max();
             for (const auto& signal : tpcSignals) {
                 const auto maxSignalTime = signal->GetMaxTime();
                 if (maxSignalTime > maxTime) {
                     maxTime = maxSignalTime;
                 }
+                const auto minSignalTime = signal->GetMinTime();
+                if (minSignalTime < minTime) {
+                    minTime = minSignalTime;
+                }
             }
 
-            double t = 0;
+            // lots of problem with signal methods (GetMinTime, GetMaxTime, etc.)
+            if (minTime >= maxTime) {
+                cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                     << "minTime >= maxTime" << RESTendl;
+                exit(1);
+            }
+            if (minTime < 0) {
+                cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                     << " signal minTime < 0" << RESTendl;
+                minTime = 0;
+            }
+
+            double t = minTime;
             bool thresholdReached = false;
             double maxEnergy = 0;
             while (t < maxTime) {
@@ -342,8 +367,10 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             fTimeStart = startTime - fTriggerDelay * fSampling;
             fTimeEnd = fTimeStart + fNPoints * fSampling;
 
-            timeStartVeto = fTimeStart;
+            timeStartVeto = startTime - fTriggerDelay * fSamplingVeto;
             timeEndVeto = timeStartVeto + fNPoints * fSamplingVeto;
+
+            SetObservableValue("triggerTimeTPC", startTime);
         }
 
     } else if (fTriggerMode == "fixed") {
