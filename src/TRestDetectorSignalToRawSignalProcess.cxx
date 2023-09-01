@@ -299,7 +299,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             RESTDebug << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
                       << "Trigger mode integralThresholdTPC" << RESTendl;
 
-            const double signalIntegralThreshold = 1.0;
+            const double signalIntegralThreshold = 0.5;  // keV
             const double maxTime = fInputSignalEvent->GetMaxTime();
 
             double t = 0;
@@ -307,15 +307,16 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             double maxEnergy = 0;
             while (t < maxTime) {
                 // iterate over number of signals
+                double energy = 0;
                 for (const auto& signal : tpcSignals) {
-                    const double energy = signal->GetIntegralWithTime(0, t);
-                    if (energy > maxEnergy) {
-                        maxEnergy = energy;
-                    }
-                    if (maxEnergy > signalIntegralThreshold) {
-                        thresholdReached = true;
-                        break;
-                    }
+                    energy += signal->GetIntegralWithTime(t - fSampling * fNPoints, t);
+                }
+                if (energy > maxEnergy) {
+                    maxEnergy = energy;
+                }
+                if (maxEnergy > signalIntegralThreshold) {
+                    thresholdReached = true;
+                    break;
                 }
                 t += fSampling / 100.0;
             }
@@ -326,6 +327,13 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                      << endl;
                 return nullptr;
             }
+
+            cout << "Number of TPC signals: " << tpcSignals.size() << endl;
+            cout << "IDS of TPC signals: ";
+            for (const auto& signal : tpcSignals) {
+                cout << signal->GetSignalID() << " ";
+            }
+            cout << endl;
 
             double startTime = t;
             fTimeStart = startTime - fTriggerDelay * fSampling;
