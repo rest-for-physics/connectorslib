@@ -327,9 +327,11 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
             // lots of problem with signal methods (GetMinTime, GetMaxTime, etc.)
             if (minTime >= maxTime) {
-                cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
-                     << "minTime >= maxTime" << RESTendl;
-                exit(1);
+                RESTWarning << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                            << "minTime >= maxTime" << RESTendl;
+                // TODO: this should raise an exception
+                // exit(1);
+                return nullptr;
             }
             if (minTime < 0) {
                 RESTWarning
@@ -337,6 +339,8 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                     << " signal minTime < 0. Setting min time to 0, but this should probably never happen"
                     << RESTendl;
                 minTime = 0;
+                // TODO: this should raise an exception
+                // exit(1);
             }
 
             double t = minTime;
@@ -597,34 +601,34 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
 
 void TRestDetectorSignalToRawSignalProcess::InitProcess() {}
 
-Double_t TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC(Short_t adc) const {
-    return fCalibrationGain * adc + fCalibrationOffset;
+Double_t TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC(Double_t adc) const {
+    return (adc - fCalibrationOffset) / fCalibrationGain;
 }
 
-Double_t TRestDetectorSignalToRawSignalProcess::GetEnergyFromADCVeto(Short_t adc) const {
-    return fCalibrationGainVeto * adc + fCalibrationOffsetVeto;
+Double_t TRestDetectorSignalToRawSignalProcess::GetEnergyFromADCVeto(Double_t adc) const {
+    return (adc - fCalibrationOffsetVeto) / fCalibrationGainVeto;
 }
 
-Short_t TRestDetectorSignalToRawSignalProcess::GetADCFromEnergy(Double_t energy) const {
-    return (Short_t)((energy - fCalibrationOffset) / fCalibrationGain);
+Double_t TRestDetectorSignalToRawSignalProcess::GetADCFromEnergy(Double_t energy) const {
+    return (energy - fCalibrationOffset) / fCalibrationGain;
 }
 
-Short_t TRestDetectorSignalToRawSignalProcess::GetADCFromEnergyVeto(Double_t energy) const {
-    return (Short_t)((energy - fCalibrationOffsetVeto) / fCalibrationGainVeto);
+Double_t TRestDetectorSignalToRawSignalProcess::GetADCFromEnergyVeto(Double_t energy) const {
+    return (energy - fCalibrationOffsetVeto) / fCalibrationGainVeto;
 }
 
-Double_t TRestDetectorSignalToRawSignalProcess::GetTimeFromBin(UShort_t bin) const {
+Double_t TRestDetectorSignalToRawSignalProcess::GetTimeFromBin(Double_t bin) const {
     return (bin - fTriggerDelay) * fSampling;
 }
 
-Double_t TRestDetectorSignalToRawSignalProcess::GetTimeFromBinVeto(UShort_t bin) const {
+Double_t TRestDetectorSignalToRawSignalProcess::GetTimeFromBinVeto(Double_t bin) const {
     return (bin - fTriggerDelay) * fSamplingVeto;
 }
 
-UShort_t TRestDetectorSignalToRawSignalProcess::GetBinFromTime(Double_t time) const {
+Double_t TRestDetectorSignalToRawSignalProcess::GetBinFromTime(Double_t time) const {
     return (UShort_t)((time + fTriggerDelay * fSampling) / fSampling);
 }
 
-UShort_t TRestDetectorSignalToRawSignalProcess::GetBinFromTimeVeto(Double_t time) const {
+Double_t TRestDetectorSignalToRawSignalProcess::GetBinFromTimeVeto(Double_t time) const {
     return (UShort_t)((time + fTriggerDelay * fSamplingVeto) / fSamplingVeto);
 }
