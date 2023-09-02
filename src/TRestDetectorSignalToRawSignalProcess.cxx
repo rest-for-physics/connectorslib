@@ -332,8 +332,10 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                 exit(1);
             }
             if (minTime < 0) {
-                cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
-                     << " signal minTime < 0" << RESTendl;
+                RESTWarning
+                    << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: " << inputEvent->GetID()
+                    << " signal minTime < 0. Setting min time to 0, but this should probably never happen"
+                    << RESTendl;
                 minTime = 0;
             }
 
@@ -488,9 +490,9 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             double value = round(data[x]);
             if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
                 if (value < numeric_limits<Short_t>::min() || value > numeric_limits<Short_t>::max()) {
-                    RESTWarning << "value (" << value << ") is outside short range ("
-                                << numeric_limits<Short_t>::min() << ", " << numeric_limits<Short_t>::max()
-                                << ")" << RESTendl;
+                    RESTDebug << "value (" << value << ") is outside short range ("
+                              << numeric_limits<Short_t>::min() << ", " << numeric_limits<Short_t>::max()
+                              << ")" << RESTendl;
                 }
             }
 
