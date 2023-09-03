@@ -151,7 +151,7 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
     fVolumeId.erase(unique(fVolumeId.begin(), fVolumeId.end()), fVolumeId.end());
 
     for (size_t i = 0; i < fVolumeId.size(); i++) {
-        RESTInfo << "TRestGeant4ToDetectorHitsProcess. Volume id : " << fVolumeId[i]
+        RESTDebug << "TRestGeant4ToDetectorHitsProcess. Volume id : " << fVolumeId[i]
                  << " name : " << fGeant4Metadata->GetActiveVolumeName(fVolumeId[i]) << RESTendl;
     }
 

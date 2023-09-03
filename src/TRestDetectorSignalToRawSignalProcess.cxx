@@ -583,9 +583,6 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
                              numeric_limits<Short_t>::min();
     }
 
-    cout << "CalibrationGain: " << fCalibrationGain << endl;
-    cout << "CalibrationOffset: " << fCalibrationOffset << endl;
-
     if (IsLinearCalibrationVeto()) {
         const auto range = numeric_limits<Short_t>::max() - numeric_limits<Short_t>::min();
         fCalibrationGainVeto = range * (fCalibrationRangeVeto.Y() - fCalibrationRangeVeto.X()) /
@@ -594,9 +591,6 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
             range * (fCalibrationRangeVeto.X() - fCalibrationGainVeto * fCalibrationEnergyVeto.X()) +
             numeric_limits<Short_t>::min();
     }
-
-    cout << "CalibrationGainVeto: " << fCalibrationGainVeto << endl;
-    cout << "CalibrationOffsetVeto: " << fCalibrationOffsetVeto << endl;
 }
 
 void TRestDetectorSignalToRawSignalProcess::InitProcess() {}
