@@ -79,7 +79,7 @@ class TRestRawToDetectorSignalProcess : public TRestEventProcess {
 
     TRestEvent* ProcessEvent(TRestEvent* inputEvent) override;
 
-    void ZeroSuppresion(TRestRawSignal* rawSignal, TRestDetectorSignal& sgnl);
+    void ZeroSuppresion(TRestRawSignal* rawSignal, TRestDetectorSignal& signal);
 
     /// It prints out the process parameters stored in the metadata structure
     void PrintMetadata() override {
