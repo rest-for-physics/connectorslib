@@ -106,13 +106,9 @@ void TRestRawReadoutMetadataProcess::InitProcess() {
             fReadoutMetadata->InitializeFromReadout(fReadout);
         }
 
-        fReadoutMetadata->Write("readoutRawMetadata", TObject::kOverwrite);
-        // write only if it's the main thread
+        fReadoutMetadata->SetName("readoutRawMetadata");
+        GetRunInfo()->AddMetadata(fReadoutMetadata);
     }
-
-    TRestRawReadoutMetadata::Metadata = fReadoutMetadata;
-    TRestRawPeaksFinderProcess::Metadata = fReadoutMetadata;
-    TRestRawSignalAnalysisProcess::Metadata = fReadoutMetadata;
 }
 
 TRestEvent* TRestRawReadoutMetadataProcess::ProcessEvent(TRestEvent* inputEvent) {
