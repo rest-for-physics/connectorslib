@@ -43,8 +43,8 @@ class TRestRawReadoutAnalysisProcess : public TRestEventProcess {
     std::map<int, TH2D*> fModuleBSLSigmaY;  //! [MM id, channel activity]
 
    public:
-    any GetInputEvent() const override { return fSignalEvent; }
-    any GetOutputEvent() const override { return fSignalEvent; }
+    RESTValue GetInputEvent() const override { return fSignalEvent; }
+    RESTValue GetOutputEvent() const override { return fSignalEvent; }
 
     void InitProcess() override;
     TRestEvent* ProcessEvent(TRestEvent* inputEvent) override;

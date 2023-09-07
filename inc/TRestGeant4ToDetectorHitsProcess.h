@@ -61,9 +61,9 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
     // add here the members of your event process
 
    public:
-    any GetInputEvent() const override { return fGeant4Event; }
+    RESTValue GetInputEvent() const override { return fGeant4Event; }
 
-    any GetOutputEvent() const override { return fHitsEvent; }
+    RESTValue GetOutputEvent() const override { return fHitsEvent; }
 
     void InitProcess() override;
 
