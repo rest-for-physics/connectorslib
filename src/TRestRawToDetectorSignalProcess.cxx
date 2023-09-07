@@ -118,7 +118,9 @@
 ///
 /// <hr>
 ///
+
 #include "TRestRawToDetectorSignalProcess.h"
+
 using namespace std;
 
 ClassImp(TRestRawToDetectorSignalProcess);
@@ -167,19 +169,23 @@ TRestEvent* TRestRawToDetectorSignalProcess::ProcessEvent(TRestEvent* inputEvent
             ZeroSuppresion(rawSignal, signal);
         } else {
             for (int p = 0; p < int(rawSignal->GetNumberOfPoints()); p++)
-                if (rawSignal->GetData(p) > fThreshold)
+                if (rawSignal->GetData(p) > fThreshold) {
                     signal.NewPoint(fTriggerStarts + fSampling * p, fGain * rawSignal->GetData(p));
+                }
         }
 
-        if (signal.GetNumberOfPoints() > 0)
+        if (signal.GetNumberOfPoints() > 0) {
             fOutputSignalEvent->AddSignal(signal);
-        else
+        } else {
             rejectedSignal++;
+        }
     }
 
     SetObservableValue("NSignalsRejected", rejectedSignal);
 
-    if (fOutputSignalEvent->GetNumberOfSignals() <= 0) return nullptr;
+    if (fOutputSignalEvent->GetNumberOfSignals() <= 0) {
+        return nullptr;
+    }
 
     return fOutputSignalEvent;
 }
