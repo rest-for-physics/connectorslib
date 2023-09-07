@@ -255,8 +255,8 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
         fReadout = GetMetadata<TRestDetectorReadout>();
 
         if (fReadout == nullptr) {
-            cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
-                 << "TRestDetectorReadout metadata not found" << RESTendl;
+            RESTError << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                      << "TRestDetectorReadout metadata not found" << RESTendl;
             exit(1);
         }
 
@@ -326,10 +326,10 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             }
 
             // lots of problem with signal methods (GetMinTime, GetMaxTime, etc.)
-            if (minTime >= maxTime) {
-                RESTWarning << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
-                            << "minTime >= maxTime" << RESTendl;
+            if (minTime > maxTime) {
                 // TODO: this should raise an exception
+                RESTWarning << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                            << "minTime > maxTime" << RESTendl;
                 // exit(1);
                 return nullptr;
             }
