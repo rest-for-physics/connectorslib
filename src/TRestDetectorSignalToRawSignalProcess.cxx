@@ -252,8 +252,8 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
     if (fTimeStart + fTriggerDelay * fSampling < 0) {
         // This means something is wrong (negative times somewhere). This should never happen
-        cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
-             << "fTimeStart < - fTriggerDelay * fSampling" << endl;
+        RESTError << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                  << "fTimeStart < - fTriggerDelay * fSampling" << RESTendl;
         exit(1);
     }
 
