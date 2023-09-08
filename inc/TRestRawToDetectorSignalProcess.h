@@ -73,13 +73,20 @@ class TRestRawToDetectorSignalProcess : public TRestEventProcess {
     /// A parameter to determine if baseline correction has been applied by a previous process
     Bool_t fBaseLineCorrection = false;
 
+    // Perform signal smoothing to the data
+    Bool_t fSignalSmoothing = false;
+
+    // In case signal smoothing is active provide averaging points
+    Int_t fAveragingPoints = 5;
+
    public:
     RESTValue GetInputEvent() const override { return fInputSignalEvent; }
     RESTValue GetOutputEvent() const override { return fOutputSignalEvent; }
 
     TRestEvent* ProcessEvent(TRestEvent* inputEvent) override;
 
-    void ZeroSuppresion(TRestRawSignal* rawSignal, TRestDetectorSignal& sgnl);
+    void ProcessSignal(TRestRawSignal* rawSignal, TRestDetectorSignal& sgnl);
+    void ProcessSignalSmoothed(TRestRawSignal* rawSignal, TRestDetectorSignal& sgnl);
 
     /// It prints out the process parameters stored in the metadata structure
     void PrintMetadata() override {
@@ -90,6 +97,7 @@ class TRestRawToDetectorSignalProcess : public TRestEventProcess {
         RESTMetadata << "Gain : " << fGain << RESTendl;
 
         if (fZeroSuppression) {
+            RESTMetadata << "ZeroSuppression is enabled " << RESTendl;
             RESTMetadata << "Base line range definition : ( " << fBaseLineRange.X() << " , "
                          << fBaseLineRange.Y() << " ) " << RESTendl;
             RESTMetadata << "Integral range : ( " << fIntegralRange.X() << " , " << fIntegralRange.Y()
@@ -99,8 +107,11 @@ class TRestRawToDetectorSignalProcess : public TRestEventProcess {
             RESTMetadata << "Number of points over threshold : " << fNPointsOverThreshold << RESTendl;
         }
 
-        if (fBaseLineCorrection)
-            RESTMetadata << "BaseLine correction is enabled for TRestRawSignalAnalysisProcess" << RESTendl;
+        if (fBaseLineCorrection) RESTMetadata << "BaseLine correction is enabled" << RESTendl;
+        if (fSignalSmoothing) {
+            RESTMetadata << "Signal smoothing is enabled" << RESTendl;
+            RESTMetadata << "Averaging points " << fAveragingPoints << RESTendl;
+        }
 
         EndPrintProcess();
     }
@@ -117,6 +128,6 @@ class TRestRawToDetectorSignalProcess : public TRestEventProcess {
     // Destructor
     ~TRestRawToDetectorSignalProcess();
 
-    ClassDefOverride(TRestRawToDetectorSignalProcess, 2);
+    ClassDefOverride(TRestRawToDetectorSignalProcess, 3);
 };
 #endif
