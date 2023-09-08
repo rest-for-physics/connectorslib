@@ -249,7 +249,8 @@ TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* inputEven
 
     if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug) {
         cout << "TRestGeant4ToDetectorHitsProcess. Hits added : " << fHitsEvent->GetNumberOfHits() << endl;
-        cout << "TRestGeant4ToDetectorHitsProcess. Hits total energy : " << fHitsEvent->GetEnergy() << endl;
+        cout << "TRestGeant4ToDetectorHitsProcess. Hits total energy : " << fHitsEvent->GetTotalEnergy()
+             << endl;
     }
 
     return fHitsEvent;
