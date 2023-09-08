@@ -406,6 +406,13 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
     // TODO: time offset may not be working correctly
     // TODO: event drawing not working correctly (some signals are clipped)
 
+    if (fTimeStart + fTriggerDelay * fSampling < 0) {
+        // This means something is wrong (negative times somewhere). This should never happen
+        RESTError << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                  << "fTimeStart < - fTriggerDelay * fSampling" << RESTendl;
+        exit(1);
+    }
+
     for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
         TRestDetectorSignal* signal = fInputSignalEvent->GetSignal(n);
         Int_t signalID = signal->GetSignalID();
