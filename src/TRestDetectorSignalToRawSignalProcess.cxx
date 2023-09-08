@@ -250,6 +250,13 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
     RESTDebug << "fTimeStart : " << fTimeStart << " us " << RESTendl;
     RESTDebug << "fTimeEnd : " << fTimeEnd << " us " << RESTendl;
 
+    if (fTimeStart + fTriggerDelay * fSampling < 0) {
+        // This means something is wrong (negative times somewhere). This should never happen
+        RESTError << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                  << "fTimeStart < - fTriggerDelay * fSampling" << RESTendl;
+        exit(1);
+    }
+
     for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
         vector<Double_t> data(fNPoints, fCalibrationOffset);
         TRestDetectorSignal* signal = fInputSignalEvent->GetSignal(n);
