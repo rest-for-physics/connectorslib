@@ -30,19 +30,21 @@
 
 //! A process to convert a TRestDetectorSignalEvent into a TRestRawSignalEvent
 class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
-   private:
+private:
     /// A pointer to the specific TRestDetectorSignalEvent input
-    TRestDetectorSignalEvent* fInputSignalEvent;  //!
+    TRestDetectorSignalEvent *fInputSignalEvent;  //!
 
     /// A pointer to the specific TRestRawSignalEvent input
-    TRestRawSignalEvent* fOutputRawSignalEvent;  //!
+    TRestRawSignalEvent *fOutputRawSignalEvent;  //!
 
-    TRestDetectorReadout* fReadout = nullptr;  //!
+    TRestDetectorReadout *fReadout = nullptr;  //!
 
     void Initialize() override;
+
     void InitFromConfigFile() override;
 
-   protected:
+
+protected:
     /// The sampling time from the binned raw output signal
     Double_t fSampling = 1.0;  // ns
 
@@ -81,8 +83,6 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     /// avoid artifacts in the signal (e.g. signals not getting cut when they should)
     Double_t fShapingTime = 0.0;  // us
 
-    Double_t fTimeStart;  //!
-    Double_t fTimeEnd;    //!
 
     // veto specific parameters (may use different shaping times, energy calibration, etc.)
     Double_t fShapingTimeVeto = fShapingTime;  // us
@@ -92,29 +92,37 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     TVector2 fCalibrationEnergyVeto = fCalibrationEnergy;
     TVector2 fCalibrationRangeVeto = fCalibrationRange;
 
-   public:
+public:
     inline Double_t GetSampling() const { return fSampling; }
+
     inline void SetSampling(Double_t sampling) { fSampling = sampling; }
 
     inline Int_t GetNPoints() const { return fNPoints; }
+
     inline void SetNPoints(Int_t nPoints) { fNPoints = nPoints; }
 
     inline std::string GetTriggerMode() const { return fTriggerMode; }
-    inline void SetTriggerMode(const std::string& triggerMode) { fTriggerMode = triggerMode; }
+
+    inline void SetTriggerMode(const std::string &triggerMode) { fTriggerMode = triggerMode; }
 
     inline Int_t GetTriggerDelay() const { return fTriggerDelay; }
+
     inline void SetTriggerDelay(Int_t triggerDelay) { fTriggerDelay = triggerDelay; }
 
     inline Double_t GetGain() const { return fCalibrationGain; }
+
     inline void SetGain(Double_t gain) { fCalibrationGain = gain; }
 
     inline Double_t GetCalibrationOffset() const { return fCalibrationOffset; }
+
     inline void SetCalibrationOffset(Double_t offset) { fCalibrationOffset = offset; }
 
     inline Double_t GetIntegralThreshold() const { return fIntegralThreshold; }
+
     inline void SetIntegralThreshold(Double_t integralThreshold) { fIntegralThreshold = integralThreshold; }
 
     inline Double_t GetShapingTime() const { return fShapingTime; }
+
     inline void SetShapingTime(Double_t shapingTime) { fShapingTime = shapingTime; }
 
     inline bool IsShapingEnabled() const { return fShapingTime > 0; }
@@ -130,68 +138,113 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     }
 
     inline TVector2 GetCalibrationEnergy() const { return fCalibrationEnergy; }
+
     inline void SetCalibrationEnergy(TVector2 calibrationEnergy) { fCalibrationEnergy = calibrationEnergy; }
 
     inline TVector2 GetCalibrationRange() const { return fCalibrationRange; }
+
     inline void SetCalibrationRange(TVector2 calibrationRange) { fCalibrationRange = calibrationRange; }
 
     RESTValue GetInputEvent() const override { return fInputSignalEvent; }
+
     RESTValue GetOutputEvent() const override { return fOutputRawSignalEvent; }
 
     Double_t GetEnergyFromADC(Double_t adc) const;
+
     Double_t GetADCFromEnergy(Double_t energy) const;
+
     Double_t GetEnergyFromADCVeto(Double_t adc) const;
+
     Double_t GetADCFromEnergyVeto(Double_t energy) const;
 
     Double_t GetTimeFromBin(Double_t bin) const;
+
     Double_t GetBinFromTime(Double_t time) const;
+
     Double_t GetTimeFromBinVeto(Double_t bin) const;
+
     Double_t GetBinFromTimeVeto(Double_t time) const;
+
+
+    struct Parameters {
+        Double_t sampling = 1.0;
+        Double_t shapingTime = 0.0;
+        Double_t calibrationGain = 100;
+        Double_t calibrationOffset = 0;
+        TVector2 calibrationEnergy = {0, 0};
+        TVector2 calibrationRange = {0, 0};
+    };
+
 
     void InitProcess() override;
 
-    TRestEvent* ProcessEvent(TRestEvent* inputEvent) override;
+    TRestEvent *ProcessEvent(TRestEvent *inputEvent) override;
 
-    void LoadConfig(const std::string& configFilename, const std::string& name = "");
+    void LoadConfig(const std::string &configFilename, const std::string &name = "");
 
     /// It prints out the process parameters stored in the metadata structure
     void PrintMetadata() override {
         BeginPrintProcess();
 
-        RESTMetadata << "Sampling time : " << fSampling << " us" << RESTendl;
-        RESTMetadata << "Points per channel : " << fNPoints << RESTendl;
-        RESTMetadata << "Trigger mode : " << fTriggerMode << RESTendl;
-        RESTMetadata << "Trigger delay : " << fTriggerDelay << " time units" << RESTendl;
+        for (const auto &readoutType: fReadoutTypes) {
+            RESTMetadata << RESTendl;
+            string type = readoutType;
+            if (type == "") {
+                type = "default";
+            }
+            RESTMetadata << "Sampling time for readout type " << type << " : "
+                         << fParametersMap.at(readoutType).sampling << " us" << RESTendl;
+            RESTMetadata << "Points per channel for readout type " << readoutType << " : "
+                         << fNPoints << RESTendl;
+            RESTMetadata << "Trigger mode for readout type " << readoutType << " : "
+                         << fTriggerMode << RESTendl;
+            RESTMetadata << "Trigger delay for readout type " << readoutType << " : "
+                         << fTriggerDelay << " time units" << RESTendl;
 
-        if (IsLinearCalibration()) {
-            RESTMetadata << "Calibration energy : (" << fCalibrationEnergy.X() << ", "
-                         << fCalibrationEnergy.Y() << ") keV" << RESTendl;
-            RESTMetadata << "Calibration range : (" << fCalibrationRange.X() << ", " << fCalibrationRange.Y()
-                         << ")" << RESTendl;
-        }
-        RESTMetadata << "ADC Gain : " << fCalibrationGain << RESTendl;
-        RESTMetadata << "ADC Offset : " << fCalibrationOffset << RESTendl;
+            if (IsLinearCalibration()) {
+                RESTMetadata << "Calibration energy for readout type " << readoutType << " : ("
+                             << fParametersMap.at(readoutType).calibrationEnergy.X() << ", "
+                             << fParametersMap.at(readoutType).calibrationEnergy.Y() << ") keV" << RESTendl;
+                RESTMetadata << "Calibration range for readout type " << readoutType << " : ("
+                             << fParametersMap.at(readoutType).calibrationRange.X() << ", "
+                             << fParametersMap.at(readoutType).calibrationRange.Y() << ")" << RESTendl;
+            }
+            RESTMetadata << "ADC Gain for readout type " << readoutType << " : "
+                         << fParametersMap.at(readoutType).calibrationGain << RESTendl;
+            RESTMetadata << "ADC Offset for readout type " << readoutType << " : "
+                         << fParametersMap.at(readoutType).calibrationOffset << RESTendl;
 
-        if (IsShapingEnabled()) {
-            RESTMetadata << "Shaping time : " << fShapingTime << " us" << RESTendl;
+            if (IsShapingEnabled()) {
+                {
+                    RESTMetadata << "Shaping time for readout type " << readoutType << " : "
+                                 << fParametersMap.at(readoutType).shapingTime << " us" << RESTendl;
+                }
+            }
         }
 
         EndPrintProcess();
     }
 
     /// Returns a new instance of this class
-    TRestEventProcess* Maker() { return new TRestDetectorSignalToRawSignalProcess; }
+    TRestEventProcess *Maker() { return new TRestDetectorSignalToRawSignalProcess; }
 
     /// Returns the name of this process
-    const char* GetProcessName() const override { return "signalToRawSignal"; }
+    const char *GetProcessName() const override { return "signalToRawSignal"; }
 
     // Constructor
     TRestDetectorSignalToRawSignalProcess();
-    TRestDetectorSignalToRawSignalProcess(const char* configFilename);
+
+    TRestDetectorSignalToRawSignalProcess(const char *configFilename);
 
     // Destructor
     ~TRestDetectorSignalToRawSignalProcess();
 
-    ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 5);
+private:
+
+    std::map<std::string, Parameters> fParametersMap;
+    std::set<std::string> fReadoutTypes;
+
+ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 6);
 };
+
 #endif
