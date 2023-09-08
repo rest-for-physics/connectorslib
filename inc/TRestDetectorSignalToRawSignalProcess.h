@@ -30,21 +30,20 @@
 
 //! A process to convert a TRestDetectorSignalEvent into a TRestRawSignalEvent
 class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
-private:
+   private:
     /// A pointer to the specific TRestDetectorSignalEvent input
-    TRestDetectorSignalEvent *fInputSignalEvent;  //!
+    TRestDetectorSignalEvent* fInputSignalEvent;  //!
 
     /// A pointer to the specific TRestRawSignalEvent input
-    TRestRawSignalEvent *fOutputRawSignalEvent;  //!
+    TRestRawSignalEvent* fOutputRawSignalEvent;  //!
 
-    TRestDetectorReadout *fReadout = nullptr;  //!
+    TRestDetectorReadout* fReadout = nullptr;  //!
 
     void Initialize() override;
 
     void InitFromConfigFile() override;
 
-
-protected:
+   protected:
     /// The sampling time from the binned raw output signal
     Double_t fSampling = 1.0;  // ns
 
@@ -83,7 +82,6 @@ protected:
     /// avoid artifacts in the signal (e.g. signals not getting cut when they should)
     Double_t fShapingTime = 0.0;  // us
 
-
     // veto specific parameters (may use different shaping times, energy calibration, etc.)
     Double_t fShapingTimeVeto = fShapingTime;  // us
     Double_t fSamplingVeto = fSampling;        // ns
@@ -92,7 +90,7 @@ protected:
     TVector2 fCalibrationEnergyVeto = fCalibrationEnergy;
     TVector2 fCalibrationRangeVeto = fCalibrationRange;
 
-public:
+   public:
     inline Double_t GetSampling() const { return fSampling; }
 
     inline void SetSampling(Double_t sampling) { fSampling = sampling; }
@@ -103,7 +101,7 @@ public:
 
     inline std::string GetTriggerMode() const { return fTriggerMode; }
 
-    inline void SetTriggerMode(const std::string &triggerMode) { fTriggerMode = triggerMode; }
+    inline void SetTriggerMode(const std::string& triggerMode) { fTriggerMode = triggerMode; }
 
     inline Int_t GetTriggerDelay() const { return fTriggerDelay; }
 
@@ -165,7 +163,6 @@ public:
 
     Double_t GetBinFromTimeVeto(Double_t time) const;
 
-
     struct Parameters {
         Double_t sampling = 1.0;
         Double_t shapingTime = 0.0;
@@ -175,18 +172,17 @@ public:
         TVector2 calibrationRange = {0, 0};
     };
 
-
     void InitProcess() override;
 
-    TRestEvent *ProcessEvent(TRestEvent *inputEvent) override;
+    TRestEvent* ProcessEvent(TRestEvent* inputEvent) override;
 
-    void LoadConfig(const std::string &configFilename, const std::string &name = "");
+    void LoadConfig(const std::string& configFilename, const std::string& name = "");
 
     /// It prints out the process parameters stored in the metadata structure
     void PrintMetadata() override {
         BeginPrintProcess();
 
-        for (const auto &readoutType: fReadoutTypes) {
+        for (const auto& readoutType : fReadoutTypes) {
             RESTMetadata << RESTendl;
             string type = readoutType;
             if (type == "") {
@@ -194,12 +190,12 @@ public:
             }
             RESTMetadata << "Sampling time for readout type " << type << " : "
                          << fParametersMap.at(readoutType).sampling << " us" << RESTendl;
-            RESTMetadata << "Points per channel for readout type " << readoutType << " : "
-                         << fNPoints << RESTendl;
-            RESTMetadata << "Trigger mode for readout type " << readoutType << " : "
-                         << fTriggerMode << RESTendl;
-            RESTMetadata << "Trigger delay for readout type " << readoutType << " : "
-                         << fTriggerDelay << " time units" << RESTendl;
+            RESTMetadata << "Points per channel for readout type " << readoutType << " : " << fNPoints
+                         << RESTendl;
+            RESTMetadata << "Trigger mode for readout type " << readoutType << " : " << fTriggerMode
+                         << RESTendl;
+            RESTMetadata << "Trigger delay for readout type " << readoutType << " : " << fTriggerDelay
+                         << " time units" << RESTendl;
 
             if (IsLinearCalibration()) {
                 RESTMetadata << "Calibration energy for readout type " << readoutType << " : ("
@@ -226,25 +222,24 @@ public:
     }
 
     /// Returns a new instance of this class
-    TRestEventProcess *Maker() { return new TRestDetectorSignalToRawSignalProcess; }
+    TRestEventProcess* Maker() { return new TRestDetectorSignalToRawSignalProcess; }
 
     /// Returns the name of this process
-    const char *GetProcessName() const override { return "signalToRawSignal"; }
+    const char* GetProcessName() const override { return "signalToRawSignal"; }
 
     // Constructor
     TRestDetectorSignalToRawSignalProcess();
 
-    TRestDetectorSignalToRawSignalProcess(const char *configFilename);
+    TRestDetectorSignalToRawSignalProcess(const char* configFilename);
 
     // Destructor
     ~TRestDetectorSignalToRawSignalProcess();
 
-private:
-
+   private:
     std::map<std::string, Parameters> fParametersMap;
     std::set<std::string> fReadoutTypes;
 
-ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 6);
+    ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 6);
 };
 
 #endif
