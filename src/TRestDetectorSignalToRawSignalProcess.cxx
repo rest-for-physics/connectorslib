@@ -436,7 +436,7 @@ TRestEvent *TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent *inpu
             }
         }
 
-        if (IsShapingEnabled()) {
+        if (shapingTime > 0) {
             const auto sinShaper = [](Double_t t) -> Double_t {
                 if (t <= 0) {
                     return 0;
