@@ -30,20 +30,20 @@
 
 //! A process to convert a TRestDetectorSignalEvent into a TRestRawSignalEvent
 class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
-private:
+   private:
     /// A pointer to the specific TRestDetectorSignalEvent input
-    TRestDetectorSignalEvent *fInputSignalEvent;  //!
+    TRestDetectorSignalEvent* fInputSignalEvent;  //!
 
     /// A pointer to the specific TRestRawSignalEvent input
-    TRestRawSignalEvent *fOutputRawSignalEvent;  //!
+    TRestRawSignalEvent* fOutputRawSignalEvent;  //!
 
-    TRestDetectorReadout *fReadout = nullptr;  //!
+    TRestDetectorReadout* fReadout = nullptr;  //!
 
     void Initialize() override;
 
     void InitFromConfigFile() override;
 
-protected:
+   protected:
     /// The sampling time from the binned raw output signal
     Double_t fSampling = 1.0;  // ns
 
@@ -83,7 +83,7 @@ protected:
     Double_t fShapingTime = 0.0;  // us
 
 
-public:
+   public:
     inline Double_t GetSampling() const { return fSampling; }
 
     inline Int_t GetNPoints() const { return fNPoints; }
@@ -124,33 +124,32 @@ public:
 
     void InitProcess() override;
 
-    TRestEvent *ProcessEvent(TRestEvent *inputEvent) override;
+    TRestEvent* ProcessEvent(TRestEvent* inputEvent) override;
 
-    void LoadConfig(const std::string &configFilename, const std::string &name = "");
+    void LoadConfig(const std::string& configFilename, const std::string& name = "");
 
     /// It prints out the process parameters stored in the metadata structure
     void PrintMetadata() override;
 
     /// Returns a new instance of this class
-    TRestEventProcess *Maker() { return new TRestDetectorSignalToRawSignalProcess; }
+    TRestEventProcess* Maker() { return new TRestDetectorSignalToRawSignalProcess; }
 
     /// Returns the name of this process
-    const char *GetProcessName() const override { return "signalToRawSignal"; }
+    const char* GetProcessName() const override { return "signalToRawSignal"; }
 
     // Constructor
     TRestDetectorSignalToRawSignalProcess();
 
-    TRestDetectorSignalToRawSignalProcess(const char *configFilename);
+    TRestDetectorSignalToRawSignalProcess(const char* configFilename);
 
     // Destructor
     ~TRestDetectorSignalToRawSignalProcess();
 
-private:
+   private:
     std::map<std::string, Parameters> fParametersMap;
     std::set<std::string> fReadoutTypes;
 
-ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 6);
-
+    ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 6);
 };
 
 #endif

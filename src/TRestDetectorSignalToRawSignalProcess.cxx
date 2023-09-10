@@ -552,12 +552,13 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
                 (parameters.calibrationEnergy.Mod() != 0 && parameters.calibrationRange.Mod() != 0);;
         if (isLinearCalibration) {
             const auto range = numeric_limits<Short_t>::max() - numeric_limits<Short_t>::min();
-            parameters.calibrationGain = range *
-                                         (parameters.calibrationRange.Y() - parameters.calibrationRange.X()) /
-                                         (parameters.calibrationEnergy.Y() - parameters.calibrationEnergy.X());
-            parameters.calibrationOffset = range * (parameters.calibrationRange.X() -
-                                                    parameters.calibrationGain * parameters.calibrationEnergy.X()) +
-                                           numeric_limits<Short_t>::min();
+            parameters.calibrationGain =
+                    range * (parameters.calibrationRange.Y() - parameters.calibrationRange.X()) /
+                    (parameters.calibrationEnergy.Y() - parameters.calibrationEnergy.X());
+            parameters.calibrationOffset =
+                    range * (parameters.calibrationRange.X() -
+                             parameters.calibrationGain * parameters.calibrationEnergy.X()) +
+                    numeric_limits<Short_t>::min();
         }
         fParametersMap[type] = parameters;
     }
@@ -650,15 +651,11 @@ Double_t TRestDetectorSignalToRawSignalProcess::GetBinFromTime(Double_t time, co
     return (UShort_t) ((time + fTriggerDelay * sampling) / sampling);
 }
 
-
 void TRestDetectorSignalToRawSignalProcess::PrintMetadata() {
-
     BeginPrintProcess();
 
-    RESTMetadata << "Points per channel: " << fNPoints
-                 << RESTendl;
-    RESTMetadata << "Trigger mode: " << fTriggerMode
-                 << RESTendl;
+    RESTMetadata << "Points per channel: " << fNPoints << RESTendl;
+    RESTMetadata << "Trigger mode: " << fTriggerMode << RESTendl;
     RESTMetadata << "Trigger delay: " << fTriggerDelay << " units" << RESTendl;
 
     for (const auto &readoutType: fReadoutTypes) {
@@ -668,26 +665,22 @@ void TRestDetectorSignalToRawSignalProcess::PrintMetadata() {
             type = "default";
         }
         RESTMetadata << "Readout type: " << type << RESTendl;
-        RESTMetadata << "Sampling time: "
-                     << fParametersMap.at(readoutType).sampling * 1000 << " ns" << RESTendl;
+        RESTMetadata << "Sampling time: " << fParametersMap.at(readoutType).sampling * 1000 << " ns"
+                     << RESTendl;
         const double shapingTime = fParametersMap.at(readoutType).shapingTime;
         if (shapingTime > 0) {
-            RESTMetadata << "Shaping time: "
-                         << shapingTime * 1000 << " ns" << RESTendl;
+            RESTMetadata << "Shaping time: " << shapingTime * 1000 << " ns" << RESTendl;
         }
 
         if (IsLinearCalibration()) {
-            RESTMetadata << "Calibration energies: ("
-                         << fParametersMap.at(readoutType).calibrationEnergy.X() << ", "
-                         << fParametersMap.at(readoutType).calibrationEnergy.Y() << ") keV" << RESTendl;
-            RESTMetadata << "Calibration range: ("
-                         << fParametersMap.at(readoutType).calibrationRange.X() << ", "
-                         << fParametersMap.at(readoutType).calibrationRange.Y() << ")" << RESTendl;
+            RESTMetadata << "Calibration energies: (" << fParametersMap.at(readoutType).calibrationEnergy.X()
+                         << ", " << fParametersMap.at(readoutType).calibrationEnergy.Y() << ") keV"
+                         << RESTendl;
+            RESTMetadata << "Calibration range: (" << fParametersMap.at(readoutType).calibrationRange.X()
+                         << ", " << fParametersMap.at(readoutType).calibrationRange.Y() << ")" << RESTendl;
         }
-        RESTMetadata << "ADC Gain: "
-                     << fParametersMap.at(readoutType).calibrationGain << RESTendl;
-        RESTMetadata << "ADC Offset: "
-                     << fParametersMap.at(readoutType).calibrationOffset << RESTendl;
+        RESTMetadata << "ADC Gain: " << fParametersMap.at(readoutType).calibrationGain << RESTendl;
+        RESTMetadata << "ADC Offset: " << fParametersMap.at(readoutType).calibrationOffset << RESTendl;
     }
     EndPrintProcess();
 }
