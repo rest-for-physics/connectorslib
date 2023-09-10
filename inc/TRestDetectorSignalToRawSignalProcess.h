@@ -30,20 +30,20 @@
 
 //! A process to convert a TRestDetectorSignalEvent into a TRestRawSignalEvent
 class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
-   private:
+private:
     /// A pointer to the specific TRestDetectorSignalEvent input
-    TRestDetectorSignalEvent* fInputSignalEvent;  //!
+    TRestDetectorSignalEvent *fInputSignalEvent;  //!
 
     /// A pointer to the specific TRestRawSignalEvent input
-    TRestRawSignalEvent* fOutputRawSignalEvent;  //!
+    TRestRawSignalEvent *fOutputRawSignalEvent;  //!
 
-    TRestDetectorReadout* fReadout = nullptr;  //!
+    TRestDetectorReadout *fReadout = nullptr;  //!
 
     void Initialize() override;
 
     void InitFromConfigFile() override;
 
-   protected:
+protected:
     /// The sampling time from the binned raw output signal
     Double_t fSampling = 1.0;  // ns
 
@@ -90,7 +90,7 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     TVector2 fCalibrationEnergyVeto = fCalibrationEnergy;
     TVector2 fCalibrationRangeVeto = fCalibrationRange;
 
-   public:
+public:
     inline Double_t GetSampling() const { return fSampling; }
 
     inline void SetSampling(Double_t sampling) { fSampling = sampling; }
@@ -101,7 +101,7 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
 
     inline std::string GetTriggerMode() const { return fTriggerMode; }
 
-    inline void SetTriggerMode(const std::string& triggerMode) { fTriggerMode = triggerMode; }
+    inline void SetTriggerMode(const std::string &triggerMode) { fTriggerMode = triggerMode; }
 
     inline Int_t GetTriggerDelay() const { return fTriggerDelay; }
 
@@ -174,72 +174,33 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
 
     void InitProcess() override;
 
-    TRestEvent* ProcessEvent(TRestEvent* inputEvent) override;
+    TRestEvent *ProcessEvent(TRestEvent *inputEvent) override;
 
-    void LoadConfig(const std::string& configFilename, const std::string& name = "");
+    void LoadConfig(const std::string &configFilename, const std::string &name = "");
 
     /// It prints out the process parameters stored in the metadata structure
-    void PrintMetadata() override {
-        BeginPrintProcess();
-
-        for (const auto& readoutType : fReadoutTypes) {
-            RESTMetadata << RESTendl;
-            string type = readoutType;
-            if (type == "") {
-                type = "default";
-            }
-            RESTMetadata << "Sampling time for readout type " << type << " : "
-                         << fParametersMap.at(readoutType).sampling << " us" << RESTendl;
-            RESTMetadata << "Points per channel for readout type " << readoutType << " : " << fNPoints
-                         << RESTendl;
-            RESTMetadata << "Trigger mode for readout type " << readoutType << " : " << fTriggerMode
-                         << RESTendl;
-            RESTMetadata << "Trigger delay for readout type " << readoutType << " : " << fTriggerDelay
-                         << " time units" << RESTendl;
-
-            if (IsLinearCalibration()) {
-                RESTMetadata << "Calibration energy for readout type " << readoutType << " : ("
-                             << fParametersMap.at(readoutType).calibrationEnergy.X() << ", "
-                             << fParametersMap.at(readoutType).calibrationEnergy.Y() << ") keV" << RESTendl;
-                RESTMetadata << "Calibration range for readout type " << readoutType << " : ("
-                             << fParametersMap.at(readoutType).calibrationRange.X() << ", "
-                             << fParametersMap.at(readoutType).calibrationRange.Y() << ")" << RESTendl;
-            }
-            RESTMetadata << "ADC Gain for readout type " << readoutType << " : "
-                         << fParametersMap.at(readoutType).calibrationGain << RESTendl;
-            RESTMetadata << "ADC Offset for readout type " << readoutType << " : "
-                         << fParametersMap.at(readoutType).calibrationOffset << RESTendl;
-
-            if (IsShapingEnabled()) {
-                {
-                    RESTMetadata << "Shaping time for readout type " << readoutType << " : "
-                                 << fParametersMap.at(readoutType).shapingTime << " us" << RESTendl;
-                }
-            }
-        }
-
-        EndPrintProcess();
-    }
+    void PrintMetadata() override;
 
     /// Returns a new instance of this class
-    TRestEventProcess* Maker() { return new TRestDetectorSignalToRawSignalProcess; }
+    TRestEventProcess *Maker() { return new TRestDetectorSignalToRawSignalProcess; }
 
     /// Returns the name of this process
-    const char* GetProcessName() const override { return "signalToRawSignal"; }
+    const char *GetProcessName() const override { return "signalToRawSignal"; }
 
     // Constructor
     TRestDetectorSignalToRawSignalProcess();
 
-    TRestDetectorSignalToRawSignalProcess(const char* configFilename);
+    TRestDetectorSignalToRawSignalProcess(const char *configFilename);
 
     // Destructor
     ~TRestDetectorSignalToRawSignalProcess();
 
-   private:
+private:
     std::map<std::string, Parameters> fParametersMap;
     std::set<std::string> fReadoutTypes;
 
-    ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 6);
+ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 6);
+
 };
 
 #endif
