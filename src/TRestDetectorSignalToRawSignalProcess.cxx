@@ -585,7 +585,7 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
     fIntegralThreshold = StringToDouble(GetParameter("integralThreshold", fIntegralThreshold));
     fTriggerFixedStartTime = GetDblParameterWithUnits("triggerFixedStartTime", fTriggerFixedStartTime);
 
-    // load default parameters
+    // load default parameters (for backward compatibility)
     fSampling = fParametersMap.at(defaultType).sampling;
     fShapingTime = fParametersMap.at(defaultType).shapingTime;
     fCalibrationGain = fParametersMap.at(defaultType).calibrationGain;
@@ -605,37 +605,51 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
 
 void TRestDetectorSignalToRawSignalProcess::InitProcess() {}
 
-Double_t TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC(Double_t adc) const {
-    return (adc - fCalibrationOffset) / fCalibrationGain;
+Double_t TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC(Double_t adc, const string &type) const {
+    if (fParametersMap.find(type) == fParametersMap.end()) {
+        RESTWarning << "TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC: "
+                    << "type " << type << " not found in parameters map" << RESTendl;
+        return 0;
+    }
+    const auto gain = fParametersMap.at(type).calibrationGain;
+    const auto offset = fParametersMap.at(type).calibrationOffset;
+    return (adc - offset) / gain;
 }
 
-Double_t TRestDetectorSignalToRawSignalProcess::GetEnergyFromADCVeto(Double_t adc) const {
-    return (adc - fCalibrationOffsetVeto) / fCalibrationGainVeto;
+
+Double_t TRestDetectorSignalToRawSignalProcess::GetADCFromEnergy(Double_t energy, const string &type) const {
+    if (fParametersMap.find(type) == fParametersMap.end()) {
+        RESTWarning << "TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC: "
+                    << "type " << type << " not found in parameters map" << RESTendl;
+        return 0;
+    }
+    const auto gain = fParametersMap.at(type).calibrationGain;
+    const auto offset = fParametersMap.at(type).calibrationOffset;
+    return energy * gain + offset;
 }
 
-Double_t TRestDetectorSignalToRawSignalProcess::GetADCFromEnergy(Double_t energy) const {
-    return (energy - fCalibrationOffset) / fCalibrationGain;
+
+Double_t TRestDetectorSignalToRawSignalProcess::GetTimeFromBin(Double_t bin, const string &type) const {
+    if (fParametersMap.find(type) == fParametersMap.end()) {
+        RESTWarning << "TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC: "
+                    << "type " << type << " not found in parameters map" << RESTendl;
+        return 0;
+    }
+    const auto sampling = fParametersMap.at(type).sampling;
+    return (bin - fTriggerDelay) * sampling;
 }
 
-Double_t TRestDetectorSignalToRawSignalProcess::GetADCFromEnergyVeto(Double_t energy) const {
-    return (energy - fCalibrationOffsetVeto) / fCalibrationGainVeto;
+
+Double_t TRestDetectorSignalToRawSignalProcess::GetBinFromTime(Double_t time, const string &type) const {
+    if (fParametersMap.find(type) == fParametersMap.end()) {
+        RESTWarning << "TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC: "
+                    << "type " << type << " not found in parameters map" << RESTendl;
+        return 0;
+    }
+    const auto sampling = fParametersMap.at(type).sampling;
+    return (UShort_t) ((time + fTriggerDelay * sampling) / sampling);
 }
 
-Double_t TRestDetectorSignalToRawSignalProcess::GetTimeFromBin(Double_t bin) const {
-    return (bin - fTriggerDelay) * fSampling;
-}
-
-Double_t TRestDetectorSignalToRawSignalProcess::GetTimeFromBinVeto(Double_t bin) const {
-    return (bin - fTriggerDelay) * fSamplingVeto;
-}
-
-Double_t TRestDetectorSignalToRawSignalProcess::GetBinFromTime(Double_t time) const {
-    return (UShort_t) ((time + fTriggerDelay * fSampling) / fSampling);
-}
-
-Double_t TRestDetectorSignalToRawSignalProcess::GetBinFromTimeVeto(Double_t time) const {
-    return (UShort_t) ((time + fTriggerDelay * fSamplingVeto) / fSamplingVeto);
-}
 
 void TRestDetectorSignalToRawSignalProcess::PrintMetadata() {
 

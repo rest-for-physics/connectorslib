@@ -82,86 +82,36 @@ protected:
     /// avoid artifacts in the signal (e.g. signals not getting cut when they should)
     Double_t fShapingTime = 0.0;  // us
 
-    // veto specific parameters (may use different shaping times, energy calibration, etc.)
-    Double_t fShapingTimeVeto = fShapingTime;  // us
-    Double_t fSamplingVeto = fSampling;        // ns
-    Double_t fCalibrationGainVeto = fCalibrationGain;
-    Double_t fCalibrationOffsetVeto = fCalibrationOffset;
-    TVector2 fCalibrationEnergyVeto = fCalibrationEnergy;
-    TVector2 fCalibrationRangeVeto = fCalibrationRange;
 
 public:
     inline Double_t GetSampling() const { return fSampling; }
 
-    inline void SetSampling(Double_t sampling) { fSampling = sampling; }
-
     inline Int_t GetNPoints() const { return fNPoints; }
-
-    inline void SetNPoints(Int_t nPoints) { fNPoints = nPoints; }
 
     inline std::string GetTriggerMode() const { return fTriggerMode; }
 
-    inline void SetTriggerMode(const std::string &triggerMode) { fTriggerMode = triggerMode; }
-
     inline Int_t GetTriggerDelay() const { return fTriggerDelay; }
-
-    inline void SetTriggerDelay(Int_t triggerDelay) { fTriggerDelay = triggerDelay; }
 
     inline Double_t GetGain() const { return fCalibrationGain; }
 
-    inline void SetGain(Double_t gain) { fCalibrationGain = gain; }
-
-    inline Double_t GetCalibrationOffset() const { return fCalibrationOffset; }
-
-    inline void SetCalibrationOffset(Double_t offset) { fCalibrationOffset = offset; }
-
     inline Double_t GetIntegralThreshold() const { return fIntegralThreshold; }
-
-    inline void SetIntegralThreshold(Double_t integralThreshold) { fIntegralThreshold = integralThreshold; }
-
-    inline Double_t GetShapingTime() const { return fShapingTime; }
-
-    inline void SetShapingTime(Double_t shapingTime) { fShapingTime = shapingTime; }
-
-    inline bool IsShapingEnabled() const { return fShapingTime > 0; }
 
     inline bool IsLinearCalibration() const {
         // Will return true if two points have been given for calibration
         return (fCalibrationEnergy.Mod() != 0 && fCalibrationRange.Mod() != 0);
     }
 
-    inline bool IsLinearCalibrationVeto() const {
-        // Will return true if two points have been given for calibration
-        return (fCalibrationEnergy.Mod() != 0 && fCalibrationRange.Mod() != 0);
-    }
-
-    inline TVector2 GetCalibrationEnergy() const { return fCalibrationEnergy; }
-
-    inline void SetCalibrationEnergy(TVector2 calibrationEnergy) { fCalibrationEnergy = calibrationEnergy; }
-
-    inline TVector2 GetCalibrationRange() const { return fCalibrationRange; }
-
-    inline void SetCalibrationRange(TVector2 calibrationRange) { fCalibrationRange = calibrationRange; }
-
     RESTValue GetInputEvent() const override { return fInputSignalEvent; }
 
     RESTValue GetOutputEvent() const override { return fOutputRawSignalEvent; }
 
-    Double_t GetEnergyFromADC(Double_t adc) const;
+    Double_t GetEnergyFromADC(Double_t adc, const std::string &type = "") const;
 
-    Double_t GetADCFromEnergy(Double_t energy) const;
+    Double_t GetADCFromEnergy(Double_t energy, const std::string &type = "") const;
 
-    Double_t GetEnergyFromADCVeto(Double_t adc) const;
+    Double_t GetTimeFromBin(Double_t bin, const std::string &type = "") const;
 
-    Double_t GetADCFromEnergyVeto(Double_t energy) const;
-
-    Double_t GetTimeFromBin(Double_t bin) const;
-
-    Double_t GetBinFromTime(Double_t time) const;
-
-    Double_t GetTimeFromBinVeto(Double_t bin) const;
-
-    Double_t GetBinFromTimeVeto(Double_t time) const;
+    Double_t GetBinFromTime(Double_t time, const std::string &type = "") const;
 
     struct Parameters {
         Double_t sampling = 1.0;
