@@ -82,7 +82,6 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     /// avoid artifacts in the signal (e.g. signals not getting cut when they should)
     Double_t fShapingTime = 0.0;  // us
 
-
    public:
     inline Double_t GetSampling() const { return fSampling; }
 
@@ -105,13 +104,13 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
 
     RESTValue GetOutputEvent() const override { return fOutputRawSignalEvent; }
 
-    Double_t GetEnergyFromADC(Double_t adc, const std::string &type = "") const;
+    Double_t GetEnergyFromADC(Double_t adc, const std::string& type = "") const;
 
-    Double_t GetADCFromEnergy(Double_t energy, const std::string &type = "") const;
+    Double_t GetADCFromEnergy(Double_t energy, const std::string& type = "") const;
 
-    Double_t GetTimeFromBin(Double_t bin, const std::string &type = "") const;
+    Double_t GetTimeFromBin(Double_t bin, const std::string& type = "") const;
 
-    Double_t GetBinFromTime(Double_t time, const std::string &type = "") const;
+    Double_t GetBinFromTime(Double_t time, const std::string& type = "") const;
 
     struct Parameters {
         Double_t sampling = 1.0;
