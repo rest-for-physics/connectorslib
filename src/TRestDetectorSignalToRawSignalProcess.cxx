@@ -36,11 +36,11 @@
 /// information loss when transferring the signal data to the raw-signal data.
 /// To minimize the impact, the maximum data value of the output signals should
 /// be high enough, and adjusted to the maximum value of a Short_t, being
-/// this value 32768. The *gain* parameter may serve to re-adjust the
+/// this value 32767. The *gain* parameter may serve to re-adjust the
 /// amplitude of the output data array.
 ///
 /// \warning If the value assigned to a data point in the output rawsignal
-/// event exceeds 32768 it will cause an overflow, and the event data will
+/// event exceeds 32767 it will cause an overflow, and the event data will
 /// be corrupted. If the verboseLevel of the process is warning, an output
 /// message will prevent the user. The event status will be invalid.
 ///
@@ -62,7 +62,7 @@
 /// * **sampling**: It is the sampling time of the resulting raw signal
 /// output data. Time units must be specified (ns, us, ms)".
 ///
-/// * **Npoints**: The number of points of the resulting raw signals.
+/// * **nPoints**: The number of points of the resulting raw signals.
 ///
 /// * **triggerMode**: It defines how the start time is fixed. The
 /// different options are:
@@ -74,9 +74,16 @@
 ///     deposit. The time at which the value of this integral is above
 ///     the value provided at the **integralThreshold** parameter will
 ///     be defined as the center of the acquisition window.
+///   - *fixed*: User manually sets the time corresponding to the bin 0 via the **triggerFixedStartTime**
+///     parameter. It is affected by the **triggerDelay** parameter.
+///   - *observable*: User manually sets the time corresponding to the bin 0 via the
+///   **triggerModeObservableName**
+///   - *firstDepositTPC*: Similar to first deposit but only using TPC signals (channels with type "tpc")
 ///
 /// * **integralThreshold**: It defines the value to be used in the
 ///     triggerThreshold method. This parameter is not used otherwise.
+///
+/// * **triggerFixedStartTime**: It defines the time (with units) of bin 0 when used with *fixed* trigger mode
 ///
 ///
 /// \htmlonly <style>div.image img[src="trigger.png"]{width:500px;}</style> \endhtmlonly
@@ -95,9 +102,21 @@
 /// * **gain**: Each data point from the resulting raw signal will be
 /// multiplied by this factor before performing the conversion to
 /// Short_t. Each value in the raw output signal should be between
-/// -32768 and 32768, resulting event data will be corrupted otherwise.
+/// -32768 and 32767, resulting event data will be corrupted otherwise.
 /// The state of the event will be set to false fOk=false.
 ///
+/// * **offset**: Value to add to all amplitudes (position of zero level)
+///
+/// * **calibrationEnergy**: Pair of energies used for linear calibration (alternative to setting gain/offset)
+/// * **calibrationRange**: Pair of numbers between 0.0 and 1.0 to define linear calibration.
+/// They correspond to the values of energy set by *calibrationEnergy*.
+/// 0.0 corresponds to the minimum of the signal range (-32768 for Short_t) and 1.0 to the maximum (32767 for
+/// Short_t)
+///
+/// * **shapingTime**: shaping time in time units. If set the signal will be shaped by sin + undershoot
+/// shaper. We allow shaping in this process to avoid artifacts produced if shaping the signal after
+/// digitalization.
+/// TODO: Rework TRestRawSignal so this is not needed and remove shaping from this process
 ///
 ///--------------------------------------------------------------------------
 ///
@@ -115,6 +134,11 @@
 ///
 
 #include "TRestDetectorSignalToRawSignalProcess.h"
+
+#include <TObjString.h>
+#include <TRestRawReadoutMetadata.h>
+
+#include <limits>
 
 using namespace std;
 
@@ -178,35 +202,6 @@ void TRestDetectorSignalToRawSignalProcess::Initialize() {
 }
 
 ///////////////////////////////////////////////
-/// \brief Some actions taken before start the event data processing
-///
-void TRestDetectorSignalToRawSignalProcess::InitProcess() {
-    if (fTriggerMode == "fixed") {
-        fTimeStart = fTriggerFixedStartTime - fTriggerDelay * fSampling;
-        fTimeEnd = fTimeStart + fNPoints * fSampling;
-    }
-
-    const set<string> validTriggerModes = {"firstDeposit", "integralThreshold", "fixed"};
-    if (validTriggerModes.count(fTriggerMode.Data()) == 0) {
-        RESTError << "Trigger mode set to: '" << fTriggerMode
-                  << "' which is not a valid trigger mode. Please use one of the following trigger modes: ";
-        for (const auto& triggerMode : validTriggerModes) {
-            RESTError << triggerMode << " ";
-        }
-        RESTError << RESTendl;
-        exit(1);
-    }
-
-    if (IsLinearCalibration()) {
-        const auto range = numeric_limits<Short_t>::max() - numeric_limits<Short_t>::min();
-        fCalibrationGain = range * (fCalibrationRange.Y() - fCalibrationRange.X()) /
-                           (fCalibrationEnergy.Y() - fCalibrationEnergy.X());
-        fCalibrationOffset = range * (fCalibrationRange.X() - fCalibrationGain * fCalibrationEnergy.X()) +
-                             numeric_limits<Short_t>::min();
-    }
-}
-
-///////////////////////////////////////////////
 /// \brief The main processing event function
 ///
 TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inputEvent) {
@@ -225,9 +220,10 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
     fOutputRawSignalEvent->SetTimeStamp(fInputSignalEvent->GetTimeStamp());
     fOutputRawSignalEvent->SetSubEventTag(fInputSignalEvent->GetSubEventTag());
 
+    double startTimeNoOffset = 0;
+
     if (fTriggerMode == "firstDeposit") {
-        fTimeStart = fInputSignalEvent->GetMinTime() - fTriggerDelay * fSampling;
-        fTimeEnd = fInputSignalEvent->GetMinTime() + (fNPoints - fTriggerDelay) * fSampling;
+        startTimeNoOffset = fInputSignalEvent->GetMinTime();
     } else if (fTriggerMode == "integralThreshold") {
         bool thresholdReached = false;
         for (Double_t t = fInputSignalEvent->GetMinTime() - fNPoints * fSampling;
@@ -235,60 +231,213 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             Double_t energy = fInputSignalEvent->GetIntegralWithTime(t, t + (fSampling * fNPoints) / 2.);
 
             if (energy > fIntegralThreshold) {
-                fTimeStart = t - fTriggerDelay * fSampling;
-                fTimeEnd = t + (fNPoints - fTriggerDelay) * fSampling;
+                startTimeNoOffset = t;
                 thresholdReached = true;
             }
         }
         if (!thresholdReached) {
             RESTWarning << "Integral threshold for trigger not reached" << RESTendl;
-            fTimeStart = 0;
-            fTimeEnd = fNPoints * fSampling;
+            startTimeNoOffset = 0;
         }
-    }
+    } else if (fTriggerMode == "observable") {
+        const auto obs = GetObservableValue<double>(fTriggerModeObservableName);
+        startTimeNoOffset = obs;
 
-    RESTDebug << "fTimeStart : " << fTimeStart << " us " << RESTendl;
-    RESTDebug << "fTimeEnd : " << fTimeEnd << " us " << RESTendl;
+    } else if (fTriggerMode == "firstDepositTPC" || fTriggerMode == "integralThresholdTPC") {
+        fReadout = GetMetadata<TRestDetectorReadout>();
 
-    if (fTimeStart + fTriggerDelay * fSampling < 0) {
-        // This means something is wrong (negative times somewhere). This should never happen
-        RESTError << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
-                  << "fTimeStart < - fTriggerDelay * fSampling" << RESTendl;
+        if (fReadout == nullptr) {
+            RESTError << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                      << "TRestDetectorReadout metadata not found" << RESTendl;
+            exit(1);
+        }
+
+        set<const TRestDetectorSignal*> tpcSignals;
+
+        for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
+            TRestDetectorSignal* signal = fInputSignalEvent->GetSignal(n);
+            if (signal->GetSignalType() == "tpc") {
+                tpcSignals.insert(signal);
+            }
+            /*
+            const auto allDaqIds = fReadout->GetAllDaqIds();
+            for (const auto& daqId : allDaqIds) {
+                const auto& channel = fReadout->GetReadoutChannelWithDaqID(daqId);
+                // TODO: sometimes channel type does not match signal type, why?
+            }
+            */
+        }
+
+        if (tpcSignals.empty()) {
+            return nullptr;
+        }
+
+        if (fTriggerMode == "firstDepositTPC") {
+            double startTime = std::numeric_limits<float>::max();
+            for (const auto& signal : tpcSignals) {
+                const auto minTime = signal->GetMinTime();
+                if (minTime < startTime) {
+                    startTime = minTime;
+                }
+            }
+
+            if (startTime >= std::numeric_limits<float>::max()) {
+                return nullptr;
+            }
+            startTimeNoOffset = startTime;
+
+        } else if (fTriggerMode == "integralThresholdTPC") {
+            RESTDebug << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                      << "Trigger mode integralThresholdTPC" << RESTendl;
+
+            const double signalIntegralThreshold = 0.5;  // keV
+            double totalEnergy = 0;
+            for (const auto& signal : tpcSignals) {
+                totalEnergy += signal->GetIntegral();
+            }
+            if (totalEnergy < signalIntegralThreshold) {
+                return nullptr;
+            }
+
+            double maxTime = 0;
+            double minTime = std::numeric_limits<float>::max();
+            for (const auto& signal : tpcSignals) {
+                const auto maxSignalTime = signal->GetMaxTime();
+                if (maxSignalTime > maxTime) {
+                    maxTime = maxSignalTime;
+                }
+                const auto minSignalTime = signal->GetMinTime();
+                if (minSignalTime < minTime) {
+                    minTime = minSignalTime;
+                }
+            }
+
+            // lots of problem with signal methods (GetMinTime, GetMaxTime, etc.)
+            if (minTime > maxTime) {
+                // TODO: this should raise an exception
+                RESTWarning << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                            << "minTime > maxTime" << RESTendl;
+                // exit(1);
+                return nullptr;
+            }
+            if (minTime < 0) {
+                RESTWarning
+                    << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: " << inputEvent->GetID()
+                    << " signal minTime < 0. Setting min time to 0, but this should probably never happen"
+                    << RESTendl;
+                minTime = 0;
+                // TODO: this should raise an exception
+                // exit(1);
+            }
+
+            double t = minTime;
+            bool thresholdReached = false;
+            double maxEnergy = 0;
+            while (t < maxTime) {
+                // iterate over number of signals
+                double energy = 0;
+                for (const auto& signal : tpcSignals) {
+                    energy += signal->GetIntegralWithTime(t - fSampling * fNPoints, t);
+                }
+                if (energy > maxEnergy) {
+                    maxEnergy = energy;
+                }
+                if (maxEnergy > signalIntegralThreshold) {
+                    thresholdReached = true;
+                    break;
+                }
+                t += fSampling;
+            }
+
+            if (!thresholdReached) {
+                /*
+                cout << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                     << "Integral threshold for trigger not reached. Maximum energy reached: " << maxEnergy
+                     << endl;
+                */
+                return nullptr;
+            }
+
+            double startTime = t;
+            startTimeNoOffset = startTime;
+
+            SetObservableValue("triggerTimeTPC", startTime);
+        }
+
+    } else if (fTriggerMode == "fixed") {
+        startTimeNoOffset = fTriggerFixedStartTime;
+    } else {
+        cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+             << "Trigger mode not recognized" << RESTendl;
         exit(1);
     }
 
     for (int n = 0; n < fInputSignalEvent->GetNumberOfSignals(); n++) {
-        vector<Double_t> data(fNPoints, fCalibrationOffset);
         TRestDetectorSignal* signal = fInputSignalEvent->GetSignal(n);
         Int_t signalID = signal->GetSignalID();
+        string type = signal->GetSignalType();
+        // Check type is in the map
+        if (fParametersMap.find(type) == fParametersMap.end()) {
+            RESTWarning << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                        << "type " << type << " not found in parameters map" << RESTendl;
+            type = "";
+        }
+
+        double sampling = fParametersMap.at(type).sampling;
+        double shapingTime = fParametersMap.at(type).shapingTime;
+        double calibrationGain = fParametersMap.at(type).calibrationGain;
+        double calibrationOffset = fParametersMap.at(type).calibrationOffset;
+
+        double timeStart = startTimeNoOffset - fTriggerDelay * sampling;
+        double timeEnd = timeStart + fNPoints * sampling;
+        RESTDebug << "fTimeStart: " << timeStart << " us " << RESTendl;
+        RESTDebug << "fTimeEnd: " << timeEnd << " us " << RESTendl;
+
+        if (timeStart + fTriggerDelay * sampling < 0) {
+            // This means something is wrong (negative times somewhere). This should never happen
+            cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                 << "fTimeStart < - fTriggerDelay * fSampling" << endl;
+            exit(1);
+        }
+
+        // TODO: time offset may not be working correctly
+        // TODO: event drawing not working correctly (some signals are clipped)
+
+        if (timeStart + fTriggerDelay * fSampling < 0) {
+            // This means something is wrong (negative times somewhere). This should never happen
+            RESTError << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                      << "fTimeStart < - fTriggerDelay * fSampling" << RESTendl;
+            exit(1);
+        }
+
+        vector<Double_t> data(fNPoints, calibrationOffset);
 
         for (int m = 0; m < signal->GetNumberOfPoints(); m++) {
             Double_t t = signal->GetTime(m);
             Double_t d = signal->GetData(m);
 
             if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Debug && n < 3 && m < 5) {
-                cout << "Signal : " << n << " Sample : " << m << " T : " << t << " Data : " << d << endl;
+                cout << "Signal: " << n << " Sample: " << m << " T: " << t << " Data: " << d << endl;
             }
 
-            if (t > fTimeStart && t < fTimeEnd) {
+            if (t > timeStart && t < timeEnd) {
                 // convert physical time (in us) to timeBin
-                Int_t timeBin = (Int_t)round((t - fTimeStart) / fSampling);
+                Int_t timeBin = (Int_t)round((t - timeStart) / sampling);
 
                 if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
                     if (timeBin < 0 || timeBin > fNPoints) {
-                        cout << "Time bin out of range!!! bin value : " << timeBin << endl;
+                        cout << "Time bin out of range!!! bin value: " << timeBin << endl;
                         timeBin = 0;
                     }
                 }
 
-                RESTDebug << "Adding data : " << signal->GetData(m) << " to Time Bin : " << timeBin
-                          << RESTendl;
-                data[timeBin] += fCalibrationGain * signal->GetData(m);
+                RESTDebug << "Adding data: " << signal->GetData(m) << " to Time Bin: " << timeBin << RESTendl;
+                data[timeBin] += calibrationGain * signal->GetData(m);
             }
         }
 
-        if (IsShapingEnabled()) {
-            const auto shapingFunction = [](Double_t t) -> Double_t {
+        if (shapingTime > 0) {
+            const auto sinShaper = [](Double_t t) -> Double_t {
                 if (t <= 0) {
                     return 0;
                 }
@@ -297,15 +446,25 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                 return TMath::Exp(-3.0 * t) * TMath::Power(t, 3.0) * TMath::Sin(t) * 22.68112123672292;
             };
 
-            vector<Double_t> dataAfterShaping(fNPoints, fCalibrationOffset);
+            const auto shapingFunction = [&sinShaper](Double_t t) -> Double_t {
+                if (t <= 0) {
+                    return 0;
+                }
+                // function is normalized such that its absolute maximum is 1.0
+                // max is at x = 1.1664004483744728
+                // return sinShaper(t) - 1.0 * sinShaper(t - 1); // to add undershoot
+                return sinShaper(t);
+            };
+
+            vector<Double_t> dataAfterShaping(fNPoints, calibrationOffset);
             for (int i = 0; i < fNPoints; i++) {
-                const Double_t value = data[i] - fCalibrationOffset;
+                const Double_t value = data[i] - calibrationOffset;
                 if (value <= 0) {
                     // Only positive values are possible, 0 means no signal in this bin
                     continue;
                 }
                 for (int j = 0; j < fNPoints; j++) {
-                    dataAfterShaping[j] += value * shapingFunction(((j - i) * fSampling) / fShapingTime);
+                    dataAfterShaping[j] += value * shapingFunction(((j - i) * sampling) / shapingTime);
                 }
             }
             data = dataAfterShaping;
@@ -317,9 +476,9 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             double value = round(data[x]);
             if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
                 if (value < numeric_limits<Short_t>::min() || value > numeric_limits<Short_t>::max()) {
-                    RESTWarning << "value (" << value << ") is outside short range ("
-                                << numeric_limits<Short_t>::min() << ", " << numeric_limits<Short_t>::max()
-                                << ")" << RESTendl;
+                    RESTDebug << "value (" << value << ") is outside short range ("
+                              << numeric_limits<Short_t>::min() << ", " << numeric_limits<Short_t>::max()
+                              << ")" << RESTendl;
                 }
             }
 
@@ -345,4 +504,181 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
               << fOutputRawSignalEvent->GetNumberOfSignals() << RESTendl;
 
     return fOutputRawSignalEvent;
+}
+
+///////////////////////////////////////////////
+/// \brief Function reading input parameters from the RML
+/// TRestDetectorSignalToRawSignalProcess metadata section
+///
+void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
+    TString readoutTypesString = GetParameter("readoutTypes", "");
+    // split it by ","
+    TObjArray* readoutTypesArray = readoutTypesString.Tokenize(",");
+    for (int i = 0; i < readoutTypesArray->GetEntries(); i++) {
+        fReadoutTypes.insert(((TObjString*)readoutTypesArray->At(i))->GetString().Data());
+    }
+    cout << "readout types: ";
+    for (const auto& type : fReadoutTypes) {
+        cout << type << " ";
+    }
+    cout << endl;
+
+    // add default type ""
+    const string defaultType;
+    fReadoutTypes.insert(defaultType);
+    fParametersMap[defaultType] = {};
+
+    for (const auto& type : fReadoutTypes) {
+        fReadoutTypes.insert(type);
+        fParametersMap[type] = {};
+
+        string typeCamelCase = type;
+        typeCamelCase[0] = toupper(typeCamelCase[0]);
+
+        Parameters parameters;
+        parameters.sampling = GetDblParameterWithUnits("sampling" + typeCamelCase, parameters.sampling);
+        parameters.shapingTime =
+            GetDblParameterWithUnits("shapingTime" + typeCamelCase, parameters.shapingTime);
+        parameters.calibrationGain =
+            GetDblParameterWithUnits("gain" + typeCamelCase, parameters.calibrationGain);
+        parameters.calibrationOffset =
+            GetDblParameterWithUnits("offset" + typeCamelCase, parameters.calibrationOffset);
+        parameters.calibrationEnergy =
+            Get2DVectorParameterWithUnits("calibrationEnergy" + typeCamelCase, parameters.calibrationEnergy);
+        parameters.calibrationRange =
+            Get2DVectorParameterWithUnits("calibrationRange" + typeCamelCase, parameters.calibrationRange);
+
+        const bool isLinearCalibration =
+            (parameters.calibrationEnergy.Mod() != 0 && parameters.calibrationRange.Mod() != 0);
+        ;
+        if (isLinearCalibration) {
+            const auto range = numeric_limits<Short_t>::max() - numeric_limits<Short_t>::min();
+            parameters.calibrationGain =
+                range * (parameters.calibrationRange.Y() - parameters.calibrationRange.X()) /
+                (parameters.calibrationEnergy.Y() - parameters.calibrationEnergy.X());
+            parameters.calibrationOffset =
+                range * (parameters.calibrationRange.X() -
+                         parameters.calibrationGain * parameters.calibrationEnergy.X()) +
+                numeric_limits<Short_t>::min();
+        }
+        fParametersMap[type] = parameters;
+    }
+
+    auto nPoints = GetParameter("nPoints");
+    if (nPoints == PARAMETER_NOT_FOUND_STR) {
+        nPoints = GetParameter("Npoints", fNPoints);
+    }
+    fNPoints = StringToInteger(nPoints);
+
+    fTriggerMode = GetParameter("triggerMode", fTriggerMode);
+    const set<string> validTriggerModes = {"firstDeposit", "integralThreshold", "fixed",
+                                           "observable",   "firstDepositTPC",   "integralThresholdTPC"};
+    if (validTriggerModes.count(fTriggerMode) == 0) {
+        RESTError << "Trigger mode set to: '" << fTriggerMode
+                  << "' which is not a valid trigger mode. Please use one of the following trigger modes: ";
+        for (const auto& triggerMode : validTriggerModes) {
+            RESTError << triggerMode << " ";
+        }
+        RESTError << RESTendl;
+        exit(1);
+    }
+
+    fTriggerDelay = StringToInteger(GetParameter("triggerDelay", fTriggerDelay));
+    fIntegralThreshold = StringToDouble(GetParameter("integralThreshold", fIntegralThreshold));
+    fTriggerFixedStartTime = GetDblParameterWithUnits("triggerFixedStartTime", fTriggerFixedStartTime);
+
+    // load default parameters (for backward compatibility)
+    fSampling = fParametersMap.at(defaultType).sampling;
+    fShapingTime = fParametersMap.at(defaultType).shapingTime;
+    fCalibrationGain = fParametersMap.at(defaultType).calibrationGain;
+    fCalibrationOffset = fParametersMap.at(defaultType).calibrationOffset;
+    fCalibrationEnergy = fParametersMap.at(defaultType).calibrationEnergy;
+    fCalibrationRange = fParametersMap.at(defaultType).calibrationRange;
+
+    if (fTriggerMode == "observable") {
+        fTriggerModeObservableName = GetParameter("triggerModeObservableName", "");
+        if (fTriggerModeObservableName.empty()) {
+            RESTError << "You need to set 'triggerModeObservableName' to a valid analysis tree observable"
+                      << RESTendl;
+            exit(1);
+        }
+    }
+}
+
+void TRestDetectorSignalToRawSignalProcess::InitProcess() {}
+
+Double_t TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC(Double_t adc, const string& type) const {
+    if (fParametersMap.find(type) == fParametersMap.end()) {
+        RESTWarning << "TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC: "
+                    << "type " << type << " not found in parameters map" << RESTendl;
+        return 0;
+    }
+    const auto gain = fParametersMap.at(type).calibrationGain;
+    const auto offset = fParametersMap.at(type).calibrationOffset;
+    return (adc - offset) / gain;
+}
+
+Double_t TRestDetectorSignalToRawSignalProcess::GetADCFromEnergy(Double_t energy, const string& type) const {
+    if (fParametersMap.find(type) == fParametersMap.end()) {
+        RESTWarning << "TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC: "
+                    << "type " << type << " not found in parameters map" << RESTendl;
+        return 0;
+    }
+    const auto gain = fParametersMap.at(type).calibrationGain;
+    const auto offset = fParametersMap.at(type).calibrationOffset;
+    return energy * gain + offset;
+}
+
+Double_t TRestDetectorSignalToRawSignalProcess::GetTimeFromBin(Double_t bin, const string& type) const {
+    if (fParametersMap.find(type) == fParametersMap.end()) {
+        RESTWarning << "TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC: "
+                    << "type " << type << " not found in parameters map" << RESTendl;
+        return 0;
+    }
+    const auto sampling = fParametersMap.at(type).sampling;
+    return (bin - fTriggerDelay) * sampling;
+}
+
+Double_t TRestDetectorSignalToRawSignalProcess::GetBinFromTime(Double_t time, const string& type) const {
+    if (fParametersMap.find(type) == fParametersMap.end()) {
+        RESTWarning << "TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC: "
+                    << "type " << type << " not found in parameters map" << RESTendl;
+        return 0;
+    }
+    const auto sampling = fParametersMap.at(type).sampling;
+    return (UShort_t)((time + fTriggerDelay * sampling) / sampling);
+}
+
+void TRestDetectorSignalToRawSignalProcess::PrintMetadata() {
+    BeginPrintProcess();
+
+    RESTMetadata << "Points per channel: " << fNPoints << RESTendl;
+    RESTMetadata << "Trigger mode: " << fTriggerMode << RESTendl;
+    RESTMetadata << "Trigger delay: " << fTriggerDelay << " units" << RESTendl;
+
+    for (const auto& readoutType : fReadoutTypes) {
+        RESTMetadata << RESTendl;
+        string type = readoutType;
+        if (type.empty()) {
+            type = "default";
+        }
+        RESTMetadata << "Readout type: " << type << RESTendl;
+        RESTMetadata << "Sampling time: " << fParametersMap.at(readoutType).sampling * 1000 << " ns"
+                     << RESTendl;
+        const double shapingTime = fParametersMap.at(readoutType).shapingTime;
+        if (shapingTime > 0) {
+            RESTMetadata << "Shaping time: " << shapingTime * 1000 << " ns" << RESTendl;
+        }
+
+        if (IsLinearCalibration()) {
+            RESTMetadata << "Calibration energies: (" << fParametersMap.at(readoutType).calibrationEnergy.X()
+                         << ", " << fParametersMap.at(readoutType).calibrationEnergy.Y() << ") keV"
+                         << RESTendl;
+            RESTMetadata << "Calibration range: (" << fParametersMap.at(readoutType).calibrationRange.X()
+                         << ", " << fParametersMap.at(readoutType).calibrationRange.Y() << ")" << RESTendl;
+        }
+        RESTMetadata << "ADC Gain: " << fParametersMap.at(readoutType).calibrationGain << RESTendl;
+        RESTMetadata << "ADC Offset: " << fParametersMap.at(readoutType).calibrationOffset << RESTendl;
+    }
+    EndPrintProcess();
 }

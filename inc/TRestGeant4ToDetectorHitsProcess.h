@@ -24,10 +24,12 @@
 #define RestCore_TRestGeant4ToDetectorHitsProcess
 
 #include <TRestDetectorHitsEvent.h>
+#include <TRestEventProcess.h>
 #include <TRestGeant4Event.h>
 #include <TRestGeant4Metadata.h>
 
-#include "TRestEventProcess.h"
+#include <string>
+#include <vector>
 
 /// A process to transform a *TRestGeant4Event* into a *TRestDetectorHitsEvent*.
 class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
@@ -46,6 +48,8 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
 
     /// The geometry volume names to be transferred to TRestDetectorHitsEvent
     std::vector<TString> fVolumeSelection;
+
+    std::map<std::string, REST_HitType> fHitTypes;  //!
 
     void InitFromConfigFile() override;
 

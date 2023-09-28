@@ -118,7 +118,9 @@
 ///
 /// <hr>
 ///
+
 #include "TRestRawToDetectorSignalProcess.h"
+
 using namespace std;
 
 ClassImp(TRestRawToDetectorSignalProcess);
@@ -166,31 +168,36 @@ TRestEvent* TRestRawToDetectorSignalProcess::ProcessEvent(TRestEvent* inputEvent
         if (fZeroSuppression) {
             ZeroSuppresion(rawSignal, signal);
         } else {
-            for (int p = 0; p < rawSignal->GetNumberOfPoints(); p++)
-                if (rawSignal->GetData(p) > fThreshold)
+            for (int p = 0; p < int(rawSignal->GetNumberOfPoints()); p++) {
+                if (rawSignal->GetData(p) > fThreshold) {
                     signal.NewPoint(fTriggerStarts + fSampling * p, fGain * rawSignal->GetData(p));
+                }
+            }
         }
 
-        if (signal.GetNumberOfPoints() > 0)
+        if (signal.GetNumberOfPoints() > 0) {
             fOutputSignalEvent->AddSignal(signal);
-        else
+        } else {
             rejectedSignal++;
+        }
     }
 
     SetObservableValue("NSignalsRejected", rejectedSignal);
 
-    if (fOutputSignalEvent->GetNumberOfSignals() <= 0) return nullptr;
+    if (fOutputSignalEvent->GetNumberOfSignals() <= 0) {
+        return nullptr;
+    }
 
     return fOutputSignalEvent;
 }
 
-void TRestRawToDetectorSignalProcess::ZeroSuppresion(TRestRawSignal* rawSignal, TRestDetectorSignal& sgnl) {
+void TRestRawToDetectorSignalProcess::ZeroSuppresion(TRestRawSignal* rawSignal, TRestDetectorSignal& signal) {
     rawSignal->InitializePointsOverThreshold(TVector2(fPointThreshold, fSignalThreshold),
                                              fNPointsOverThreshold, 512);
 
     std::vector<Int_t> pOver = rawSignal->GetPointsOverThreshold();
     for (unsigned int n = 0; n < pOver.size(); n++) {
         int j = pOver[n];
-        sgnl.NewPoint(fTriggerStarts + fSampling * j, fGain * rawSignal->GetData(j));
+        signal.NewPoint(fTriggerStarts + fSampling * j, fGain * rawSignal->GetData(j));
     }
 }
