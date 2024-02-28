@@ -299,7 +299,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                 return nullptr;
             }
 
-            double maxTime = 0;
+            double maxTime = std::numeric_limits<float>::min();
             double minTime = std::numeric_limits<float>::max();
             for (const auto& signal : tpcSignals) {
                 const auto maxSignalTime = signal->GetMaxTime();
@@ -321,23 +321,21 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                 return nullptr;
             }
             if (minTime < 0) {
-                RESTWarning
-                    << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: " << inputEvent->GetID()
-                    << " signal minTime < 0. Setting min time to 0, but this should probably never happen"
-                    << RESTendl;
-                minTime = 0;
-                // TODO: this should raise an exception
-                // exit(1);
+                RESTError << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: " << inputEvent->GetID()
+                          << " signal minTime < 0. Setting min time to 0, but this should never happen"
+                          << RESTendl;
+                exit(1);
             }
 
-            double t = minTime;
+            double triggerTime = minTime;
             bool thresholdReached = false;
             double maxEnergy = 0;
-            while (t < maxTime) {
+            while (triggerTime <= maxTime + fSampling) {
                 // iterate over number of signals
                 double energy = 0;
+                const double startTime = triggerTime - fSampling * fNPoints;
                 for (const auto& signal : tpcSignals) {
-                    energy += signal->GetIntegralWithTime(t - fSampling * fNPoints, t);
+                    energy += signal->GetIntegralWithTime(startTime, triggerTime);
                 }
                 if (energy > maxEnergy) {
                     maxEnergy = energy;
@@ -346,22 +344,16 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                     thresholdReached = true;
                     break;
                 }
-                t += fSampling;
+                triggerTime += fSampling;
             }
 
             if (!thresholdReached) {
-                /*
-                cout << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
-                     << "Integral threshold for trigger not reached. Maximum energy reached: " << maxEnergy
-                     << endl;
-                */
                 return nullptr;
             }
 
-            double startTime = t;
-            startTimeNoOffset = startTime;
+            startTimeNoOffset = triggerTime;
 
-            SetObservableValue("triggerTimeTPC", startTime);
+            SetObservableValue("triggerTimeTPC", triggerTime);
         }
 
     } else if (fTriggerMode == "fixed") {
