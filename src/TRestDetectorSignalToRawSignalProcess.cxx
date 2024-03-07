@@ -322,6 +322,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                     RESTWarning << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: EventID: "
                                 << fInputSignalEvent->GetID() << " signal ID: " << signal->GetSignalID()
                                 << " minSignalTime < 0. MinSignalTime: " << minSignalTime << RESTendl;
+                    signal->Print();
                     return nullptr;
                 }
             }
