@@ -305,10 +305,6 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                 return nullptr;
             }
 
-            if (tpcSignals.empty()) {
-                return nullptr;
-            }
-
             Double_t maxTime = std::numeric_limits<Double_t>::min();
             Double_t minTime = std::numeric_limits<Double_t>::max();
             for (const auto& signal : tpcSignals) {
