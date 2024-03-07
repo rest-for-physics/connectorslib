@@ -69,6 +69,7 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
 
     /// This parameter is used by integralWindow trigger mode to define the acquisition window.
     Double_t fIntegralThreshold = 1229.0;
+    Double_t fIntegralThresholdTPCkeV = 0.1;
 
     /// two distinct energy values used for calibration
     TVector2 fCalibrationEnergy = TVector2(0.0, 0.0);
@@ -148,7 +149,7 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     std::map<std::string, Parameters> fParametersMap;
     std::set<std::string> fReadoutTypes;
 
-    ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 6);
+    ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 7);
 };
 
 #endif

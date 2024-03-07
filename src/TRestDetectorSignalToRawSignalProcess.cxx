@@ -290,12 +290,11 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             RESTDebug << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
                       << "Trigger mode integralThresholdTPC" << RESTendl;
 
-            const double signalIntegralThreshold = 0.5;  // keV
             double totalEnergy = 0;
             for (const auto& signal : tpcSignals) {
                 totalEnergy += signal->GetIntegral();
             }
-            if (totalEnergy < signalIntegralThreshold) {
+            if (totalEnergy < fIntegralThresholdTPCkeV) {
                 return nullptr;
             }
 
@@ -340,7 +339,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                 if (energy > maxEnergy) {
                     maxEnergy = energy;
                 }
-                if (maxEnergy > signalIntegralThreshold) {
+                if (maxEnergy >= fIntegralThresholdTPCkeV) {
                     thresholdReached = true;
                     break;
                 }
@@ -577,6 +576,13 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
 
     fTriggerDelay = StringToInteger(GetParameter("triggerDelay", fTriggerDelay));
     fIntegralThreshold = StringToDouble(GetParameter("integralThreshold", fIntegralThreshold));
+    fIntegralThresholdTPCkeV =
+        StringToDouble(GetParameter("integralThresholdTPCkeV", fIntegralThresholdTPCkeV));
+    if (fIntegralThresholdTPCkeV <= 0) {
+        RESTError << "integralThresholdTPCkeV must be greater than 0" << RESTendl;
+        exit(1);
+    }
+
     fTriggerFixedStartTime = GetDblParameterWithUnits("triggerFixedStartTime", fTriggerFixedStartTime);
 
     // load default parameters (for backward compatibility)
