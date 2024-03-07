@@ -220,6 +220,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
     fOutputRawSignalEvent->SetTimeStamp(fInputSignalEvent->GetTimeStamp());
     fOutputRawSignalEvent->SetSubEventTag(fInputSignalEvent->GetSubEventTag());
 
+    double triggerTime = 0;
     double startTimeNoOffset = 0;
 
     if (fTriggerMode == "firstDeposit") {
@@ -333,7 +334,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                 return nullptr;
             }
 
-            double triggerTime = minTime;
+            triggerTime = minTime;
             bool thresholdReached = false;
             double maxEnergy = 0;
             while (triggerTime <= maxTime + fSampling) {
@@ -358,8 +359,6 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             }
 
             startTimeNoOffset = triggerTime;
-
-            SetObservableValue("triggerTimeTPC", triggerTime);
         }
 
     } else if (fTriggerMode == "fixed") {
@@ -497,6 +496,8 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
         fOutputRawSignalEvent->AddSignal(rawSignal);
     }
+
+    SetObservableValue("triggerTimeTPC", triggerTime);
 
     RESTDebug << "TRestDetectorSignalToRawSignalProcess. Returning event with N signals "
               << fOutputRawSignalEvent->GetNumberOfSignals() << RESTendl;
