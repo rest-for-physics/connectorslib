@@ -319,7 +319,8 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             }
 
             if (minTime > maxTime || minTime < 0) {
-                RESTWarning << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                RESTWarning << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: EventID: "
+                            << fInputSignalEvent->GetID()
                             << "minTime > maxTime or minTime < 0. MinTime: " << minTime
                             << " MaxTime: " << maxTime << RESTendl;
                 return nullptr;
