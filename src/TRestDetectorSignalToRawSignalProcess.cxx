@@ -220,6 +220,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
     fOutputRawSignalEvent->SetTimeStamp(fInputSignalEvent->GetTimeStamp());
     fOutputRawSignalEvent->SetSubEventTag(fInputSignalEvent->GetSubEventTag());
 
+    double triggerTime = 0;
     double startTimeNoOffset = 0;
 
     if (fTriggerMode == "firstDeposit") {
@@ -290,6 +291,13 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             RESTDebug << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
                       << "Trigger mode integralThresholdTPC" << RESTendl;
 
+            if (fIntegralThresholdTPCkeV <= 0) {
+                RESTError << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
+                          << "integralThresholdTPCkeV must be greater than 0: " << fIntegralThresholdTPCkeV
+                          << RESTendl;
+                exit(1);
+            }
+
             double totalEnergy = 0;
             for (const auto& signal : tpcSignals) {
                 totalEnergy += signal->GetIntegral();
@@ -298,8 +306,8 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                 return nullptr;
             }
 
-            double maxTime = std::numeric_limits<float>::min();
-            double minTime = std::numeric_limits<float>::max();
+            Double_t maxTime = std::numeric_limits<Double_t>::min();
+            Double_t minTime = std::numeric_limits<Double_t>::max();
             for (const auto& signal : tpcSignals) {
                 const auto maxSignalTime = signal->GetMaxTime();
                 if (maxSignalTime > maxTime) {
@@ -309,24 +317,25 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                 if (minSignalTime < minTime) {
                     minTime = minSignalTime;
                 }
+
+                if (minSignalTime < 0) {
+                    RESTWarning << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: EventID: "
+                                << fInputSignalEvent->GetID() << " signal ID: " << signal->GetSignalID()
+                                << " minSignalTime < 0. MinSignalTime: " << minSignalTime << RESTendl;
+                    signal->Print();
+                    return nullptr;
+                }
             }
 
-            // lots of problem with signal methods (GetMinTime, GetMaxTime, etc.)
-            if (minTime > maxTime) {
-                // TODO: this should raise an exception
-                RESTWarning << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
-                            << "minTime > maxTime" << RESTendl;
-                // exit(1);
+            if (minTime > maxTime || minTime < 0) {
+                RESTWarning << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: EventID: "
+                            << fInputSignalEvent->GetID()
+                            << " minTime > maxTime or minTime < 0. MinTime: " << minTime
+                            << " MaxTime: " << maxTime << RESTendl;
                 return nullptr;
             }
-            if (minTime < 0) {
-                RESTError << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: " << inputEvent->GetID()
-                          << " signal minTime < 0. Setting min time to 0, but this should never happen"
-                          << RESTendl;
-                exit(1);
-            }
 
-            double triggerTime = minTime;
+            triggerTime = minTime;
             bool thresholdReached = false;
             double maxEnergy = 0;
             while (triggerTime <= maxTime + fSampling) {
@@ -351,8 +360,6 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             }
 
             startTimeNoOffset = triggerTime;
-
-            SetObservableValue("triggerTimeTPC", triggerTime);
         }
 
     } else if (fTriggerMode == "fixed") {
@@ -490,6 +497,8 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
         fOutputRawSignalEvent->AddSignal(rawSignal);
     }
+
+    SetObservableValue("triggerTimeTPC", triggerTime);
 
     RESTDebug << "TRestDetectorSignalToRawSignalProcess. Returning event with N signals "
               << fOutputRawSignalEvent->GetNumberOfSignals() << RESTendl;
