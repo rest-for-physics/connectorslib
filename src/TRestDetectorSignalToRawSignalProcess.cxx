@@ -365,8 +365,8 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
     } else if (fTriggerMode == "fixed") {
         startTimeNoOffset = fTriggerFixedStartTime;
     } else {
-        cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
-             << "Trigger mode not recognized" << RESTendl;
+        cerr << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: " << "Trigger mode not recognized"
+             << RESTendl;
         exit(1);
     }
 
@@ -376,8 +376,8 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
         string type = signal->GetSignalType();
         // Check type is in the map
         if (fParametersMap.find(type) == fParametersMap.end()) {
-            RESTWarning << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: "
-                        << "type " << type << " not found in parameters map" << RESTendl;
+            RESTWarning << "TRestDetectorSignalToRawSignalProcess::ProcessEvent: " << "type " << type
+                        << " not found in parameters map" << RESTendl;
             type = "";
         }
 
@@ -618,8 +618,8 @@ void TRestDetectorSignalToRawSignalProcess::InitProcess() {}
 
 Double_t TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC(Double_t adc, const string& type) const {
     if (fParametersMap.find(type) == fParametersMap.end()) {
-        RESTWarning << "TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC: "
-                    << "type " << type << " not found in parameters map" << RESTendl;
+        RESTWarning << "TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC: " << "type " << type
+                    << " not found in parameters map" << RESTendl;
         return 0;
     }
     const auto gain = fParametersMap.at(type).calibrationGain;
@@ -629,8 +629,8 @@ Double_t TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC(Double_t adc, c
 
 Double_t TRestDetectorSignalToRawSignalProcess::GetADCFromEnergy(Double_t energy, const string& type) const {
     if (fParametersMap.find(type) == fParametersMap.end()) {
-        RESTWarning << "TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC: "
-                    << "type " << type << " not found in parameters map" << RESTendl;
+        RESTWarning << "TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC: " << "type " << type
+                    << " not found in parameters map" << RESTendl;
         return 0;
     }
     const auto gain = fParametersMap.at(type).calibrationGain;
@@ -640,8 +640,8 @@ Double_t TRestDetectorSignalToRawSignalProcess::GetADCFromEnergy(Double_t energy
 
 Double_t TRestDetectorSignalToRawSignalProcess::GetTimeFromBin(Double_t bin, const string& type) const {
     if (fParametersMap.find(type) == fParametersMap.end()) {
-        RESTWarning << "TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC: "
-                    << "type " << type << " not found in parameters map" << RESTendl;
+        RESTWarning << "TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC: " << "type " << type
+                    << " not found in parameters map" << RESTendl;
         return 0;
     }
     const auto sampling = fParametersMap.at(type).sampling;
@@ -650,8 +650,8 @@ Double_t TRestDetectorSignalToRawSignalProcess::GetTimeFromBin(Double_t bin, con
 
 Double_t TRestDetectorSignalToRawSignalProcess::GetBinFromTime(Double_t time, const string& type) const {
     if (fParametersMap.find(type) == fParametersMap.end()) {
-        RESTWarning << "TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC: "
-                    << "type " << type << " not found in parameters map" << RESTendl;
+        RESTWarning << "TRestDetectorSignalToRawSignalProcess::GetEnergyFromADC: " << "type " << type
+                    << " not found in parameters map" << RESTendl;
         return 0;
     }
     const auto sampling = fParametersMap.at(type).sampling;
