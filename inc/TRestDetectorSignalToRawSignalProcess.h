@@ -83,7 +83,7 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     /// avoid artifacts in the signal (e.g. signals not getting cut when they should)
     Double_t fShapingTime = 0.0;  // us
 
-    //Noise level
+    // Noise level
     Double_t fNoiseLevel = 0.0;
 
    public:
