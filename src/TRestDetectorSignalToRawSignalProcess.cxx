@@ -381,6 +381,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             type = "";
         }
 
+        double noiseLevel = fParametersMap.at(type).noiseLevel;
         double sampling = fParametersMap.at(type).sampling;
         double shapingTime = fParametersMap.at(type).shapingTime;
         double calibrationGain = fParametersMap.at(type).calibrationGain;
@@ -547,6 +548,8 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
             Get2DVectorParameterWithUnits("calibrationEnergy" + typeCamelCase, parameters.calibrationEnergy);
         parameters.calibrationRange =
             Get2DVectorParameterWithUnits("calibrationRange" + typeCamelCase, parameters.calibrationRange);
+        parameters.noiseLevel =
+            GetDblParameterWithUnits("noiseLevel" + typeCamelCase, parameters.noiseLevel);
 
         const bool isLinearCalibration =
             (parameters.calibrationEnergy.Mod() != 0 && parameters.calibrationRange.Mod() != 0);
