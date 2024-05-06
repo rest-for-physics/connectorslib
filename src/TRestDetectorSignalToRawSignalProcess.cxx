@@ -615,6 +615,7 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
     // load default parameters (for backward compatibility)
     fSampling = fParametersMap.at(defaultType).sampling;
     fShapingTime = fParametersMap.at(defaultType).shapingTime;
+    fNoiseLevel = fParametersMap.at(defaultType).noiseLevel;
     fCalibrationGain = fParametersMap.at(defaultType).calibrationGain;
     fCalibrationOffset = fParametersMap.at(defaultType).calibrationOffset;
     fCalibrationEnergy = fParametersMap.at(defaultType).calibrationEnergy;
