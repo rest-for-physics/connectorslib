@@ -83,6 +83,9 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     /// avoid artifacts in the signal (e.g. signals not getting cut when they should)
     Double_t fShapingTime = 0.0;  // us
 
+    // Noise level
+    Double_t fNoiseLevel = 0.0;
+
    public:
     inline Double_t GetSampling() const { return fSampling; }
 
@@ -118,6 +121,7 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
         Double_t shapingTime = 0.0;
         Double_t calibrationGain = 100;
         Double_t calibrationOffset = 0;
+        Double_t noiseLevel = 0.0;
         TVector2 calibrationEnergy = {0, 0};
         TVector2 calibrationRange = {0, 0};
     };
@@ -137,19 +141,17 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     /// Returns the name of this process
     const char* GetProcessName() const override { return "signalToRawSignal"; }
 
-    // Constructor
     TRestDetectorSignalToRawSignalProcess();
 
-    TRestDetectorSignalToRawSignalProcess(const char* configFilename);
+    explicit TRestDetectorSignalToRawSignalProcess(const char* configFilename);
 
-    // Destructor
-    ~TRestDetectorSignalToRawSignalProcess();
+    ~TRestDetectorSignalToRawSignalProcess() override;
 
    private:
     std::map<std::string, Parameters> fParametersMap;
     std::set<std::string> fReadoutTypes;
 
-    ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 7);
+    ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 8);
 };
 
 #endif

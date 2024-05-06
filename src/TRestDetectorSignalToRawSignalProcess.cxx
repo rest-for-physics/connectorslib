@@ -381,6 +381,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
             type = "";
         }
 
+        double noiseLevel = fParametersMap.at(type).noiseLevel;
         double sampling = fParametersMap.at(type).sampling;
         double shapingTime = fParametersMap.at(type).shapingTime;
         double calibrationGain = fParametersMap.at(type).calibrationGain;
@@ -420,7 +421,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
             if (t > timeStart && t < timeEnd) {
                 // convert physical time (in us) to timeBin
-                Int_t timeBin = (Int_t)round((t - timeStart) / sampling);
+                auto timeBin = (Int_t)round((t - timeStart) / sampling);
 
                 if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
                     if (timeBin < 0 || timeBin > fNPoints) {
@@ -431,6 +432,13 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
                 RESTDebug << "Adding data: " << signal->GetData(m) << " to Time Bin: " << timeBin << RESTendl;
                 data[timeBin] += calibrationGain * signal->GetData(m);
+            }
+        }
+
+        // Noise before shaping
+        if (noiseLevel > 0) {
+            for (int i = 0; i < fNPoints; i++) {
+                data[i] += gRandom->Gaus(0, noiseLevel);
             }
         }
 
@@ -466,6 +474,13 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                 }
             }
             data = dataAfterShaping;
+
+            // Noise after shaping
+            if (noiseLevel > 0) {
+                for (int i = 0; i < fNPoints; i++) {
+                    data[i] += gRandom->Gaus(0, noiseLevel);
+                }
+            }
         }
 
         TRestRawSignal rawSignal;
@@ -547,6 +562,7 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
             Get2DVectorParameterWithUnits("calibrationEnergy" + typeCamelCase, parameters.calibrationEnergy);
         parameters.calibrationRange =
             Get2DVectorParameterWithUnits("calibrationRange" + typeCamelCase, parameters.calibrationRange);
+        parameters.noiseLevel = GetDblParameterWithUnits("noiseLevel" + typeCamelCase, parameters.noiseLevel);
 
         const bool isLinearCalibration =
             (parameters.calibrationEnergy.Mod() != 0 && parameters.calibrationRange.Mod() != 0);
@@ -599,6 +615,7 @@ void TRestDetectorSignalToRawSignalProcess::InitFromConfigFile() {
     // load default parameters (for backward compatibility)
     fSampling = fParametersMap.at(defaultType).sampling;
     fShapingTime = fParametersMap.at(defaultType).shapingTime;
+    fNoiseLevel = fParametersMap.at(defaultType).noiseLevel;
     fCalibrationGain = fParametersMap.at(defaultType).calibrationGain;
     fCalibrationOffset = fParametersMap.at(defaultType).calibrationOffset;
     fCalibrationEnergy = fParametersMap.at(defaultType).calibrationEnergy;
@@ -677,6 +694,10 @@ void TRestDetectorSignalToRawSignalProcess::PrintMetadata() {
         const double shapingTime = fParametersMap.at(readoutType).shapingTime;
         if (shapingTime > 0) {
             RESTMetadata << "Shaping time: " << shapingTime * 1000 << " ns" << RESTendl;
+        }
+        const double noiseLevel = fParametersMap.at(readoutType).noiseLevel;
+        if (noiseLevel > 0) {
+            RESTMetadata << "Noise Level: " << noiseLevel << RESTendl;
         }
 
         if (IsLinearCalibration()) {
