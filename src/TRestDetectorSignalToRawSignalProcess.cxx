@@ -421,7 +421,7 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
             if (t > timeStart && t < timeEnd) {
                 // convert physical time (in us) to timeBin
-                Int_t timeBin = (Int_t)round((t - timeStart) / sampling);
+                auto timeBin = (Int_t)round((t - timeStart) / sampling);
 
                 if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning) {
                     if (timeBin < 0 || timeBin > fNPoints) {
@@ -432,6 +432,13 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
 
                 RESTDebug << "Adding data: " << signal->GetData(m) << " to Time Bin: " << timeBin << RESTendl;
                 data[timeBin] += calibrationGain * signal->GetData(m);
+            }
+        }
+
+        // Noise before shaping
+        if (noiseLevel > 0) {
+            for (int i = 0; i < fNPoints; i++) {
+                data[i] += gRandom->Gaus(0, noiseLevel);
             }
         }
 
@@ -467,6 +474,13 @@ TRestEvent* TRestDetectorSignalToRawSignalProcess::ProcessEvent(TRestEvent* inpu
                 }
             }
             data = dataAfterShaping;
+
+            // Noise after shaping
+            if (noiseLevel > 0) {
+                for (int i = 0; i < fNPoints; i++) {
+                    data[i] += gRandom->Gaus(0, noiseLevel);
+                }
+            }
         }
 
         TRestRawSignal rawSignal;

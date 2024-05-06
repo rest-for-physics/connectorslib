@@ -141,19 +141,17 @@ class TRestDetectorSignalToRawSignalProcess : public TRestEventProcess {
     /// Returns the name of this process
     const char* GetProcessName() const override { return "signalToRawSignal"; }
 
-    // Constructor
     TRestDetectorSignalToRawSignalProcess();
 
-    TRestDetectorSignalToRawSignalProcess(const char* configFilename);
+    explicit TRestDetectorSignalToRawSignalProcess(const char* configFilename);
 
-    // Destructor
-    ~TRestDetectorSignalToRawSignalProcess();
+    ~TRestDetectorSignalToRawSignalProcess() override;
 
    private:
     std::map<std::string, Parameters> fParametersMap;
     std::set<std::string> fReadoutTypes;
 
-    ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 7);
+    ClassDefOverride(TRestDetectorSignalToRawSignalProcess, 8);
 };
 
 #endif
