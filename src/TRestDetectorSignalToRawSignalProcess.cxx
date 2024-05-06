@@ -695,6 +695,10 @@ void TRestDetectorSignalToRawSignalProcess::PrintMetadata() {
         if (shapingTime > 0) {
             RESTMetadata << "Shaping time: " << shapingTime * 1000 << " ns" << RESTendl;
         }
+        const double noiseLevel = fParametersMap.at(readoutType).noiseLevel;
+        if(noiseLevel > 0){
+            RESTMetadata << "Noise Level: " << noiseLevel << RESTendl;
+        }
 
         if (IsLinearCalibration()) {
             RESTMetadata << "Calibration energies: (" << fParametersMap.at(readoutType).calibrationEnergy.X()
