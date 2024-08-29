@@ -249,10 +249,12 @@ Int_t TRestDetectorHitsToTrackProcess::FindTracks(TRestHits* hits) {
         track->SetVolumeHits(volHit);
         volHit.RemoveHits();
 
-        RESTDebug << "Adding track : id=" << track->GetTrackID() << " parent : " << track->GetParentID()
-                  << RESTendl;
-        fTrackEvent->AddTrack(track);
-        nTracksFound++;
+        if (Q.size() > 1 || !fIgnoreOneHitTracks) {
+            RESTDebug << "Adding track : id=" << track->GetTrackID() << " parent : " << track->GetParentID()
+                    << RESTendl;
+            fTrackEvent->AddTrack(track);
+            nTracksFound++;
+        }
 
         Q.clear();
     }
@@ -260,4 +262,9 @@ Int_t TRestDetectorHitsToTrackProcess::FindTracks(TRestHits* hits) {
     delete track;
 
     return nTracksFound;
+}
+
+void TRestDetectorHitsToTrackProcess::InitFromConfigFile() {
+    fClusterDistance = StringToDouble(GetParameter("clusterDistance", fClusterDistance));
+    fIgnoreOneHitTracks = StringToBool(GetParameter("ignoreOneHitTracks", fIgnoreOneHitTracks));
 }
