@@ -251,7 +251,7 @@ Int_t TRestDetectorHitsToTrackProcess::FindTracks(TRestHits* hits) {
 
         if (Q.size() > 1 || !fIgnoreOneHitTracks) {
             RESTDebug << "Adding track : id=" << track->GetTrackID() << " parent : " << track->GetParentID()
-                    << RESTendl;
+                      << RESTendl;
             fTrackEvent->AddTrack(track);
             nTracksFound++;
         }
