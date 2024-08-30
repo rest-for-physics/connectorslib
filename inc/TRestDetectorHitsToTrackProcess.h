@@ -43,6 +43,7 @@ class TRestDetectorHitsToTrackProcess : public TRestEventProcess {
    protected:
     /// The hits distance used to define a cluster of hits
     Double_t fClusterDistance = 2.5;
+    Bool_t fIgnoreOneHitTracks = false;
 
    public:
     RESTValue GetInputEvent() const override { return fHitsEvent; }
@@ -55,6 +56,7 @@ class TRestDetectorHitsToTrackProcess : public TRestEventProcess {
         BeginPrintProcess();
 
         RESTMetadata << " cluster-distance : " << fClusterDistance << " mm " << RESTendl;
+        RESTMetadata << " ignoreOneHitTracks : " << fIgnoreOneHitTracks << " 0=false, 1=true " << RESTendl;
 
         EndPrintProcess();
     }
@@ -62,10 +64,12 @@ class TRestDetectorHitsToTrackProcess : public TRestEventProcess {
     /// Returns the name of this process
     const char* GetProcessName() const override { return "hitsToTrack"; }
 
+    void InitFromConfigFile() override;
+
     TRestDetectorHitsToTrackProcess();
     ~TRestDetectorHitsToTrackProcess();
 
-    ClassDefOverride(TRestDetectorHitsToTrackProcess, 1);  // Template for a REST "event process" class
+    ClassDefOverride(TRestDetectorHitsToTrackProcess, 2);  // Template for a REST "event process" class
                                                            // inherited from TRestEventProcess
 };
 #endif
