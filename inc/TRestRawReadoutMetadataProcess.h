@@ -29,7 +29,7 @@ class TRestRawReadoutMetadataProcess : public TRestEventProcess {
 
     const char* GetProcessName() const override { return "readoutMetadata"; }
 
-    explicit TRestRawReadoutMetadataProcess(const char* configFilename){};
+    explicit TRestRawReadoutMetadataProcess(const char* configFilename) {};
 
     TRestRawReadoutMetadataProcess() = default;
     ~TRestRawReadoutMetadataProcess() = default;
