@@ -5,12 +5,8 @@
 //***
 //**********************************************************************************************************
 
-Int_t REST_Connectors_RawReadoutChannelActivity(
-    std::string fName,
-    TString fReadout,
-    std::string cut="",
-    Int_t nEntries=0
-) {
+Int_t REST_Connectors_RawReadoutChannelActivity(std::string fName, TString fReadout, std::string cut = "",
+                                                Int_t nEntries = 0) {
     //// Readout ////
     std::cout << "Opening readout file: " << fReadout << std::endl;
     TFile* f = new TFile(fReadout);
@@ -33,9 +29,9 @@ Int_t REST_Connectors_RawReadoutChannelActivity(
 
     std::cout << "Getting modules..." << std::endl;
     std::vector<TRestDetectorReadoutModule*> modules;
-    for (size_t p=0; p<readout->GetNumberOfReadoutPlanes(); p++) {
+    for (size_t p = 0; p < readout->GetNumberOfReadoutPlanes(); p++) {
         TRestDetectorReadoutPlane* plane = readout->GetReadoutPlane(p);
-        for (size_t m=0; m<plane->GetNumberOfModules(); m++) {
+        for (size_t m = 0; m < plane->GetNumberOfModules(); m++) {
             modules.push_back(plane->GetModule(m));
         }
     }
@@ -45,23 +41,27 @@ Int_t REST_Connectors_RawReadoutChannelActivity(
     std::vector<TH2D*> hChannelActivityIDTime;
     for (size_t m = 0; m < modules.size(); m++) {
         auto module = modules[m];
-        hChannelActivityID.push_back(new TH1D("", Form("Readout ID - module %zu", m), module->GetMaxDaqID()-module->GetMinDaqID(), module->GetMinDaqID(), module->GetMaxDaqID()));
-        hChannelActivityIDTime.push_back(new TH2D("", Form("ChAct ID - Time - module %zu", m), 100, startTimeStamp, endTimeStamp, module->GetMaxDaqID()-module->GetMinDaqID(), module->GetMinDaqID(), module->GetMaxDaqID()));
+        hChannelActivityID.push_back(new TH1D("", Form("Readout ID - module %zu", m),
+                                              module->GetMaxDaqID() - module->GetMinDaqID(),
+                                              module->GetMinDaqID(), module->GetMaxDaqID()));
+        hChannelActivityIDTime.push_back(new TH2D(
+            "", Form("ChAct ID - Time - module %zu", m), 100, startTimeStamp, endTimeStamp,
+            module->GetMaxDaqID() - module->GetMinDaqID(), module->GetMinDaqID(), module->GetMaxDaqID()));
     }
 
     std::cout << "Looping over entries..." << std::endl;
     // Loop over entries and signals per entry
     TRestRawSignalEvent* fRawSignalEvent = new TRestRawSignalEvent();
     Int_t nEntriesToProcess = run->GetEntries();
-    if (nEntries > 0 && nEntries < run->GetEntries())
-        nEntriesToProcess = nEntries;
-    
+    if (nEntries > 0 && nEntries < run->GetEntries()) nEntriesToProcess = nEntries;
+
     TRestAnalysisTree* analysisTree = run->GetAnalysisTree();
     for (Int_t i = 0; i < nEntriesToProcess; i++) {
         run->GetEntry(i);
-        auto progressPercentage= (i+1)*100./nEntriesToProcess;
-        if (i==0 || i%1000==0 || i==nEntriesToProcess-1)
-            std::cout << "\rEntry: " << i << " / " << nEntriesToProcess << " (" << progressPercentage << "%)" << std::flush;
+        auto progressPercentage = (i + 1) * 100. / nEntriesToProcess;
+        if (i == 0 || i % 1000 == 0 || i == nEntriesToProcess - 1)
+            std::cout << "\rEntry: " << i << " / " << nEntriesToProcess << " (" << progressPercentage << "%)"
+                      << std::flush;
 
         if (cut != "") {
             if (!analysisTree->EvaluateCuts(cut.c_str())) {
@@ -74,7 +74,7 @@ Int_t REST_Connectors_RawReadoutChannelActivity(
             TRestRawSignal* sigA = fRawSignalEvent->GetSignal(k);
             auto signalID = sigA->GetID();
             // find the module corresponding to the signal ID
-            for (size_t m=0; m<modules.size(); m++) {
+            for (size_t m = 0; m < modules.size(); m++) {
                 auto module = modules[m];
                 if (module->IsDaqIDInside(signalID)) {
                     hChannelActivityID[m]->Fill(signalID);
@@ -92,7 +92,7 @@ Int_t REST_Connectors_RawReadoutChannelActivity(
         hChannelActivityID[m]->SetFillColor(4);
         hChannelActivityID[m]->Draw("histo");
         hChannelActivityID[m]->GetXaxis()->SetTitle(Form("ID readout channel - Module %zu", m));
-        
+
         // Generate TGraph of readout channel activity ordered by its position in X and Y
         TGraph* gX = new TGraph();
         TGraph* gY = new TGraph();
@@ -114,23 +114,24 @@ Int_t REST_Connectors_RawReadoutChannelActivity(
         TCanvas* cX2 = new TCanvas(Form("cX2_module%zu", m));
         gX->SetFillColor(38);
         gX->SetMarkerColor(4);
-        //gX->SetMarkerSize(0.2);
+        // gX->SetMarkerSize(0.2);
         gX->Draw("APB");
         gX->GetXaxis()->SetTitle(Form("X readout channel (mm) - Module %zu", m));
-        
+
         TCanvas* cY2 = new TCanvas(Form("cY2_module%zu", m));
         gY->SetFillColor(38);
         gY->SetMarkerColor(4);
-        //gY->SetMarkerSize(0.2);
+        // gY->SetMarkerSize(0.2);
         gY->Draw("APB");
         gY->GetXaxis()->SetTitle(Form("Y readout channel (mm) - Module %zu", m));
 
-
         // Generate 2D histogram of readout channel activity in time ordered by its position in X and Y
-        TH2D* hChannelActivityXTime = new TH2D("", Form("ChAct X - Time - module %zu", m), 100, startTimeStamp, endTimeStamp, mod->GetNumberOfChannels()/2, mod->GetOrigin().X(),
-                            mod->GetOrigin().X() + mod->GetSize().X());
-        TH2D* hChannelActivityYTime = new TH2D("", Form("ChAct Y - Time - module %zu", m),100, startTimeStamp, endTimeStamp, mod->GetNumberOfChannels()/2, mod->GetOrigin().Y(),
-                            mod->GetOrigin().Y() + mod->GetSize().Y());
+        TH2D* hChannelActivityXTime = new TH2D(
+            "", Form("ChAct X - Time - module %zu", m), 100, startTimeStamp, endTimeStamp,
+            mod->GetNumberOfChannels() / 2, mod->GetOrigin().X(), mod->GetOrigin().X() + mod->GetSize().X());
+        TH2D* hChannelActivityYTime = new TH2D(
+            "", Form("ChAct Y - Time - module %zu", m), 100, startTimeStamp, endTimeStamp,
+            mod->GetNumberOfChannels() / 2, mod->GetOrigin().Y(), mod->GetOrigin().Y() + mod->GetSize().Y());
         for (int bx = 1; bx <= hChannelActivityIDTime[m]->GetNbinsY(); bx++) {
             int signalID = hChannelActivityIDTime[m]->GetYaxis()->GetBinCenter(bx);
             auto x = readout->GetX(signalID);
@@ -158,7 +159,6 @@ Int_t REST_Connectors_RawReadoutChannelActivity(
         hChannelActivityYTime->GetYaxis()->SetTitle(Form("Y readout channel (mm) - Module %zu", m));
         hChannelActivityYTime->GetXaxis()->SetTitle("Time");
         hChannelActivityYTime->GetXaxis()->SetTimeDisplay(1);
-
     }
 
     return 0;
