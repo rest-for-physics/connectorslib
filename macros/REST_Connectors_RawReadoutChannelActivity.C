@@ -88,7 +88,8 @@ Int_t REST_Connectors_RawReadoutChannelActivity(std::string fName, TString fRead
     for (size_t m = 0; m < modules.size(); m++) {
         auto mod = modules[m];
         // Plot readout channel activity
-        TCanvas* cChAct = new TCanvas(Form("cChAct_m%zu", m), Form("Module %zu - Channel Activity", m), 1200, 400);
+        TCanvas* cChAct =
+            new TCanvas(Form("cChAct_m%zu", m), Form("Module %zu - Channel Activity", m), 1200, 400);
         cChAct->Divide(3, 1);
 
         cChAct->cd(1);
@@ -150,7 +151,8 @@ Int_t REST_Connectors_RawReadoutChannelActivity(std::string fName, TString fRead
             }
         }
 
-        TCanvas* cChActTime = new TCanvas(Form("cChActTime_m%zu", m), Form("Module %zu - Channel Activity in Time", m));
+        TCanvas* cChActTime =
+            new TCanvas(Form("cChActTime_m%zu", m), Form("Module %zu - Channel Activity in Time", m));
         cChActTime->Divide(2, 1);
 
         cChActTime->cd(1);
