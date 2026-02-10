@@ -88,7 +88,11 @@ Int_t REST_Connectors_RawReadoutChannelActivity(std::string fName, TString fRead
     for (size_t m = 0; m < modules.size(); m++) {
         auto mod = modules[m];
         // Plot readout channel activity
-        TCanvas* cID = new TCanvas(Form("cID_module%zu", m));
+        TCanvas* cChAct = new TCanvas(Form("cChAct_m%zu", m), Form("Module %zu - Channel Activity", m), 1200, 400);
+        cChAct->Divide(3, 1);
+
+        cChAct->cd(1);
+        hChannelActivityID[m]->SetStats(0);
         hChannelActivityID[m]->SetFillColor(4);
         hChannelActivityID[m]->Draw("histo");
         hChannelActivityID[m]->GetXaxis()->SetTitle(Form("ID readout channel - Module %zu", m));
@@ -111,17 +115,15 @@ Int_t REST_Connectors_RawReadoutChannelActivity(std::string fName, TString fRead
             }
         }
 
-        TCanvas* cX2 = new TCanvas(Form("cX2_module%zu", m));
+        cChAct->cd(2);
         gX->SetFillColor(38);
         gX->SetMarkerColor(4);
-        // gX->SetMarkerSize(0.2);
         gX->Draw("APB");
         gX->GetXaxis()->SetTitle(Form("X readout channel (mm) - Module %zu", m));
 
-        TCanvas* cY2 = new TCanvas(Form("cY2_module%zu", m));
+        cChAct->cd(3);
         gY->SetFillColor(38);
         gY->SetMarkerColor(4);
-        // gY->SetMarkerSize(0.2);
         gY->Draw("APB");
         gY->GetXaxis()->SetTitle(Form("Y readout channel (mm) - Module %zu", m));
 
@@ -148,13 +150,18 @@ Int_t REST_Connectors_RawReadoutChannelActivity(std::string fName, TString fRead
             }
         }
 
-        TCanvas* cCAX = new TCanvas(Form("cCAX_module%zu", m));
+        TCanvas* cChActTime = new TCanvas(Form("cChActTime_m%zu", m), Form("Module %zu - Channel Activity in Time", m));
+        cChActTime->Divide(2, 1);
+
+        cChActTime->cd(1);
+        hChannelActivityXTime->SetStats(0);
         hChannelActivityXTime->Draw("histo colz");
         hChannelActivityXTime->GetYaxis()->SetTitle(Form("X readout channel (mm) - Module %zu", m));
         hChannelActivityXTime->GetXaxis()->SetTitle("Time");
         hChannelActivityXTime->GetXaxis()->SetTimeDisplay(1);
 
-        TCanvas* cCAY = new TCanvas(Form("cCAY_module%zu", m));
+        cChActTime->cd(2);
+        hChannelActivityYTime->SetStats(0);
         hChannelActivityYTime->Draw("histo colz");
         hChannelActivityYTime->GetYaxis()->SetTitle(Form("Y readout channel (mm) - Module %zu", m));
         hChannelActivityYTime->GetXaxis()->SetTitle("Time");
