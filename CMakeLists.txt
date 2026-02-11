@@ -30,4 +30,7 @@ else ()
     )
 endif ()
 
+file(GLOB_RECURSE MAC "${CMAKE_CURRENT_SOURCE_DIR}/macros/*")
+install(FILES ${MAC} DESTINATION ./macros/connectors)
+
 add_library_test()
