@@ -38,6 +38,7 @@
 ///
 /// * **clusterDistance**: It is the distance at which two hits are
 /// considered to belong to the same group of hits.
+/// * **ignoreOneHitTracks**: Flag to ignore one hit tracks if desired.
 ///
 /// The following lines of code show how the process metadata should be
 /// defined.
@@ -47,8 +48,10 @@
 ///
 /// \code
 ///
-/// <addProcess type="TRestDetectorHitsToTrackProcess name="hitsToTrack"
-///				clusterDistance="2.5mm" />
+/// <addProcess type="TRestDetectorHitsToTrackProcess" name="hitsToTrack" value="ON" verboseLevel="silent">
+///     <parameter name="clusterDistance" value="3.5"/>
+///     <parameter name="ignoreOneHitTracks" value="true"/>
+/// </addProcess>
 ///
 /// \endcode
 ///
@@ -249,10 +252,12 @@ Int_t TRestDetectorHitsToTrackProcess::FindTracks(TRestHits* hits) {
         track->SetVolumeHits(volHit);
         volHit.RemoveHits();
 
-        RESTDebug << "Adding track : id=" << track->GetTrackID() << " parent : " << track->GetParentID()
-                  << RESTendl;
-        fTrackEvent->AddTrack(track);
-        nTracksFound++;
+        if (Q.size() > 1 || !fIgnoreOneHitTracks) {
+            RESTDebug << "Adding track : id=" << track->GetTrackID() << " parent : " << track->GetParentID()
+                      << RESTendl;
+            fTrackEvent->AddTrack(track);
+            nTracksFound++;
+        }
 
         Q.clear();
     }
@@ -260,4 +265,9 @@ Int_t TRestDetectorHitsToTrackProcess::FindTracks(TRestHits* hits) {
     delete track;
 
     return nTracksFound;
+}
+
+void TRestDetectorHitsToTrackProcess::InitFromConfigFile() {
+    fClusterDistance = StringToDouble(GetParameter("clusterDistance", fClusterDistance));
+    fIgnoreOneHitTracks = StringToBool(GetParameter("ignoreOneHitTracks", fIgnoreOneHitTracks));
 }
