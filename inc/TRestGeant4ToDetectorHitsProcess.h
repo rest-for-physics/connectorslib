@@ -32,10 +32,10 @@
 #include <vector>
 
 struct VolumeProperties {
-      Int_t volumeID;
-      TString volumeName;
-      REST_HitType hitType;
-      Double_t gain;
+    Int_t volumeID;
+    TString volumeName;
+    REST_HitType hitType;
+    Double_t gain;
 };
 
 /// A process to transform a *TRestGeant4Event* into a *TRestDetectorHitsEvent*.
@@ -56,10 +56,12 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
     /// The hit type associated to each selected volume (same order as fVolumeSelection).
     std::vector<REST_HitType> fVolumeHitType;
 
-    /// The gain applied to the energy deposition of each hit in the selected volumes (same order as fVolumeSelection).
+    /// The gain applied to the energy deposition of each hit in the selected volumes (same order as
+    /// fVolumeSelection).
     std::vector<Double_t> fVolumeGain;
 
-    /// Vector of volumes selection and its properties. Set on InitProcess and used for easy and fast access when processing the event.
+    /// Vector of volumes selection and its properties. Set on InitProcess and used for easy and fast access
+    /// when processing the event.
     std::vector<VolumeProperties> fVolumeProperties;  //!
 
     void InitFromConfigFile() override;

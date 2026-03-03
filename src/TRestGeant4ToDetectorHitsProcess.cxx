@@ -142,7 +142,7 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
     for (const auto& userVolume : fVolumeSelection) {
         auto volId = fGeant4Metadata->GetActiveVolumeID(userVolume);
         if (volId >= 0) {
-            VolumeProperties properties{volId, userVolume, REST_HitType::XYZ, 1.0}; // default values
+            VolumeProperties properties{volId, userVolume, REST_HitType::XYZ, 1.0};  // default values
             for (size_t i = 0; i < fVolumeSelection.size(); i++) {
                 if (fVolumeSelection[i] == userVolume) {
                     properties.hitType = fVolumeHitType[i];
@@ -157,19 +157,18 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
     }
 
     // sort fVolumeProperties by volumeID for faster access when processing the event
-    sort(fVolumeProperties.begin(), fVolumeProperties.end(), [](const VolumeProperties& a, const VolumeProperties& b) {
-        return a.volumeID < b.volumeID;
-    });
+    sort(fVolumeProperties.begin(), fVolumeProperties.end(),
+         [](const VolumeProperties& a, const VolumeProperties& b) { return a.volumeID < b.volumeID; });
     // erase duplicate volumeIDs in fVolumeProperties (if any)
-    fVolumeProperties.erase(unique(fVolumeProperties.begin(), fVolumeProperties.end(),
-                                  [](const VolumeProperties& a, const VolumeProperties& b) {
-                                      return a.volumeID == b.volumeID;
-                                  }),
-                             fVolumeProperties.end());
+    fVolumeProperties.erase(
+        unique(fVolumeProperties.begin(), fVolumeProperties.end(),
+               [](const VolumeProperties& a, const VolumeProperties& b) { return a.volumeID == b.volumeID; }),
+        fVolumeProperties.end());
 
     for (size_t i = 0; i < fVolumeProperties.size(); i++) {
         RESTDebug << "TRestGeant4ToDetectorHitsProcess. Volume id : " << fVolumeProperties[i].volumeID
-                  << " name : " << fGeant4Metadata->GetActiveVolumeName(fVolumeProperties[i].volumeID) << RESTendl;
+                  << " name : " << fGeant4Metadata->GetActiveVolumeName(fVolumeProperties[i].volumeID)
+                  << RESTendl;
     }
 
     RESTDebug << "Active volumes available in TRestGeant4Metadata" << RESTendl;
@@ -377,7 +376,7 @@ void TRestGeant4ToDetectorHitsProcess::PrintMetadata() {
         const auto& gain = fVolumeGain[i];
         const auto& hitType = fVolumeHitType[i];
         RESTMetadata << "Volume added : " << volume << " with gain : " << gain
-                        << " and hit type : " << hitType << RESTendl;
+                     << " and hit type : " << hitType << RESTendl;
     }
 
     EndPrintProcess();
