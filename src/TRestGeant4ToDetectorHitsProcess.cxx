@@ -140,19 +140,36 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
     fGeant4Metadata = GetMetadata<TRestGeant4Metadata>();
 
     for (const auto& userVolume : fVolumeSelection) {
-        if (fGeant4Metadata->GetActiveVolumeID(userVolume) >= 0) {
-            fVolumeId.push_back(fGeant4Metadata->GetActiveVolumeID(userVolume));
+        auto volId = fGeant4Metadata->GetActiveVolumeID(userVolume);
+        if (volId >= 0) {
+            VolumeProperties properties{volId, userVolume, REST_HitType::XYZ, 1.0}; // default values
+            for (size_t i = 0; i < fVolumeSelection.size(); i++) {
+                if (fVolumeSelection[i] == userVolume) {
+                    properties.hitType = fVolumeHitType[i];
+                    properties.gain = fVolumeGain[i];
+                    break;
+                }
+            }
+            fVolumeProperties.push_back(properties);
         } else if (GetVerboseLevel() >= TRestStringOutput::REST_Verbose_Level::REST_Warning)
             cout << "TRestGeant4ToDetectorHitsProcess. volume name : " << userVolume
                  << " not found and will not be added." << endl;
     }
 
-    sort(fVolumeId.begin(), fVolumeId.end());
-    fVolumeId.erase(unique(fVolumeId.begin(), fVolumeId.end()), fVolumeId.end());
+    // sort fVolumeProperties by volumeID for faster access when processing the event
+    sort(fVolumeProperties.begin(), fVolumeProperties.end(), [](const VolumeProperties& a, const VolumeProperties& b) {
+        return a.volumeID < b.volumeID;
+    });
+    // erase duplicate volumeIDs in fVolumeProperties (if any)
+    fVolumeProperties.erase(unique(fVolumeProperties.begin(), fVolumeProperties.end(),
+                                  [](const VolumeProperties& a, const VolumeProperties& b) {
+                                      return a.volumeID == b.volumeID;
+                                  }),
+                             fVolumeProperties.end());
 
-    for (size_t i = 0; i < fVolumeId.size(); i++) {
-        RESTDebug << "TRestGeant4ToDetectorHitsProcess. Volume id : " << fVolumeId[i]
-                  << " name : " << fGeant4Metadata->GetActiveVolumeName(fVolumeId[i]) << RESTendl;
+    for (size_t i = 0; i < fVolumeProperties.size(); i++) {
+        RESTDebug << "TRestGeant4ToDetectorHitsProcess. Volume id : " << fVolumeProperties[i].volumeID
+                  << " name : " << fGeant4Metadata->GetActiveVolumeName(fVolumeProperties[i].volumeID) << RESTendl;
     }
 
     RESTDebug << "Active volumes available in TRestGeant4Metadata" << RESTendl;
@@ -174,11 +191,11 @@ void TRestGeant4ToDetectorHitsProcess::InitProcess() {
         RESTDebug << " " << RESTendl;
     }
 
-    if (!fVolumeSelection.empty() && fVolumeSelection.size() != fVolumeId.size())
+    if (!fVolumeSelection.empty() && fVolumeSelection.size() != fVolumeProperties.size())
         RESTWarning << "TRestGeant4ToDetectorHitsProcess. Not all volumes were properly identified!"
                     << RESTendl;
 
-    if (!fVolumeId.empty()) {
+    if (!fVolumeProperties.empty()) {
         RESTDebug << "TRestGeant4HitsProcess volumes identified : ";
         RESTDebug << "---------------------------------------" << RESTendl;
         if (fVolumeSelection.empty())
@@ -230,18 +247,22 @@ TRestEvent* TRestGeant4ToDetectorHitsProcess::ProcessEvent(TRestEvent* inputEven
                      << endl;
                 exit(1);
             }
-            if (fVolumeId.empty()) {
+            if (fVolumeProperties.empty()) {
                 // if no volume is selected, all hits are added
                 fHitsEvent->AddHit(position.X(), position.Y(), position.Z(), energy, time);
             } else {
-                const string volumeName = hits.GetVolumeName(i).Data();
+                const TString volumeName = hits.GetVolumeName(i);
                 const auto volumeId = fGeant4Metadata->GetActiveVolumeID(volumeName);
 
                 // cout << "volumeName : " << volumeName << " volumeId : " << volumeId << endl;
-                if (find(fVolumeId.begin(), fVolumeId.end(), volumeId) != fVolumeId.end()) {
-                    const REST_HitType type = fHitTypes.at(volumeName);
+                auto it = find_if(fVolumeProperties.begin(), fVolumeProperties.end(),
+                                  [volumeId](const VolumeProperties& vp) { return vp.volumeID == volumeId; });
+                if (it != fVolumeProperties.end()) {
+                    const auto& properties = *it;
+                    const REST_HitType type = properties.hitType;
+                    const Double_t gain = properties.gain;
 
-                    fHitsEvent->AddHit(position, energy, time, type);
+                    fHitsEvent->AddHit(position, energy * gain, time, type);
                 }
             }
         }
@@ -269,6 +290,8 @@ void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
     }
 
     set<string> volumesToAdd;
+    map<string, Double_t> volumeGain;
+    map<string, REST_HitType> volumeHitType;
     TiXmlElement* volumeDefinition = GetElement("volume");
     if (volumeDefinition == nullptr) {
         volumeDefinition = GetElement("addVolume");
@@ -281,6 +304,7 @@ void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
     while (volumeDefinition != nullptr) {
         const auto userVolume = GetFieldValue("name", volumeDefinition);
         const auto typeName = GetFieldValue("type", volumeDefinition);
+        const Double_t gain = StringToDouble(GetParameter("gain", volumeDefinition, "1.0"));
         REST_HitType type = XYZ;
         if (typeName == "veto") {
             type = VETO;
@@ -305,11 +329,13 @@ void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
             }
             for (const auto& physicalVolume : physicalVolumes) {
                 volumesToAdd.insert(physicalVolume.Data());
-                fHitTypes[physicalVolume.Data()] = type;
+                volumeHitType[physicalVolume.Data()] = type;
+                volumeGain[physicalVolume.Data()] = gain;
             }
         } else {
             volumesToAdd.insert(userVolume);
-            fHitTypes[userVolume] = type;
+            volumeHitType[userVolume] = type;
+            volumeGain[userVolume] = gain;
         }
 
         volumeDefinition = GetNextElement(volumeDefinition);
@@ -318,6 +344,24 @@ void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
     for (const auto& volume : volumesToAdd) {
         if (find(fVolumeSelection.begin(), fVolumeSelection.end(), volume) == fVolumeSelection.end()) {
             fVolumeSelection.emplace_back(volume);
+
+            // hit type should be in volumeHitType. Anyways, set default hit type of XYZ if not found
+            if (volumeHitType.find(volume) != volumeHitType.end()) {
+                fVolumeHitType.push_back(volumeHitType[volume]);
+            } else {
+                RESTWarning << "TRestGeant4ToDetectorHitsProcess. No hit type defined for volume " << volume
+                            << ". Using default hit type XYZ" << RESTendl;
+                fVolumeHitType.push_back(XYZ);
+            }
+
+            // volume should be in volumeGain. Anyways, set deafult gain of 1.0 if not found
+            if (volumeGain.find(volume) != volumeGain.end()) {
+                fVolumeGain.push_back(volumeGain[volume]);
+            } else {
+                RESTWarning << "TRestGeant4ToDetectorHitsProcess. No gain defined for volume " << volume
+                            << ". Using default gain of 1.0" << RESTendl;
+                fVolumeGain.push_back(1.0);
+            }
         }
     }
 }
@@ -328,8 +372,12 @@ void TRestGeant4ToDetectorHitsProcess::InitFromConfigFile() {
 void TRestGeant4ToDetectorHitsProcess::PrintMetadata() {
     BeginPrintProcess();
 
-    for (const auto& volume : fVolumeSelection) {
-        RESTMetadata << "Volume added : " << volume << RESTendl;
+    for (size_t i = 0; i < fVolumeSelection.size(); i++) {
+        const auto& volume = fVolumeSelection[i];
+        const auto& gain = fVolumeGain[i];
+        const auto& hitType = fVolumeHitType[i];
+        RESTMetadata << "Volume added : " << volume << " with gain : " << gain
+                        << " and hit type : " << hitType << RESTendl;
     }
 
     EndPrintProcess();

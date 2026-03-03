@@ -31,6 +31,13 @@
 #include <string>
 #include <vector>
 
+struct VolumeProperties {
+      Int_t volumeID;
+      TString volumeName;
+      REST_HitType hitType;
+      Double_t gain;
+};
+
 /// A process to transform a *TRestGeant4Event* into a *TRestDetectorHitsEvent*.
 class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
    private:
@@ -43,13 +50,17 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
     /// A pointer to the output TRestDetectorHitsEvent
     TRestDetectorHitsEvent* fHitsEvent;  //!
 
-    /// The volume ids from the volumes selected for transfer to TRestDetectorHitsEvent
-    std::vector<Int_t> fVolumeId;  //!
-
     /// The geometry volume names to be transferred to TRestDetectorHitsEvent
     std::vector<TString> fVolumeSelection;
 
-    std::map<std::string, REST_HitType> fHitTypes;  //!
+    /// The hit type associated to each selected volume (same order as fVolumeSelection).
+    std::vector<REST_HitType> fVolumeHitType;
+
+    /// The gain applied to the energy deposition of each hit in the selected volumes (same order as fVolumeSelection).
+    std::vector<Double_t> fVolumeGain;
+
+    /// Vector of volumes selection and its properties. Set on InitProcess and used for easy and fast access when processing the event.
+    std::vector<VolumeProperties> fVolumeProperties;  //!
 
     void InitFromConfigFile() override;
 
@@ -84,7 +95,7 @@ class TRestGeant4ToDetectorHitsProcess : public TRestEventProcess {
     // Destructor
     ~TRestGeant4ToDetectorHitsProcess() override;
 
-    ClassDefOverride(TRestGeant4ToDetectorHitsProcess, 2);  // Transform a TRestGeant4Event event to a
+    ClassDefOverride(TRestGeant4ToDetectorHitsProcess, 3);  // Transform a TRestGeant4Event event to a
                                                             // TRestDetectorHitsEvent (hits-collection event)
 };
 
