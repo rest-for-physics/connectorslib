@@ -25,13 +25,13 @@
 /// TRestGeant4Metadata) that will be transferred to the TRestDetectorHitsEvent by
 /// using the `<volume` key inside the process definition.
 ///
+/// ## Basic usage
 /// The following example shows how to include the process into
 /// `TRestProcessRunner` RML definition. In this particular example we
 /// extract hits from `gas` and `vessel` volumes defined in the geometry.
 /// Any other hits will be ignored.
 ///
 /// \code
-///
 /// <addProcess type="TRestGeant4ToDetectorHitsProcess" name="g4ToHits" value="ON">
 ///     <volume name="gas"/>
 ///     <volume name="vessel"/>
@@ -41,6 +41,19 @@
 /// If no volumes are defined using the `<volume` key, **all volumes will
 /// be active**, and all hits will be transferred to the TRestDetectorHitsEvent output.
 ///
+/// ## Advanced options
+/// There are a couple of additional parameters that can be defined for each volume:
+/// * **type**: The hit type associated to the selected volume. Useful for veto volumes by setting it to `veto`. Otherwise, the default value is `XYZ`.
+/// * **gain**: A gain factor applied to the energy deposition of each hit in the selected volume. Default is 1.
+///
+/// For example:
+/// \code
+/// <addProcess type="TRestGeant4ToDetectorHitsProcess" name="g4ToHits" value="ON">
+///     <volume name="driftGas"/> <!-- default hit type is XYZ and gain is 1 -->
+///     <volume name="transferGas" gain="0.1"/>
+///     <volume name="scintillator" type="veto"/>
+/// </addProcess>
+/// \endcode
 ///--------------------------------------------------------------------------
 ///
 /// RESTsoft - Software for Rare Event Searches with TPCs
