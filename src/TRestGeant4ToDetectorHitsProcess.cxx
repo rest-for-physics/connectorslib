@@ -43,8 +43,10 @@
 ///
 /// ## Advanced options
 /// There are a couple of additional parameters that can be defined for each volume:
-/// * **type**: The hit type associated to the selected volume. Useful for veto volumes by setting it to `veto`. Otherwise, the default value is `XYZ`.
-/// * **gain**: A gain factor applied to the energy deposition of each hit in the selected volume. Default is 1.
+/// * **type**: The hit type associated to the selected volume. Useful for veto volumes by setting it to
+/// `veto`. Otherwise, the default value is `XYZ`.
+/// * **gain**: A gain factor applied to the energy deposition of each hit in the selected volume. Default
+/// is 1.
 ///
 /// For example:
 /// \code
